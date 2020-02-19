@@ -1,0 +1,13 @@
+language: python
+
+jobs:
+  include:
+    - name: "CI on Linux/Python3.6"
+      os: linux
+      python: 3.6
+      script: /bin/bash ./scripts/check_code_style.sh
+
+notifications:
+  email:
+    on_success: change
+    on_failure: always
