@@ -10,4 +10,4 @@ create_module(
     summary="Baidu's open-source lexical analysis tool for Chinese,\
             including word segmentation, part-of-speech tagging & \
             named entity recognition",
-    version='3.0.0')
+    version='2.1.0')

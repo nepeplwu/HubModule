@@ -68,6 +68,7 @@ class Interventer(object):
             [pos_type.lower() for pos_type in all_pos_types.split(" ")])
 
     def load_dict(self):
+        """load unigram dict and user dict"""
         import ahocorasick
         self.total_count = 0.0
         self.ngram_dict = {}
@@ -88,8 +89,6 @@ class Interventer(object):
             wordfreq = self.ngram_dict[key]
             self.ngram_dict[key] = np.log(wordfreq / self.total_count)
         self.oov_score = np.log(1 / self.total_count)
-        print("Successfully loaded unigram.dict, got %d words." % (len(
-            self.ngram_dict)))
 
         self.user_dict = ahocorasick.Automaton()
         for line in io.open(self.user_dict_path, mode="r", encoding="utf-8"):
@@ -134,6 +133,7 @@ class Interventer(object):
         return bound
 
     def calc_lm_score(self, phrase_list):
+        """calculate the language model score"""
         lm_score = 0.0
         if len(phrase_list) == 0:
             return 0.0

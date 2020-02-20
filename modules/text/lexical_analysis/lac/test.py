@@ -10,10 +10,11 @@ import paddlehub as hub
 
 if __name__ == "__main__":
     # Load LAC Module
-    lac = hub.Module(name="lac")
+    lac = hub.Module(name="lac", user_dict="user.dict")
     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
-    lac.set_user_dict("user.dict")
-    results = lac.lexical_analysis(data=["今天是个好日子"], use_gpu=True, batch_size=1)
+    # lac.set_user_dict("user.dict")
+    results = lac.lexical_analysis(
+        data={'text': test_text}, use_gpu=True, batch_size=1)
     # execute predict and print the result
     for result in results:
         if six.PY2:
@@ -24,7 +25,10 @@ if __name__ == "__main__":
         else:
             print(result['word'])
             print(result['tag'])
-    results = lac.lexical_analysis(data=test_text, use_gpu=False, batch_size=10)
+
+    lac.del_user_dict()
+    results = lac.lexical_analysis(
+        texts=test_text, use_gpu=False, batch_size=10)
     for result in results:
         if six.PY2:
             print(
@@ -34,3 +38,5 @@ if __name__ == "__main__":
         else:
             print(result['word'])
             print(result['tag'])
+
+    print(lac.get_tags())
