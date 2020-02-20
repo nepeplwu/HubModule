@@ -35,25 +35,25 @@ class LAC(hub.Module):
         """
         self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         self.word2id_dict = load_kv_dict(
-            os.path.join(self.directory, "asserts/word.dic"),
+            os.path.join(self.directory, "assets/word.dic"),
             reverse=True,
             value_func=int)
         self.id2word_dict = load_kv_dict(
-            os.path.join(self.directory, "asserts/word.dic"))
+            os.path.join(self.directory, "assets/word.dic"))
         self.label2id_dict = load_kv_dict(
-            os.path.join(self.directory, "asserts/tag.dic"),
+            os.path.join(self.directory, "assets/tag.dic"),
             reverse=True,
             value_func=int)
         self.id2label_dict = load_kv_dict(
-            os.path.join(self.directory, "asserts/tag.dic"))
+            os.path.join(self.directory, "assets/tag.dic"))
         self.word_replace_dict = load_kv_dict(
-            os.path.join(self.directory, "asserts/q2b.dic"))
+            os.path.join(self.directory, "assets/q2b.dic"))
         self.unigram_dict_path = os.path.join(self.directory,
-                                              "asserts/unigram.dict")
+                                              "assets/unigram.dict")
         self.oov_id = self.word2id_dict['OOV']
         self.word_dict_len = max(map(int, self.word2id_dict.values())) + 1
         self.label_dict_len = max(map(int, self.label2id_dict.values())) + 1
-        self.tag_file = os.path.join(self.directory, "asserts/tag_file.txt")
+        self.tag_file = os.path.join(self.directory, "assets/tag_file.txt")
 
         if user_dict:
             self.set_user_dict(dict_path=user_dict)
