@@ -170,7 +170,8 @@ class LAC(hub.Module):
                          data={},
                          use_gpu=False,
                          batch_size=1,
-                         user_dict=None):
+                         user_dict=None,
+                         return_tag=True):
         """
         Get the word segmentation results with the texts as input
 
@@ -186,7 +187,7 @@ class LAC(hub.Module):
         """
         if user_dict:
             logger.warning(
-                "If you wanna use customized dictionary, please set the dictionause the function set_user_dict(). The parameter user_dict has been dropped!"
+                "If you wanna use customized dictionary, please use the function set_user_dict() to set the dictionay. The parameter user_dict has been dropped!"
             )
 
         try:
@@ -209,12 +210,18 @@ class LAC(hub.Module):
             crf_decode = self.gpu_predictor.run([tensor_words])
         else:
             crf_decode = self.cpu_predictor.run([tensor_words])
-        result = parse_result(
+        results = parse_result(
             predicted_data,
             crf_decode[0],
             self.id2label_dict,
             interventer=self.interventer)
-        return result
+
+        if not return_tag:
+            for result in results:
+                result = result.pop("tag")
+            return results
+
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -249,7 +256,10 @@ class LAC(hub.Module):
             self.set_user_dict(args.user_dict)
 
         results = self.lexical_analysis(
-            texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
+            texts=input_data,
+            use_gpu=args.use_gpu,
+            batch_size=args.batch_size,
+            return_tag=args.return_tag)
         if six.PY2:
             try:
                 results = json.dumps(
@@ -261,7 +271,7 @@ class LAC(hub.Module):
 
     def get_tags(self, ):
         """
-        Get the lac tags
+        Get the tags which was used when pretraining lac
 
         Returns:
              self.tag_name_dict(dict):lac tags
@@ -281,7 +291,7 @@ class LAC(hub.Module):
             '--use_gpu',
             type=ast.literal_eval,
             default=False,
-            help="whether use GPU for prediction")
+            help="whether use GPU or not")
 
         self.arg_config_group.add_argument(
             '--batch_size',
@@ -295,6 +305,11 @@ class LAC(hub.Module):
             help=
             "customized dictionary for intervening the word segmentation result"
         )
+        self.arg_config_group.add_argument(
+            '--return_tag',
+            type=ast.literal_eval,
+            default=True,
+            help="whether return tags of results or not")
 
     def add_module_input_arg(self):
         """
