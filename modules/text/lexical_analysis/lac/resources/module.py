@@ -19,8 +19,8 @@ from paddlehub.common.logger import logger
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import runnable
 
-from network import lex_net
-from processor import Interventer, load_kv_dict, word_to_ids, parse_result
+from lac_python.network import lex_net
+from lac_python.processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
 
 class DataFormatError(Exception):
