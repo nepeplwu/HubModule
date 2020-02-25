@@ -3,7 +3,7 @@ from paddlehub.module.module import create_module
 
 create_module(
     directory='resources',
-    name='senta_gru',
+    name='senta_gru_v2',
     module_type='nlp/sentiment_analysis',
     author='baidu-nlp ',
     email='nlp@baidu.com ',

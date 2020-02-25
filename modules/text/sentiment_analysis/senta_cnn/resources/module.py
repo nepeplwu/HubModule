@@ -25,17 +25,17 @@ class DataFormatError(Exception):
         self.args = args
 
 
-class Senta_CNN(hub.Module):
+class SentaCNN(hub.Module):
     def _initialize(self, user_dict=None):
         """
         initialize with the necessary elements
         """
-        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
-        vocab_path = os.path.join(self.directory, "assets/vocab.txt")
-        self.word_dict = load_vocab(vocab_path)
-        self.lac = hub.Module(name="lac")
+        self.pretrained_model_path = os.path.join(self.directory, "model")
+        self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
+        self.word_dict = load_vocab(self.vocab_path)
+        self.lac = None
 
-        cpu_config = AnalysisConfig(self.pretrained_model_path)
+        cpu_config = AnalysisConfig(os.path.join(self.directory, "infer_model"))
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
@@ -47,7 +47,8 @@ class Senta_CNN(hub.Module):
         except:
             use_gpu = False
         if use_gpu:
-            gpu_config = AnalysisConfig(self.pretrained_model_path)
+            gpu_config = AnalysisConfig(
+                os.path.join(self.directory, "infer_model"))
             gpu_config.disable_glog_info()
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
@@ -70,7 +71,7 @@ class Senta_CNN(hub.Module):
         main_program = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(main_program, startup_program):
-            with fluid.unique_name.guard():
+            with fluid.unique_name.guard("@HUB_senta_cnn@"):
                 data = fluid.layers.data(
                     name="words", shape=[1], dtype="int64", lod_level=1)
                 label = fluid.layers.data(
@@ -149,6 +150,9 @@ class Senta_CNN(hub.Module):
             raise ValueError(
                 "The input data is inconsistent with expectations.")
 
+        if not self.lac:
+            self.lac = hub.Module(name='lac')
+
         processed_results = preprocess(self.lac, predicted_data, self.word_dict)
 
         tensor_words = self.texts2tensor(processed_results)
@@ -166,7 +170,7 @@ class Senta_CNN(hub.Module):
         """
         self.parser = argparse.ArgumentParser(
             description="Run the lac module.",
-            prog='hub run lac',
+            prog='hub run senta_cnn',
             usage='%(prog)s',
             add_help=True)
 
@@ -257,3 +261,12 @@ class Senta_CNN(hub.Module):
             raise DataFormatError
 
         return input_data
+
+    def get_vocab_path(self, ):
+        """
+        Get the path to the vocabulary whih was used to pretrain
+
+        Returns:
+             self.vocab_path(str): the path to vocabulary
+        """
+        return self.vocab_path
