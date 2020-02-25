@@ -353,7 +353,7 @@ class LAC(hub.Module):
 
 
 if __name__ == '__main__':
-    lac = LAC(user_dict="../user.dict")
+    lac = LAC(user_dict="user.dict")
     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
     # lac.set_user_dict("user.dict")
     results = lac.lexical_analysis(
