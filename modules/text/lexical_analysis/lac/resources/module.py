@@ -16,11 +16,13 @@ import paddle.fluid as fluid
 from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.logger import logger
+from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-from lac_python.network import lex_net
-from lac_python.processor import Interventer, load_kv_dict, word_to_ids, parse_result
+from network import lex_net
+from processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
 
 class DataFormatError(Exception):
@@ -28,6 +30,14 @@ class DataFormatError(Exception):
         self.args = args
 
 
+@moduleinfo(
+    name="lac",
+    version="2.1.0",
+    summary=
+    "Baidu's open-source lexical analysis tool for Chinese, including word segmentation, part-of-speech tagging & named entity recognition",
+    author="baidu-nlp",
+    author_email="paddle-dev@baidu.com",
+    type="nlp/lexical_analysis")
 class LAC(hub.Module):
     def _initialize(self, user_dict=None):
         """
@@ -260,12 +270,6 @@ class LAC(hub.Module):
             use_gpu=args.use_gpu,
             batch_size=args.batch_size,
             return_tag=args.return_tag)
-        if six.PY2:
-            try:
-                results = json.dumps(
-                    results, encoding="utf8", ensure_ascii=False)
-            except:
-                pass
 
         return results
 
@@ -333,10 +337,13 @@ class LAC(hub.Module):
                 input_data = txt_parser.parse(args.input_file, use_strip=True)
         elif args.input_text:
             if args.input_text.strip() != '':
-                input_data = [args.input_text]
-            else:
-                print(
-                    "ERROR: The input data is inconsistent with expectations.")
+                if six.PY2:
+                    input_data = [
+                        args.input_text.decode(
+                            sys_stdin_encoding()).decode("utf8")
+                    ]
+                else:
+                    input_data = [args.input_text]
 
         if input_data == []:
             print("ERROR: The input data is inconsistent with expectations.")
@@ -346,12 +353,11 @@ class LAC(hub.Module):
 
 
 if __name__ == '__main__':
-    lac = LAC()
+    lac = LAC(user_dict="../user.dict")
     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
-
     # lac.set_user_dict("user.dict")
-    input_dict = {'text': ["今天是个好日子"]}
-    results = lac.lexical_analysis(data=test_text, use_gpu=True, batch_size=1)
+    results = lac.lexical_analysis(
+        data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
     # execute predict and print the result
     for result in results:
         if six.PY2:
@@ -362,3 +368,15 @@ if __name__ == '__main__':
         else:
             print(result['word'])
             print(result['tag'])
+
+    lac.del_user_dict()
+    results = lac.lexical_analysis(
+        texts=test_text, use_gpu=False, batch_size=10, return_tag=False)
+    for result in results:
+        if six.PY2:
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+        else:
+            print(result['word'])
+
+    print(lac.get_tags())
