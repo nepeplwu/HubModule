@@ -24,6 +24,8 @@ from paddlehub.module.module import runnable
 from network import lex_net
 from processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
+import time
+
 
 class DataFormatError(Exception):
     def __init__(self, *args):
@@ -73,6 +75,8 @@ class LAC(hub.Module):
         cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
+        cpu_config.switch_use_feed_fetch_ops(False)
+        cpu_config.switch_ir_optim(True)
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -85,6 +89,8 @@ class LAC(hub.Module):
             gpu_config = AnalysisConfig(self.pretrained_model_path)
             gpu_config.disable_glog_info()
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            gpu_config.switch_use_feed_fetch_ops(False)
+            gpu_config.switch_ir_optim(True)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(
@@ -215,14 +221,41 @@ class LAC(hub.Module):
             raise ValueError(
                 "The input data is inconsistent with expectations.")
 
-        tensor_words = self.texts2tensor(predicted_data)
+        lod = [0]
+        data = []
+        for i, text in enumerate(predicted_data):
+            text_inds = word_to_ids(
+                text,
+                self.word2id_dict,
+                self.word_replace_dict,
+                oov_id=self.oov_id)
+            data += text_inds
+            lod.append(len(text_inds) + lod[i])
+
         if use_gpu:
-            crf_decode = self.gpu_predictor.run([tensor_words])
+            names = self.gpu_predictor.get_input_names()
+            self.input_tensor = self.gpu_predictor.get_input_tensor(names[0])
+            self.input_tensor.reshape([lod[-1], 1])
+            self.input_tensor.copy_from_cpu(
+                np.array(data).reshape([lod[-1], 1]).astype("int64"))
+            self.input_tensor.set_lod([lod])
+            self.gpu_predictor.zero_copy_run()
+            output_name = self.gpu_predictor.get_output_names()
+            output_tensor = self.gpu_predictor.get_output_tensor(output_name[0])
         else:
-            crf_decode = self.cpu_predictor.run([tensor_words])
+            names = self.cpu_predictor.get_input_names()
+            self.input_tensor = self.cpu_predictor.get_input_tensor(names[0])
+            self.input_tensor.reshape([lod[-1], 1])
+            self.input_tensor.copy_from_cpu(
+                np.array(data).reshape([lod[-1], 1]).astype("int64"))
+            self.input_tensor.set_lod([lod])
+            self.cpu_predictor.zero_copy_run()
+            output_name = self.cpu_predictor.get_output_names()
+            output_tensor = self.cpu_predictor.get_output_tensor(output_name[0])
+
         results = parse_result(
             predicted_data,
-            crf_decode[0],
+            output_tensor,
             self.id2label_dict,
             interventer=self.interventer)
 
@@ -353,30 +386,66 @@ class LAC(hub.Module):
 
 
 if __name__ == '__main__':
-    lac = LAC(user_dict="user.dict")
-    test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
-    # lac.set_user_dict("user.dict")
-    results = lac.lexical_analysis(
-        data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
-    # execute predict and print the result
-    for result in results:
-        if six.PY2:
-            print(
-                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
-            print(
-                json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
-        else:
-            print(result['word'])
-            print(result['tag'])
+    #     senta = hub.Module(name='senta_cnn')
+    #     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
+    #     input_dict = {"text":test_text}
+    #     results = senta.sentiment_classify(data=input_dict)
 
-    lac.del_user_dict()
-    results = lac.lexical_analysis(
-        texts=test_text, use_gpu=False, batch_size=10, return_tag=False)
-    for result in results:
-        if six.PY2:
-            print(
-                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
-        else:
-            print(result['word'])
+    #     for index, text in enumerate(test_text):
+    #         results[index]["text"] = text
+    #     for index, result in enumerate(results):
+    #         if six.PY2:
+    #             print(
+    #                 json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+    #         else:
+    #             print(results[index])
 
-    print(lac.get_tags())
+    lac = LAC()
+    test_text = []
+    with open("175315.txt", 'r') as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                test_text.append(line)
+    print("len(test_text)", len(test_text))
+    batch_size = 64
+    print(batch_size)
+    itter = int(len(test_text) / batch_size)
+    start_idx = 0
+    start = time.time()
+    for i in range(itter):
+        text = test_text[start_idx:start_idx + batch_size]
+        start_idx = start_idx + batch_size
+        results = lac.lexical_analysis(
+            texts=text, use_gpu=True, batch_size=batch_size, return_tag=False)
+    end = time.time()
+    print("test_text has %d samples" % len(test_text))
+    print("qps: ", len(test_text) / (end - start))
+
+#     lac = LAC(user_dict="user.dict")
+#     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
+#     # lac.set_user_dict("user.dict")
+#     results = lac.lexical_analysis(
+#         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
+#     # execute predict and print the result
+#     for result in results:
+#         if six.PY2:
+#             print(
+#                 json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+#             print(
+#                 json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
+#         else:
+#             print(result['word'])
+#             print(result['tag'])
+
+#     lac.del_user_dict()
+#     results = lac.lexical_analysis(
+#         texts=test_text, use_gpu=False, batch_size=10, return_tag=False)
+#     for result in results:
+#         if six.PY2:
+#             print(
+#                 json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+#         else:
+#             print(result['word'])
+
+#     print(lac.get_tags())
