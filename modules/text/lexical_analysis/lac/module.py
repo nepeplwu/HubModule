@@ -21,6 +21,8 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
+import sys
+sys.path.append("..")
 from lac.network import lex_net
 from lac.processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
@@ -173,8 +175,11 @@ class LAC(hub.Module):
         if six.PY2:
             unicode_texts = []
             for text in texts:
-                unicode_texts.append(
-                    text.decode(sys_stdin_encoding()).decode("utf8"))
+                if not isinstance(text, unicode):
+                    unicode_texts.append(
+                        text.decode(sys_stdin_encoding()).decode("utf8"))
+                else:
+                    unicode_texts.append(text)
             texts = unicode_texts
         return texts
 
