@@ -13,7 +13,7 @@ import six
 
 import paddle
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.logger import logger
 from paddlehub.common.utils import sys_stdin_encoding
@@ -70,11 +70,18 @@ class LAC(hub.Module):
         else:
             self.interventer = None
 
+        self._set_config()
+
+    def _set_config(self, ):
+        """
+        predictor config setting
+        """
         cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
         cpu_config.switch_use_feed_fetch_ops(False)
         cpu_config.switch_ir_optim(True)
+        cpu_config.enable_memory_optim()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -89,6 +96,7 @@ class LAC(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             gpu_config.switch_use_feed_fetch_ops(False)
             gpu_config.switch_ir_optim(True)
+            gpu_config.enable_memory_optim()
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(
@@ -386,10 +394,10 @@ if __name__ == '__main__':
         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
     for result in results:
         if six.PY2:
-            print(
-                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
-            print(
-                json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                result['word'], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                result['tag'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
             print(result['tag'])
@@ -401,8 +409,8 @@ if __name__ == '__main__':
         texts=test_text, use_gpu=False, batch_size=1, return_tag=False)
     for result in results:
         if six.PY2:
-            print(
-                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                result['word'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
 
