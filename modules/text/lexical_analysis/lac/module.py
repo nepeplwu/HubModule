@@ -21,10 +21,8 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-from network import lex_net
-from processor import Interventer, load_kv_dict, word_to_ids, parse_result
-
-import time
+from lac.network import lex_net
+from lac.processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
 
 class DataFormatError(Exception):
@@ -154,32 +152,23 @@ class LAC(hub.Module):
             self.interventer = None
             print("Successfully delete the customized dictionary!")
 
-    def texts2tensor(self, texts):
+    def to_unicode(self, texts):
         """
-        Tranform the texts(list) to PaddleTensor
+        Convert each element's type(str) of texts(list) to unicode in python2.7
 
         Args:
-             texts(list): texts
+             texts(list): each element's type is str in python2.7
 
         Returns:
-             tensor(PaddleTensor): tensor with texts data
+             texts(list): each element's type is unicode in python2.7
         """
-        lod = [0]
-        data = []
-        for i, text in enumerate(texts):
-            text_inds = word_to_ids(
-                text,
-                self.word2id_dict,
-                self.word_replace_dict,
-                oov_id=self.oov_id)
-            data += text_inds
-            lod.append(len(text_inds) + lod[i])
-
-        tensor = PaddleTensor(np.array(data).astype('int64'))
-        tensor.name = "words"
-        tensor.lod = [lod]
-        tensor.shape = [lod[-1], 1]
-        return tensor
+        if six.PY2:
+            unicode_texts = []
+            for text in texts:
+                unicode_texts.append(
+                    text.decode(sys_stdin_encoding()).decode("utf8"))
+            texts = unicode_texts
+        return texts
 
     def lexical_analysis(self,
                          texts=[],
@@ -223,6 +212,7 @@ class LAC(hub.Module):
 
         lod = [0]
         data = []
+        predicted_data = self.to_unicode(predicted_data)
         for i, text in enumerate(predicted_data):
             text_inds = word_to_ids(
                 text,
@@ -386,66 +376,35 @@ class LAC(hub.Module):
 
 
 if __name__ == '__main__':
-    #     senta = hub.Module(name='senta_cnn')
-    #     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
-    #     input_dict = {"text":test_text}
-    #     results = senta.sentiment_classify(data=input_dict)
+    lac = LAC(user_dict="user.dict")
+    # or use the fuction user_dict to set
+    # lac.set_user_dict("user.dict")
 
-    #     for index, text in enumerate(test_text):
-    #         results[index]["text"] = text
-    #     for index, result in enumerate(results):
-    #         if six.PY2:
-    #             print(
-    #                 json.dumps(results[index], encoding="utf8", ensure_ascii=False))
-    #         else:
-    #             print(results[index])
+    test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
+    # execute predict and print the result
+    results = lac.lexical_analysis(
+        data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
+    for result in results:
+        if six.PY2:
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
+        else:
+            print(result['word'])
+            print(result['tag'])
 
-    lac = LAC()
-    test_text = []
-    with open("175315.txt", 'r') as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                test_text.append(line)
-    print("len(test_text)", len(test_text))
-    batch_size = 64
-    print(batch_size)
-    itter = int(len(test_text) / batch_size)
-    start_idx = 0
-    start = time.time()
-    for i in range(itter):
-        text = test_text[start_idx:start_idx + batch_size]
-        start_idx = start_idx + batch_size
-        results = lac.lexical_analysis(
-            texts=text, use_gpu=True, batch_size=batch_size, return_tag=False)
-    end = time.time()
-    print("test_text has %d samples" % len(test_text))
-    print("qps: ", len(test_text) / (end - start))
+    # delete the costomized dictionary
+    lac.del_user_dict()
 
-#     lac = LAC(user_dict="user.dict")
-#     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
-#     # lac.set_user_dict("user.dict")
-#     results = lac.lexical_analysis(
-#         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
-#     # execute predict and print the result
-#     for result in results:
-#         if six.PY2:
-#             print(
-#                 json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
-#             print(
-#                 json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
-#         else:
-#             print(result['word'])
-#             print(result['tag'])
+    results = lac.lexical_analysis(
+        texts=test_text, use_gpu=False, batch_size=1, return_tag=False)
+    for result in results:
+        if six.PY2:
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+        else:
+            print(result['word'])
 
-#     lac.del_user_dict()
-#     results = lac.lexical_analysis(
-#         texts=test_text, use_gpu=False, batch_size=10, return_tag=False)
-#     for result in results:
-#         if six.PY2:
-#             print(
-#                 json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
-#         else:
-#             print(result['word'])
-
-#     print(lac.get_tags())
+    # get the tags that was exploited as pretraining lac
+    print(lac.get_tags())
