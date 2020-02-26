@@ -11,13 +11,20 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
+from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-from senta_lstm_python.net import lstm_net
-from senta_lstm_python.processor import load_vocab, preprocess, postprocess
+import sys
+sys.path.append("..")
+
+from senta_bow.net import bow_net
+from senta_bow.processor import load_vocab, preprocess, postprocess
+
+import time
 
 
 class DataFormatError(Exception):
@@ -25,8 +32,15 @@ class DataFormatError(Exception):
         self.args = args
 
 
-class SentaLSTM(hub.Module):
-    def _initialize(self, user_dict=None):
+@moduleinfo(
+    name="senta_bow",
+    version="1.1.0",
+    summary="Baidu's open-source Sentiment Classification System.",
+    author="baidu-nlp",
+    author_email="paddle-dev@baidu.com",
+    type="nlp/sentiment_analysis")
+class SentaBow(hub.Module):
+    def _initialize(self, ):
         """
         initialize with the necessary elements
         """
@@ -35,9 +49,18 @@ class SentaLSTM(hub.Module):
         self.word_dict = load_vocab(self.vocab_path)
         self.lac = None
 
-        cpu_config = AnalysisConfig(os.path.join(self.directory, "infer_model"))
+        self._set_config()
+
+    def _set_config(self, ):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
+        cpu_config.switch_use_feed_fetch_ops(False)
+        cpu_config.switch_ir_optim(True)
+        cpu_config.enable_memory_optim()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -47,10 +70,12 @@ class SentaLSTM(hub.Module):
         except:
             use_gpu = False
         if use_gpu:
-            gpu_config = AnalysisConfig(
-                os.path.join(self.directory, "infer_model"))
+            gpu_config = AnalysisConfig(self.pretrained_model_path)
             gpu_config.disable_glog_info()
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            gpu_config.switch_use_feed_fetch_ops(False)
+            gpu_config.switch_ir_optim(True)
+            gpu_config.enable_memory_optim()
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(
@@ -58,26 +83,26 @@ class SentaLSTM(hub.Module):
             trainable=False,
     ):
         """
-        Get the input ,output and program of the pretrained senta_lstm
+        Get the input ,output and program of the pretrained senta_bow
 
         Args:
-             trainable(bool): whether fine-tune the pretrained parameters of senta_lstm or not
+             trainable(bool): whether fine-tune the pretrained parameters of senta_bow or not
 
         Returns:
-             inputs(dict): the input variables of senta_lstm (words)
-             outputs(dict): the output variables of senta_lstm (the sentiment prediction results)
+             inputs(dict): the input variables of senta_bow (words)
+             outputs(dict): the output variables of senta_bow (the sentiment prediction results)
              main_program(Program): the main_program of lac with pretrained prameters
         """
         main_program = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(main_program, startup_program):
-            with fluid.unique_name.guard("@HUB_senta_lstm@"):
+            with fluid.unique_name.guard("@HUB_senta_bow@"):
                 data = fluid.layers.data(
                     name="words", shape=[1], dtype="int64", lod_level=1)
                 label = fluid.layers.data(
                     name="label", shape=[1], dtype="int64")
 
-                cost, acc, pred, fc = lstm_net(data, label, 1256606)
+                cost, acc, pred, fc = bow_net(data, label, 1256606)
 
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
@@ -85,7 +110,7 @@ class SentaLSTM(hub.Module):
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
 
-                # load the senta_lstm pretrained model
+                # load the senta_bow pretrained model
                 def if_exist(var):
                     return os.path.exists(
                         os.path.join(self.pretrained_model_path, var.name))
@@ -98,24 +123,24 @@ class SentaLSTM(hub.Module):
 
                 return inputs, outputs, main_program
 
-    def texts2tensor(self, texts, batch_size=2):
+    def to_unicode(self, texts):
         """
-        Tranform the texts(dict) to PaddleTensor
+        Convert each element's type(str) of texts(list) to unicode in python2.7
         Args:
-             texts(dict): texts
+             texts(list): each element's type is str in python2.7
         Returns:
-             tensor(PaddleTensor): tensor with texts data
+             texts(list): each element's type is unicode in python2.7
         """
-        lod = [0]
-        data = []
-        for i, text in enumerate(texts):
-            data += text['processed']
-            lod.append(len(text['processed']) + lod[i])
-        tensor = PaddleTensor(np.array(data).astype('int64'))
-        tensor.name = "words"
-        tensor.lod = [lod]
-        tensor.shape = [lod[-1], 1]
-        return tensor
+        if six.PY2:
+            unicode_texts = []
+            for text in texts:
+                if not isinstance(text, unicode):
+                    unicode_texts.append(
+                        text.decode(sys_stdin_encoding()).decode("utf8"))
+                else:
+                    unicode_texts.append(text)
+            texts = unicode_texts
+        return texts
 
     def sentiment_classify(self, texts=[], data={}, use_gpu=False,
                            batch_size=1):
@@ -146,17 +171,42 @@ class SentaLSTM(hub.Module):
             raise ValueError(
                 "The input data is inconsistent with expectations.")
 
+        predicted_data = self.to_unicode(predicted_data)
         if not self.lac:
-            self.lac = hub.Module(name="lac")
+            self.lac = hub.Module(
+                directory="/ssd2/home/zhangxuefei/.paddlehub/modules/lac")
+        processed_results = preprocess(self.lac, predicted_data, self.word_dict,
+                                       use_gpu)
 
-        processed_results = preprocess(self.lac, predicted_data, self.word_dict)
+        lod = [0]
+        data = []
+        for i, text in enumerate(processed_results):
+            data += text['processed']
+            lod.append(len(text['processed']) + lod[i])
 
-        tensor_words = self.texts2tensor(processed_results)
         if use_gpu:
-            fetch_out = self.gpu_predictor.run([tensor_words])
+            names = self.gpu_predictor.get_input_names()
+            input_tensor = self.gpu_predictor.get_input_tensor(names[0])
+            input_tensor.reshape([lod[-1], 1])
+            input_tensor.copy_from_cpu(
+                np.array(data).reshape([lod[-1], 1]).astype("int64"))
+            input_tensor.set_lod([lod])
+            self.gpu_predictor.zero_copy_run()
+            output_name = self.gpu_predictor.get_output_names()
+            output_tensor = self.gpu_predictor.get_output_tensor(output_name[0])
         else:
-            fetch_out = self.cpu_predictor.run([tensor_words])
-        result = postprocess(fetch_out[0], processed_results)
+            names = self.cpu_predictor.get_input_names()
+            input_tensor = self.cpu_predictor.get_input_tensor(names[0])
+            input_tensor.reshape([lod[-1], 1])
+            input_tensor.copy_from_cpu(
+                np.array(data).reshape([lod[-1], 1]).astype("int64"))
+            input_tensor.set_lod([lod])
+            self.cpu_predictor.zero_copy_run()
+            output_name = self.cpu_predictor.get_output_names()
+            output_tensor = self.cpu_predictor.get_output_tensor(output_name[0])
+
+        predict_out = output_tensor.copy_to_cpu()
+        result = postprocess(predict_out, processed_results)
         return result
 
     @runnable
@@ -166,7 +216,7 @@ class SentaLSTM(hub.Module):
         """
         self.parser = argparse.ArgumentParser(
             description="Run the lac module.",
-            prog='hub run senta_lstm',
+            prog='hub run senta_bow',
             usage='%(prog)s',
             add_help=True)
 
@@ -187,9 +237,6 @@ class SentaLSTM(hub.Module):
         except DataFormatError and RuntimeError:
             self.parser.print_help()
             return None
-
-        if args.user_dict:
-            self.set_user_dict(args.user_dict)
 
         results = self.sentiment_classify(
             texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
@@ -217,13 +264,6 @@ class SentaLSTM(hub.Module):
             type=int,
             default=1,
             help="batch size for prediction")
-        self.arg_config_group.add_argument(
-            '--user_dict',
-            type=str,
-            default=None,
-            help=
-            "customized dictionary for intervening the word segmentation result"
-        )
 
     def add_module_input_arg(self):
         """
@@ -247,7 +287,13 @@ class SentaLSTM(hub.Module):
                 input_data = txt_parser.parse(args.input_file, use_strip=True)
         elif args.input_text:
             if args.input_text.strip() != '':
-                input_data = [args.input_text]
+                if six.PY2:
+                    input_data = [
+                        args.input_text.decode(
+                            sys_stdin_encoding()).decode("utf8")
+                    ]
+                else:
+                    input_data = [args.input_text]
             else:
                 print(
                     "ERROR: The input data is inconsistent with expectations.")
@@ -266,3 +312,21 @@ class SentaLSTM(hub.Module):
              self.vocab_path(str): the path to vocabulary
         """
         return self.vocab_path
+
+
+if __name__ == "__main__":
+
+    senta = SentaBow()
+    # Data to be predicted
+    test_text = ["这家餐厅很好吃", "这部电影真的很差劲"]
+
+    # execute predict and print the result
+    input_dict = {"text": test_text}
+    results = senta.sentiment_classify(data=input_dict)
+
+    for index, result in enumerate(results):
+        if six.PY2:
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
+        else:
+            print(results[index])
