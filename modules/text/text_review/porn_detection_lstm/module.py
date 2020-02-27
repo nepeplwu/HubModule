@@ -73,6 +73,35 @@ class PornDetectionLSTM(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
+    def context(
+            self,
+            trainable=False,
+    ):
+        """
+        Get the input ,output and program of the pretrained senta_bilstm
+        Args:
+             trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
+        Returns:
+             inputs(dict): the input variables of senta_bilstm (words)
+             outputs(dict): the output variables of senta_bilstm (the sentiment prediction results)
+             main_program(Program): the main_program of lac with pretrained prameters
+        """
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        inference_program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
+            dirname=self.pretrained_model_path, executor=exe)
+        for name, var in inference_program.global_block().vars.items():
+            if name == feed_target_names[0]:
+                inputs = {"words": var}
+            # output of sencond layer from the end prediction layer (fc-softmax)
+            if name == "layer_norm_0.tmp_2":
+                outputs = {
+                    "class_probs": fetch_targets[0],
+                    "sentence_feature": var
+                }
+        return inputs, outputs, inference_program
+
     def texts2tensor(self, texts):
         """
         Tranform the texts(dict) to PaddleTensor
@@ -251,6 +280,7 @@ class PornDetectionLSTM(hub.Module):
 
 if __name__ == "__main__":
     porn_detection_lstm = PornDetectionLSTM()
+    porn_detection_lstm.context()
     test_text = ["黄片下载", "打击黄牛党"]
 
     results = porn_detection_lstm.detection(texts=test_text)
