@@ -20,10 +20,7 @@ from paddlehub.module.module import runnable
 
 import sys
 sys.path.append("..")
-
 from simnet_bow.processor import load_vocab, preprocess, postprocess
-
-import time
 
 dtype_map = {
     fluid.core.VarDesc.VarType.FP32: "float32",
@@ -99,10 +96,10 @@ class SimnetBow(hub.Module):
         """
         Get the input ,output and program of the pretrained simnet_bow
         Args:
-             trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
+             trainable(bool): whether fine-tune the pretrained parameters of simnet_bow or not
         Returns:
-             inputs(dict): the input variables of senta_bilstm (words)
-             outputs(dict): the output variables of senta_bilstm (the sentiment prediction results)
+             inputs(dict): the input variables of simnet_bow (words)
+             outputs(dict): the output variables of simnet_bow (the sentiment prediction results)
              main_program(Program): the main_program of lac with pretrained prameters
         """
         place = fluid.CPUPlace()
@@ -197,8 +194,7 @@ class SimnetBow(hub.Module):
         data['text_1'] = self.to_unicode(data['text_1'])
         data['text_2'] = self.to_unicode(data['text_2'])
         if not self.lac:
-            self.lac = hub.Module(
-                directory="/ssd2/home/zhangxuefei/.paddlehub/modules/lac")
+            self.lac = hub.Module(name='lac')
         processed_results = preprocess(self.lac, self.vocab, data, use_gpu)
 
         tensor_words_1 = self.texts2tensor(processed_results["text_1"])

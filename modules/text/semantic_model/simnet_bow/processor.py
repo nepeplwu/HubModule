@@ -1,14 +1,5 @@
 # -*- coding: utf-8 -*-
-import os
 import io
-import platform
-
-import six
-import paddle
-import paddle.fluid as fluid
-import numpy as np
-
-import paddlehub as hub
 
 
 def load_vocab(file_path):
