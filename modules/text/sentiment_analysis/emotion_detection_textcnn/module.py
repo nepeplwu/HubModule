@@ -11,20 +11,15 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
-
 from emotion_detection_textcnn.net import textcnn_net
 from emotion_detection_textcnn.processor import load_vocab, preprocess, postprocess
-
-import time
 
 
 class DataFormatError(Exception):
@@ -185,8 +180,7 @@ class EmotionDetectionTextCNN(hub.Module):
 
         predicted_data = self.to_unicode(predicted_data)
         if not self.lac:
-            self.lac = hub.Module(
-                directory="/ssd2/home/zhangxuefei/.paddlehub/modules/lac")
+            self.lac = hub.Module(name='lac')
         processed_results = preprocess(self.lac, predicted_data, self.vocab,
                                        use_gpu)
         tensor_words = self.texts2tensor(processed_results)
@@ -204,7 +198,7 @@ class EmotionDetectionTextCNN(hub.Module):
         Run as a command
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the emotion_detection_textcnn module.",
+            description="Run the emotion_detection_textcnn module",
             prog='hub run emotion_detection_textcnn',
             usage='%(prog)s',
             add_help=True)
@@ -304,7 +298,6 @@ class EmotionDetectionTextCNN(hub.Module):
 
 if __name__ == "__main__":
     emotion_detection_textcnn = EmotionDetectionTextCNN()
-    emotion_detection_textcnn = hub.Module(name='emotion_detection_textcnn')
     # Data to be predicted
     test_text = ["今天天气真好", "湿纸巾是干垃圾", "别来吵我"]
 
