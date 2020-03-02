@@ -1,0 +1,3 @@
+emb
+tanh.b
+tanh.w
