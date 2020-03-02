@@ -19,9 +19,6 @@ from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 from paddlehub.reader import tokenization
 
-import sys
-sys.path.append("..")
-
 from porn_detection_gru.processor import load_vocab, preprocess, postprocess
 
 dtype_map = {
@@ -101,10 +98,10 @@ class PornDetectionGRU(hub.Module):
         """
         Get the input ,output and program of the pretrained porn_detection_gru
         Args:
-             trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
+             trainable(bool): whether fine-tune the pretrained parameters of porn_detection_gru or not
         Returns:
-             inputs(dict): the input variables of senta_bilstm (words)
-             outputs(dict): the output variables of senta_bilstm (the sentiment prediction results)
+             inputs(dict): the input variables of porn_detection_gru (words)
+             outputs(dict): the output variables of porn_detection_gru (the sentiment prediction results)
              main_program(Program): the main_program of lac with pretrained prameters
         """
         place = fluid.CPUPlace()

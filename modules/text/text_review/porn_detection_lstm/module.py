@@ -11,16 +11,13 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 from paddlehub.reader import tokenization
-
-import sys
-sys.path.append("..")
 
 from porn_detection_lstm.processor import load_vocab, preprocess, postprocess
 
@@ -101,10 +98,10 @@ class PornDetectionLSTM(hub.Module):
         """
         Get the input ,output and program of the pretrained porn_detection_lstm
         Args:
-             trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
+             trainable(bool): whether fine-tune the pretrained parameters of porn_detection_lstm or not
         Returns:
-             inputs(dict): the input variables of senta_bilstm (words)
-             outputs(dict): the output variables of senta_bilstm (the sentiment prediction results)
+             inputs(dict): the input variables of porn_detection_lstm (words)
+             outputs(dict): the output variables of porn_detection_lstm (the sentiment prediction results)
              main_program(Program): the main_program of lac with pretrained prameters
         """
         place = fluid.CPUPlace()

@@ -11,16 +11,13 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 from paddlehub.reader import tokenization
-
-import sys
-sys.path.append("..")
 
 from porn_detection_cnn.processor import load_vocab, preprocess, postprocess
 
@@ -101,11 +98,11 @@ class PornDetectionCNN(hub.Module):
         """
         Get the input ,output and program of the pretrained porn_detection_cnn
         Args:
-             trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
+             trainable(bool): whether fine-tune the pretrained parameters of porn_detection_cnn or not
         Returns:
-             inputs(dict): the input variables of senta_bilstm (words)
-             outputs(dict): the output variables of senta_bilstm (the sentiment prediction results)
-             main_program(Program): the main_program of lac with pretrained prameters
+             inputs(dict): the input variables of porn_detection_cnn (words)
+             outputs(dict): the output variables of porn_detection_cnn (the sentiment prediction results)
+             main_program(Program): the main_program of porn_detection_cnn with pretrained prameters
         """
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
@@ -318,8 +315,6 @@ class PornDetectionCNN(hub.Module):
 
 if __name__ == "__main__":
     porn_detection_cnn = PornDetectionCNN()
-    porn_detection_cnn.context()
-    # porn_detection_cnn = hub.Module(name='porn_detection_cnn')
     test_text = ["黄片下载", "打击黄牛党"]
 
     results = porn_detection_cnn.detection(texts=test_text)
