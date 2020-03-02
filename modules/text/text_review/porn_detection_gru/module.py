@@ -24,6 +24,25 @@ sys.path.append("..")
 
 from porn_detection_gru.processor import load_vocab, preprocess, postprocess
 
+dtype_map = {
+    fluid.core.VarDesc.VarType.FP32: "float32",
+    fluid.core.VarDesc.VarType.FP64: "float64",
+    fluid.core.VarDesc.VarType.FP16: "float16",
+    fluid.core.VarDesc.VarType.INT32: "int32",
+    fluid.core.VarDesc.VarType.INT16: "int16",
+    fluid.core.VarDesc.VarType.INT64: "int64",
+    fluid.core.VarDesc.VarType.BOOL: "bool",
+    fluid.core.VarDesc.VarType.INT16: "int16",
+    fluid.core.VarDesc.VarType.UINT8: "uint8",
+    fluid.core.VarDesc.VarType.INT8: "int8",
+}
+
+
+def convert_dtype_to_string(dtype):
+    if dtype in dtype_map:
+        return dtype_map[dtype]
+    raise TypeError("dtype shoule in %s" % list(dtype_map.keys()))
+
 
 class DataFormatError(Exception):
     def __init__(self, *args):
@@ -49,6 +68,8 @@ class PornDetectionGRU(hub.Module):
         self.vocab = load_vocab(self.vocab_path)
         self.sequence_max_len = 256
         self.tokenizer = tokenization.FullTokenizer(self.tokenizer_vocab_path)
+
+        self.param_file = os.path.join(self.directory, "assets/params.txt")
 
         self._set_config()
 
@@ -78,7 +99,7 @@ class PornDetectionGRU(hub.Module):
             trainable=False,
     ):
         """
-        Get the input ,output and program of the pretrained senta_bilstm
+        Get the input ,output and program of the pretrained porn_detection_gru
         Args:
              trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
         Returns:
@@ -89,9 +110,26 @@ class PornDetectionGRU(hub.Module):
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
 
-        inference_program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
+        program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
             dirname=self.pretrained_model_path, executor=exe)
-        for name, var in inference_program.global_block().vars.items():
+        with open(self.param_file, 'r') as file:
+            params_list = file.read().split("\n")
+        for param in params_list:
+            var = program.global_block().var(param)
+            var_info = {
+                'name': var.name,
+                'dtype': convert_dtype_to_string(var.dtype),
+                'lod_level': var.lod_level,
+                'shape': var.shape,
+                'stop_gradient': var.stop_gradient,
+                'is_data': var.is_data,
+                'error_clip': var.error_clip
+            }
+            program.global_block().create_parameter(**var_info)
+
+        for param in program.global_block().iter_parameters():
+            param.trainable = trainable
+        for name, var in program.global_block().vars.items():
             if name == feed_target_names[0]:
                 inputs = {"words": var}
             # output of sencond layer from the end prediction layer (fc-softmax)
@@ -100,7 +138,7 @@ class PornDetectionGRU(hub.Module):
                     "class_probs": fetch_targets[0],
                     "sentence_feature": var
                 }
-        return inputs, outputs, inference_program
+        return inputs, outputs, program
 
     def texts2tensor(self, texts):
         """
@@ -280,6 +318,7 @@ class PornDetectionGRU(hub.Module):
 
 if __name__ == "__main__":
     porn_detection_gru = PornDetectionGRU()
+    porn_detection_gru.context()
     # porn_detection_gru = hub.Module(name='porn_detection_gru')
     test_text = ["黄片下载", "打击黄牛党"]
 
@@ -288,8 +327,8 @@ if __name__ == "__main__":
         results[index]["text"] = text
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
     input_dict = {"text": test_text}
@@ -298,7 +337,7 @@ if __name__ == "__main__":
         results[index]["text"] = text
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])

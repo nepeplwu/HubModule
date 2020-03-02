@@ -1,0 +1,9 @@
+fc_0.w_0
+embedding_0.w_0
+fc_1.w_0
+gru_0.b_0
+layer_norm_0.w_0
+fc_1.b_0
+gru_0.w_0
+layer_norm_0.b_0
+fc_0.b_0
