@@ -11,15 +11,13 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
 from senta_bilstm.net import bilstm_net
 from senta_bilstm.processor import load_vocab, preprocess, postprocess
 
@@ -52,12 +50,9 @@ class SentaBiLSTM(hub.Module):
         """
         predictor config setting
         """
-        cpu_config = AnalysisConfig(self.pretrained_model_path)
+        cpu_config = AnalysisConfig(os.path.join(self.directory, "infer_model"))
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
-        cpu_config.switch_use_feed_fetch_ops(False)
-        cpu_config.switch_ir_optim(True)
-        cpu_config.enable_memory_optim()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -67,12 +62,10 @@ class SentaBiLSTM(hub.Module):
         except:
             use_gpu = False
         if use_gpu:
-            gpu_config = AnalysisConfig(self.pretrained_model_path)
+            gpu_config = AnalysisConfig(
+                os.path.join(self.directory, "infer_model"))
             gpu_config.disable_glog_info()
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
-            gpu_config.switch_use_feed_fetch_ops(False)
-            gpu_config.switch_ir_optim(True)
-            gpu_config.enable_memory_optim()
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(
@@ -139,6 +132,25 @@ class SentaBiLSTM(hub.Module):
             texts = unicode_texts
         return texts
 
+    def texts2tensor(self, texts):
+        """
+        Tranform the texts(dict) to PaddleTensor
+        Args:
+             texts(dict): texts
+        Returns:
+             tensor(PaddleTensor): tensor with texts data
+        """
+        lod = [0]
+        data = []
+        for i, text in enumerate(texts):
+            data += text['processed']
+            lod.append(len(text['processed']) + lod[i])
+        tensor = PaddleTensor(np.array(data).astype('int64'))
+        tensor.name = "words"
+        tensor.lod = [lod]
+        tensor.shape = [lod[-1], 1]
+        return tensor
+
     def sentiment_classify(self, texts=[], data={}, use_gpu=False,
                            batch_size=1):
         """
@@ -170,40 +182,16 @@ class SentaBiLSTM(hub.Module):
 
         predicted_data = self.to_unicode(predicted_data)
         if not self.lac:
-            self.lac = hub.Module(
-                directory="/ssd2/home/zhangxuefei/.paddlehub/modules/lac")
+            self.lac = hub.Module(name="lac")
         processed_results = preprocess(self.lac, predicted_data, self.word_dict,
                                        use_gpu)
 
-        lod = [0]
-        data = []
-        for i, text in enumerate(processed_results):
-            data += text['processed']
-            lod.append(len(text['processed']) + lod[i])
-
+        tensor_words = self.texts2tensor(processed_results)
         if use_gpu:
-            names = self.gpu_predictor.get_input_names()
-            input_tensor = self.gpu_predictor.get_input_tensor(names[0])
-            input_tensor.reshape([lod[-1], 1])
-            input_tensor.copy_from_cpu(
-                np.array(data).reshape([lod[-1], 1]).astype("int64"))
-            input_tensor.set_lod([lod])
-            self.gpu_predictor.zero_copy_run()
-            output_name = self.gpu_predictor.get_output_names()
-            output_tensor = self.gpu_predictor.get_output_tensor(output_name[0])
+            fetch_out = self.gpu_predictor.run([tensor_words])
         else:
-            names = self.cpu_predictor.get_input_names()
-            input_tensor = self.cpu_predictor.get_input_tensor(names[0])
-            input_tensor.reshape([lod[-1], 1])
-            input_tensor.copy_from_cpu(
-                np.array(data).reshape([lod[-1], 1]).astype("int64"))
-            input_tensor.set_lod([lod])
-            self.cpu_predictor.zero_copy_run()
-            output_name = self.cpu_predictor.get_output_names()
-            output_tensor = self.cpu_predictor.get_output_tensor(output_name[0])
-
-        predict_out = output_tensor.copy_to_cpu()
-        result = postprocess(predict_out, processed_results)
+            fetch_out = self.cpu_predictor.run([tensor_words])
+        result = postprocess(fetch_out[0], processed_results)
         return result
 
     @runnable
@@ -212,7 +200,7 @@ class SentaBiLSTM(hub.Module):
         Run as a command
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the lac module.",
+            description="Run the senta_bilstm module.",
             prog='hub run senta_bilstm',
             usage='%(prog)s',
             add_help=True)
@@ -329,10 +317,16 @@ if __name__ == "__main__":
     # execute predict and print the result
     input_dict = {"text": test_text}
     results = senta.sentiment_classify(data=input_dict)
-
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+        else:
+            print(results[index])
+    results = senta.sentiment_classify(texts=test_text)
+    for index, result in enumerate(results):
+        if six.PY2:
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])

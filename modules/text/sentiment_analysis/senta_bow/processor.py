@@ -23,7 +23,8 @@ def preprocess(lac, texts, word_dict, use_gpu=False):
     then, the word segmention results input into senta
     """
     result = []
-    processed = lac.lexical_analysis(texts=texts, use_gpu=use_gpu)
+    input_dict = {"text": texts}
+    processed = lac.lexical_analysis(data=input_dict, use_gpu=use_gpu)
     unk_id = word_dict["<unk>"]
     for index, data in enumerate(processed):
         result_i = {'processed': []}
@@ -45,7 +46,7 @@ def postprocess(
     """
     Convert model's output tensor to sentiment label
     """
-    #     predict_out = predict_out.as_ndarray()
+    predict_out = predict_out.as_ndarray()
     batch_size = len(texts)
     result = []
     for index in range(batch_size):
