@@ -77,6 +77,7 @@ class SimnetBow(hub.Module):
         cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
+        cpu_config.switch_ir_optim(False)
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -96,7 +97,7 @@ class SimnetBow(hub.Module):
             trainable=False,
     ):
         """
-        Get the input ,output and program of the pretrained senta_bilstm
+        Get the input ,output and program of the pretrained simnet_bow
         Args:
              trainable(bool): whether fine-tune the pretrained parameters of senta_bilstm or not
         Returns:
@@ -198,8 +199,7 @@ class SimnetBow(hub.Module):
         if not self.lac:
             self.lac = hub.Module(
                 directory="/ssd2/home/zhangxuefei/.paddlehub/modules/lac")
-        processed_results = preprocess(self.lac, self.vocab, data)
-        print(processed_results)
+        processed_results = preprocess(self.lac, self.vocab, data, use_gpu)
 
         tensor_words_1 = self.texts2tensor(processed_results["text_1"])
         tensor_words_2 = self.texts2tensor(processed_results["text_2"])
@@ -208,7 +208,7 @@ class SimnetBow(hub.Module):
             fetch_out = self.gpu_predictor.run([tensor_words_1, tensor_words_2])
         else:
             fetch_out = self.cpu_predictor.run([tensor_words_1, tensor_words_2])
-        result = postprocess(fetch_out[0], processed_results)
+        result = postprocess(fetch_out[1], processed_results)
         return result
 
     @runnable
@@ -240,14 +240,8 @@ class SimnetBow(hub.Module):
             self.parser.print_help()
             return None
 
-        results = self.sentiment_classify(
-            texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
-        if six.PY2:
-            try:
-                results = json.dumps(
-                    results, encoding="utf8", ensure_ascii=False)
-            except:
-                pass
+        results = self.similarity(
+            data=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
 
         return results
 
@@ -277,30 +271,36 @@ class SimnetBow(hub.Module):
             default=None,
             help="file contain input data")
         self.arg_input_group.add_argument(
-            '--input_text', type=str, default=None, help="text to predict")
+            '--text_1', type=str, default=None, help="text to predict")
+        self.arg_input_group.add_argument(
+            '--text_2', type=str, default=None, help="text to predict")
 
     def check_input_data(self, args):
-        input_data = []
+        input_data = {}
         if args.input_file:
             if not os.path.exists(args.input_file):
                 print("File %s is not exist." % args.input_file)
                 raise RuntimeError
             else:
                 input_data = txt_parser.parse(args.input_file, use_strip=True)
-        elif args.input_text:
-            if args.input_text.strip() != '':
+        elif args.text_1 and args.text_2:
+            if args.text_1.strip() != '' and args.text_2.strip() != '':
                 if six.PY2:
-                    input_data = [
-                        args.input_text.decode(
+                    input_data = {
+                        "text_1":
+                        args.text_1.strip().decode(
+                            sys_stdin_encoding()).decode("utf8"),
+                        "text_2":
+                        args.text_2.strip().decode(
                             sys_stdin_encoding()).decode("utf8")
-                    ]
+                    }
                 else:
-                    input_data = [args.input_text]
+                    input_data = {"text_1": args.text_1, "text_2": args.text_2}
             else:
                 print(
                     "ERROR: The input data is inconsistent with expectations.")
 
-        if input_data == []:
+        if input_data == {}:
             print("ERROR: The input data is inconsistent with expectations.")
             raise DataFormatError
 
@@ -318,15 +318,12 @@ class SimnetBow(hub.Module):
 if __name__ == "__main__":
 
     simnet_bow = SimnetBow()
-    simnet_bow.context()
-    #     simnet_bow = hub.Module(name='simnet_bow')
     # Data to be predicted
-    test_text_1 = ["这道题太难了"]  #, "这道题太难了", "这道题太难了"]
-    test_text_2 = ["这道题是上一年的考题"]  #, "这道题不简单", "这道题很有意思"]
+    test_text_1 = ["这道题太难了", "这道题太难了", "这道题太难了"]
+    test_text_2 = ["这道题是上一年的考题", "这道题不简单", "这道题很有意思"]
 
     inputs = {"text_1": test_text_1, "text_2": test_text_2}
     results = simnet_bow.similarity(data=inputs)
-    print(results)
 
     max_score = -1
     result_text = ""

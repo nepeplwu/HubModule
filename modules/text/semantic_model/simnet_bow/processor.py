@@ -30,13 +30,15 @@ text_a_key = "text_1"
 text_b_key = "text_2"
 
 
-def preprocess(lac, word_dict, data_dict):
+def preprocess(lac, word_dict, data_dict, use_gpu=False):
     """
     Convert the word str to word id and pad the text
     """
     result = {text_a_key: [], text_b_key: []}
-    processed_a = lac.lexical_analysis(data={'text': data_dict[text_a_key]})
-    processed_b = lac.lexical_analysis(data={'text': data_dict[text_b_key]})
+    processed_a = lac.lexical_analysis(
+        data={'text': data_dict[text_a_key]}, use_gpu=use_gpu)
+    processed_b = lac.lexical_analysis(
+        data={'text': data_dict[text_b_key]}, use_gpu=use_gpu)
     for index, (text_a, text_b) in enumerate(zip(processed_a, processed_b)):
         result_i = {'processed': []}
         result_i['origin'] = data_dict[text_a_key][index]
@@ -70,6 +72,6 @@ def postprocess(predict_out, data_info):
         result_i = {}
         result_i[text_a_key] = data_info[text_a_key][index]['origin']
         result_i[text_b_key] = data_info[text_b_key][index]['origin']
-        result_i['similarity'] = float('%.4f' % ((pred[0][0] + 1) / 2))
+        result_i['similarity'] = float('%.4f' % pred[index][0])
         result.append(result_i)
     return result
