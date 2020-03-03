@@ -18,6 +18,8 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
+import sys
+sys.path.append("..")
 from emotion_detection_textcnn.net import textcnn_net
 from emotion_detection_textcnn.processor import load_vocab, preprocess, postprocess
 
@@ -35,18 +37,18 @@ class DataFormatError(Exception):
     author_email="paddle-dev@baidu.com",
     type="nlp/sentiment_analysis")
 class EmotionDetectionTextCNN(hub.Module):
-    def _initialize(self, ):
+    def _initialize(self):
         """
         initialize with the necessary elements
         """
         self.pretrained_model_path = os.path.join(self.directory, "infer_model")
-        self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
+        self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
-        self.lac = None
+        self._word_seg_module = None
 
         self._set_config()
 
-    def _set_config(self, ):
+    def _set_config(self):
         """
         predictor config setting
         """
@@ -67,10 +69,16 @@ class EmotionDetectionTextCNN(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(
-            self,
-            trainable=False,
-    ):
+    @property
+    def word_seg_module(self):
+        """
+        lac module
+        """
+        if not self._word_seg_module:
+            self._word_seg_module = hub.Module(name="lac")
+        return self._word_seg_module
+
+    def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained emotion_detection_textcnn
         Args:
@@ -178,10 +186,8 @@ class EmotionDetectionTextCNN(hub.Module):
                 "The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
-        if not self.lac:
-            self.lac = hub.Module(name='lac')
-        processed_results = preprocess(self.lac, predicted_data, self.vocab,
-                                       use_gpu)
+        processed_results = preprocess(self.word_seg_module, predicted_data,
+                                       self.vocab, use_gpu)
         tensor_words = self.texts2tensor(processed_results)
 
         if use_gpu:
@@ -279,7 +285,7 @@ class EmotionDetectionTextCNN(hub.Module):
 
         return input_data
 
-    def get_vocab_path(self, ):
+    def get_vocab_path(self):
         """
         Get the path to the vocabulary whih was used to pretrain
         Returns:
