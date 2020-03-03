@@ -11,7 +11,7 @@ import os
 import six
 
 import paddle.fluid as fluid
-from paddle.fluid.core import PaddleDType, PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
@@ -105,11 +105,10 @@ class SimnetBow(hub.Module):
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
 
-        program, feed_var_names, fetch_targets = fluid.io.load_inference_model(
-            'model', exe)
-        with open("assets/params.txt") as file:
+        program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
+            dirname=self.pretrained_model_path, executor=exe)
+        with open(self.param_file, 'r') as file:
             params_list = file.read().split("\n")
-
         for param in params_list:
             var = program.global_block().var(param)
             var_info = {
@@ -125,13 +124,15 @@ class SimnetBow(hub.Module):
 
         for param in program.global_block().iter_parameters():
             param.trainable = trainable
-
-        text_a = program.global_block().vars[feed_var_names[0]]
-        text_b = program.global_block().vars[feed_var_names[0]]
-        inputs = {"text_a": text_a, "text_b": text_b}
+        for name, var in program.global_block().vars.items():
+            if name == feed_target_names[0]:
+                inputs["text_1"] = var
+            if name == feed_target_names[1]:
+                inputs["text_2"] = var
+            # output of sencond layer from the end prediction layer (fc-softmax)
         outputs = {
-            "similarity": fetch_targets[1],
-            "sentences_feature": fetch_targets[0]
+            "left_feature": fetch_targets[0],
+            "similarity": fetch_targets[1]
         }
         return inputs, outputs, program
 
