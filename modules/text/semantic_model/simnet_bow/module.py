@@ -13,6 +13,7 @@ import six
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
+from paddlehub.common import paddle_helper
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
@@ -60,11 +61,11 @@ class SimnetBow(hub.Module):
         """
         initialize with the necessary elements
         """
-        self.pretrained_model_path = os.path.join(self.directory, "model")
+        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
         self.lac = None
-        
+
         self.param_file = os.path.join(self.directory, "assets/params.txt")
 
         self._set_config()
@@ -123,9 +124,11 @@ class SimnetBow(hub.Module):
                 'error_clip': var.error_clip
             }
             program.global_block().create_parameter(**var_info)
+        paddle_helper.remove_feed_fetch_op(program)
 
         for param in program.global_block().iter_parameters():
             param.trainable = trainable
+        inputs = {}
         for name, var in program.global_block().vars.items():
             if name == feed_target_names[0]:
                 inputs["text_1"] = var
@@ -181,8 +184,7 @@ class SimnetBow(hub.Module):
         """
         Get the sentiment prediction results results with the texts as input
         Args:
-             texts(list): the input texts to be predicted, if texts not data
-             data(dict): key must be 'text', value is the texts to be predicted, if data not texts
+             data(dict): key must be 'text_1' and 'text_2', value is the texts to be predicted
              use_gpu(bool): whether use gpu to predict or not
              batch_size(int): the program deals once with one batch
         Returns:
@@ -286,15 +288,20 @@ class SimnetBow(hub.Module):
             if args.text_1.strip() != '' and args.text_2.strip() != '':
                 if six.PY2:
                     input_data = {
-                        "text_1":
-                        args.text_1.strip().decode(
-                            sys_stdin_encoding()).decode("utf8"),
-                        "text_2":
-                        args.text_2.strip().decode(
-                            sys_stdin_encoding()).decode("utf8")
+                        "text_1": [
+                            args.text_1.strip().decode(
+                                sys_stdin_encoding()).decode("utf8")
+                        ],
+                        "text_2": [
+                            args.text_2.strip().decode(
+                                sys_stdin_encoding()).decode("utf8")
+                        ]
                     }
                 else:
-                    input_data = {"text_1": args.text_1, "text_2": args.text_2}
+                    input_data = {
+                        "text_1": [args.text_1],
+                        "text_2": [args.text_2]
+                    }
             else:
                 print(
                     "ERROR: The input data is inconsistent with expectations.")
@@ -317,13 +324,14 @@ class SimnetBow(hub.Module):
 if __name__ == "__main__":
 
     simnet_bow = SimnetBow()
+    simnet_bow.context()
     # Data to be predicted
     test_text_1 = ["这道题太难了", "这道题太难了", "这道题太难了"]
     test_text_2 = ["这道题是上一年的考题", "这道题不简单", "这道题很有意思"]
 
     inputs = {"text_1": test_text_1, "text_2": test_text_2}
     results = simnet_bow.similarity(data=inputs)
-
+    print(results)
     max_score = -1
     result_text = ""
     for result in results:
