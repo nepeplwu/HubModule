@@ -22,6 +22,8 @@ def load_vocab(file_path):
             data = line.strip().split("\t")
             if len(data) == 1:
                 wstr = ''
+                vocab[wstr] = int(data[0])
+                continue
             else:
                 wstr = data[1]
             vocab[wstr] = int(data[0])

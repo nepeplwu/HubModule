@@ -18,6 +18,8 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
+import sys
+sys.path.append("..")
 from emotion_detection_textcnn.net import textcnn_net
 from emotion_detection_textcnn.processor import load_vocab, preprocess, postprocess
 
@@ -39,7 +41,7 @@ class EmotionDetectionTextCNN(hub.Module):
         """
         initialize with the necessary elements
         """
-        self.pretrained_model_path = os.path.join(self.directory, "model")
+        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
         self.lac = None
@@ -50,7 +52,6 @@ class EmotionDetectionTextCNN(hub.Module):
         """
         predictor config setting
         """
-        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
@@ -221,15 +222,8 @@ class EmotionDetectionTextCNN(hub.Module):
             self.parser.print_help()
             return None
 
-        results = self.sentiment_classify(
+        results = self.classify(
             texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
-        if six.PY2:
-            try:
-                results = json.dumps(
-                    results, encoding="utf8", ensure_ascii=False)
-            except:
-                pass
-
         return results
 
     def add_module_config_arg(self):
