@@ -39,7 +39,7 @@ class SentaCNN(hub.Module):
         """
         initialize with the necessary elements
         """
-        self.pretrained_model_path = os.path.join(self.directory, "model")
+        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
         self.word_dict = load_vocab(self.vocab_path)
         self.lac = None
@@ -50,7 +50,7 @@ class SentaCNN(hub.Module):
         """
         predictor config setting
         """
-        cpu_config = AnalysisConfig(os.path.join(self.directory, "infer_model"))
+        cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
@@ -102,10 +102,10 @@ class SentaCNN(hub.Module):
 
                 # load the senta_cnn pretrained model
                 def if_exist(var):
-                    print(
-                        var.name,
-                        os.path.exists(
-                            os.path.join(self.pretrained_model_path, var.name)))
+                    print(var.name,
+                          os.path.exists(
+                              os.path.join(self.pretrained_model_path,
+                                           var.name)))
                     return os.path.exists(
                         os.path.join(self.pretrained_model_path, var.name))
 
@@ -307,14 +307,14 @@ if __name__ == "__main__":
     results = senta.sentiment_classify(data=input_dict)
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
     results = senta.sentiment_classify(texts=test_text)
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])

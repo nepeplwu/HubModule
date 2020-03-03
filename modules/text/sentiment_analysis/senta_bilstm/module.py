@@ -39,7 +39,7 @@ class SentaBiLSTM(hub.Module):
         """
         initialize with the necessary elements
         """
-        self.pretrained_model_path = os.path.join(self.directory, "model")
+        self.pretrained_model_path = os.path.join(self.directory, "infer_model")
         self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
         self.word_dict = load_vocab(self.vocab_path)
         self.lac = None
@@ -50,7 +50,7 @@ class SentaBiLSTM(hub.Module):
         """
         predictor config setting
         """
-        cpu_config = AnalysisConfig(os.path.join(self.directory, "infer_model"))
+        cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
@@ -228,12 +228,6 @@ class SentaBiLSTM(hub.Module):
 
         results = self.sentiment_classify(
             texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
-        if six.PY2:
-            try:
-                results = json.dumps(
-                    results, encoding="utf8", ensure_ascii=False)
-            except:
-                pass
 
         return results
 
@@ -319,14 +313,14 @@ if __name__ == "__main__":
     results = senta.sentiment_classify(data=input_dict)
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
     results = senta.sentiment_classify(texts=test_text)
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
