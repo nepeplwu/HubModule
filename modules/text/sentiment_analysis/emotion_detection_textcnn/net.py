@@ -63,4 +63,4 @@ def textcnn_net(data,
     avg_cost = fluid.layers.mean(x=cost)
     acc = fluid.layers.accuracy(input=prediction, label=label)
 
-    return avg_cost, acc, prediction, fc_1
+    return prediction, fc_1

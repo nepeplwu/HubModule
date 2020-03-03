@@ -99,7 +99,7 @@ class EmotionDetectionTextCNN(hub.Module):
                 label = fluid.layers.data(
                     name="label", shape=[1], dtype="int64")
 
-                cost, acc, prediction, fc = textcnn_net(data, label, 240465)
+                prediction, fc = textcnn_net(data, label, 240465)
 
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
