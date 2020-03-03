@@ -18,8 +18,6 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
 from emotion_detection_textcnn.net import textcnn_net
 from emotion_detection_textcnn.processor import load_vocab, preprocess, postprocess
 
