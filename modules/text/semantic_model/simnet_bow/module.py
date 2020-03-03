@@ -64,6 +64,8 @@ class SimnetBow(hub.Module):
         self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
         self.lac = None
+        
+        self.param_file = os.path.join(self.directory, "assets/params.txt")
 
         self._set_config()
 
