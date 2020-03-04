@@ -13,9 +13,9 @@ import six
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
-from paddlehub.module.module import serving
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
