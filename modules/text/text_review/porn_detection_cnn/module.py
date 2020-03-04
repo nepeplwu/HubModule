@@ -6,6 +6,7 @@ from __future__ import print_function
 import argparse
 import ast
 import json
+import math
 import numpy as np
 import os
 import six
@@ -21,6 +22,8 @@ from paddlehub.module.module import runnable
 from paddlehub.module.module import serving
 from paddlehub.reader import tokenization
 
+import sys
+sys.path.append("..")
 from porn_detection_cnn.processor import load_vocab, preprocess, postprocess
 
 
@@ -184,15 +187,27 @@ class PornDetectionCNN(hub.Module):
                 "The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
-        processed_results = preprocess(predicted_data, self.tokenizer,
-                                       self.vocab, self.sequence_max_len)
-        tensor_words = self.texts2tensor(processed_results)
-        if use_gpu:
-            fetch_out = self.gpu_predictor.run([tensor_words])
-        else:
-            fetch_out = self.cpu_predictor.run([tensor_words])
-        result = postprocess(fetch_out[0], processed_results)
-        return result
+        start_idx = 0
+        itter = int(math.ceil(len(predicted_data) / batch_size))
+        results = []
+        for i in range(itter):
+            if i < (itter - 1):
+                batch_data = predicted_data[start_idx:(start_idx + batch_size)]
+            else:
+                batch_data = predicted_data[start_idx:]
+
+            start_idx = start_idx + batch_size
+            processed_results = preprocess(batch_data, self.tokenizer,
+                                           self.vocab, self.sequence_max_len)
+            tensor_words = self.texts2tensor(processed_results)
+
+            if use_gpu:
+                batch_out = self.gpu_predictor.run([tensor_words])
+            else:
+                batch_out = self.cpu_predictor.run([tensor_words])
+            batch_result = postprocess(batch_out[0], processed_results)
+            results += batch_result
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -223,7 +238,7 @@ class PornDetectionCNN(hub.Module):
             self.parser.print_help()
             return None
 
-        results = self.sentiment_classify(
+        results = self.detection(
             texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
 
         return results
@@ -306,7 +321,7 @@ if __name__ == "__main__":
     porn_detection_cnn = PornDetectionCNN()
     test_text = ["黄片下载", "打击黄牛党"]
 
-    results = porn_detection_cnn.detection(texts=test_text)
+    results = porn_detection_cnn.detection(texts=test_text, batch_size=9)
     for index, text in enumerate(test_text):
         results[index]["text"] = text
     for index, result in enumerate(results):
