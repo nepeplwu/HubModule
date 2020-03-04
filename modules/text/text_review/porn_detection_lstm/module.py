@@ -13,6 +13,7 @@ import six
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
+from paddlehub.common.paddle_helper import get_variable_info
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
@@ -21,25 +22,6 @@ from paddlehub.module.module import serving
 from paddlehub.reader import tokenization
 
 from porn_detection_lstm.processor import load_vocab, preprocess, postprocess
-
-dtype_map = {
-    fluid.core.VarDesc.VarType.FP32: "float32",
-    fluid.core.VarDesc.VarType.FP64: "float64",
-    fluid.core.VarDesc.VarType.FP16: "float16",
-    fluid.core.VarDesc.VarType.INT32: "int32",
-    fluid.core.VarDesc.VarType.INT16: "int16",
-    fluid.core.VarDesc.VarType.INT64: "int64",
-    fluid.core.VarDesc.VarType.BOOL: "bool",
-    fluid.core.VarDesc.VarType.INT16: "int16",
-    fluid.core.VarDesc.VarType.UINT8: "uint8",
-    fluid.core.VarDesc.VarType.INT8: "int8",
-}
-
-
-def convert_dtype_to_string(dtype):
-    if dtype in dtype_map:
-        return dtype_map[dtype]
-    raise TypeError("dtype shoule in %s" % list(dtype_map.keys()))
 
 
 class DataFormatError(Exception):
@@ -108,31 +90,28 @@ class PornDetectionLSTM(hub.Module):
         """
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
-
         program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
             dirname=self.pretrained_model_path, executor=exe)
+
         with open(self.param_file, 'r') as file:
-            params_list = file.read().split("\n")
+            params_list = file.readlines()
         for param in params_list:
+            param = param.strip()
             var = program.global_block().var(param)
-            var_info = {
-                'name': var.name,
-                'dtype': convert_dtype_to_string(var.dtype),
-                'lod_level': var.lod_level,
-                'shape': var.shape,
-                'stop_gradient': var.stop_gradient,
-                'is_data': var.is_data,
-                'error_clip': var.error_clip
-            }
-            program.global_block().create_parameter(**var_info)
+            var_info = get_variable_info(var)
+            program.global_block().create_parameter(
+                shape=var_info['shape'],
+                dtype=var_info['dtype'],
+                name=var_info['name'])
 
         for param in program.global_block().iter_parameters():
             param.trainable = trainable
+
         for name, var in program.global_block().vars.items():
             if name == feed_target_names[0]:
                 inputs = {"words": var}
             # output of sencond layer from the end prediction layer (fc-softmax)
-            if name == "layer_norm_0.tmp_2":
+            if name == "@HUB_porn_detection_lstm@layer_norm_0.tmp_2":
                 outputs = {
                     "class_probs": fetch_targets[0],
                     "sentence_feature": var
