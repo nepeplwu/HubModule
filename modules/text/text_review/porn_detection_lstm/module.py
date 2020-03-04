@@ -17,6 +17,7 @@ from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
+from paddlehub.module.module import serving
 from paddlehub.reader import tokenization
 
 from porn_detection_lstm.processor import load_vocab, preprocess, postprocess
@@ -49,9 +50,9 @@ class DataFormatError(Exception):
 @moduleinfo(
     name="porn_detection_lstm",
     version="1.1.0",
-    summary="Baidu's open-source Porn Detection System.",
+    summary="Baidu's open-source Porn Detection Model.",
     author="baidu-nlp",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     type="nlp/sentiment_analysis")
 class PornDetectionLSTM(hub.Module):
     def _initialize(self, ):
@@ -59,14 +60,15 @@ class PornDetectionLSTM(hub.Module):
         initialize with the necessary elements
         """
         self.pretrained_model_path = os.path.join(self.directory, "infer_model")
-        self.tokenizer_vocab_path = os.path.join(self.directory,
-                                                 "assets/vocab.txt")
-        self.vocab_path = os.path.join(self.directory, "assets/word_dict.txt")
+        self.tokenizer_vocab_path = os.path.join(self.directory, "assets",
+                                                 "vocab.txt")
+        self.vocab_path = os.path.join(self.directory, "assets",
+                                       "word_dict.txt")
         self.vocab = load_vocab(self.vocab_path)
         self.sequence_max_len = 256
         self.tokenizer = tokenization.FullTokenizer(self.tokenizer_vocab_path)
 
-        self.param_file = os.path.join(self.directory, "assets/params.txt")
+        self.param_file = os.path.join(self.directory, "assets", "params.txt")
 
         self._set_config()
 
@@ -175,6 +177,7 @@ class PornDetectionLSTM(hub.Module):
             texts = unicode_texts
         return texts
 
+    @serving
     def detection(self, texts=[], data={}, use_gpu=False, batch_size=1):
         """
         Get the porn prediction results results with the texts as input
@@ -323,8 +326,8 @@ if __name__ == "__main__":
         results[index]["text"] = text
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
     input_dict = {"text": test_text}
@@ -333,7 +336,7 @@ if __name__ == "__main__":
         results[index]["text"] = text
     for index, result in enumerate(results):
         if six.PY2:
-            print(
-                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(
+                results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
