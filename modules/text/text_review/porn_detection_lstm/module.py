@@ -38,7 +38,7 @@ class DataFormatError(Exception):
     author_email="",
     type="nlp/sentiment_analysis")
 class PornDetectionLSTM(hub.Module):
-    def _initialize(self, ):
+    def _initialize(self):
         """
         initialize with the necessary elements
         """
@@ -55,7 +55,7 @@ class PornDetectionLSTM(hub.Module):
 
         self._set_config()
 
-    def _set_config(self, ):
+    def _set_config(self):
         """
         predictor config setting
         """
@@ -76,10 +76,7 @@ class PornDetectionLSTM(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(
-            self,
-            trainable=False,
-    ):
+    def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained porn_detection_lstm
         Args:
@@ -298,7 +295,7 @@ class PornDetectionLSTM(hub.Module):
 
         return input_data
 
-    def get_vocab_path(self, ):
+    def get_vocab_path(self):
         """
         Get the path to the vocabulary whih was used to pretrain
 
