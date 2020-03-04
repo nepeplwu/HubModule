@@ -13,7 +13,7 @@ import six
 
 import paddle
 import paddle.fluid as fluid
-from paddle.fluid.core import AnalysisConfig, create_paddle_predictor
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.logger import logger
 from paddlehub.common.utils import sys_stdin_encoding
@@ -79,9 +79,6 @@ class LAC(hub.Module):
         cpu_config = AnalysisConfig(self.pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
-        cpu_config.switch_use_feed_fetch_ops(False)
-        cpu_config.switch_ir_optim(True)
-        cpu_config.enable_memory_optim()
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
@@ -94,9 +91,6 @@ class LAC(hub.Module):
             gpu_config = AnalysisConfig(self.pretrained_model_path)
             gpu_config.disable_glog_info()
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
-            gpu_config.switch_use_feed_fetch_ops(False)
-            gpu_config.switch_ir_optim(True)
-            gpu_config.enable_memory_optim()
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(
@@ -181,6 +175,30 @@ class LAC(hub.Module):
             texts = unicode_texts
         return texts
 
+    def texts2tensor(self, texts):
+        """
+        Tranform the texts(list) to PaddleTensor
+        Args:
+             texts(list): texts
+        Returns:
+             tensor(PaddleTensor): tensor with texts data
+        """
+        lod = [0]
+        data = []
+        for i, text in enumerate(texts):
+            text_inds = word_to_ids(
+                text,
+                self.word2id_dict,
+                self.word_replace_dict,
+                oov_id=self.oov_id)
+            data += text_inds
+            lod.append(len(text_inds) + lod[i])
+        tensor = PaddleTensor(np.array(data).astype('int64'))
+        tensor.name = "words"
+        tensor.lod = [lod]
+        tensor.shape = [lod[-1], 1]
+        return tensor
+
     def lexical_analysis(self,
                          texts=[],
                          data={},
@@ -221,42 +239,16 @@ class LAC(hub.Module):
             raise ValueError(
                 "The input data is inconsistent with expectations.")
 
-        lod = [0]
-        data = []
         predicted_data = self.to_unicode(predicted_data)
-        for i, text in enumerate(predicted_data):
-            text_inds = word_to_ids(
-                text,
-                self.word2id_dict,
-                self.word_replace_dict,
-                oov_id=self.oov_id)
-            data += text_inds
-            lod.append(len(text_inds) + lod[i])
-
+        tensor_words = self.texts2tensor(predicted_data)
         if use_gpu:
-            names = self.gpu_predictor.get_input_names()
-            self.input_tensor = self.gpu_predictor.get_input_tensor(names[0])
-            self.input_tensor.reshape([lod[-1], 1])
-            self.input_tensor.copy_from_cpu(
-                np.array(data).reshape([lod[-1], 1]).astype("int64"))
-            self.input_tensor.set_lod([lod])
-            self.gpu_predictor.zero_copy_run()
-            output_name = self.gpu_predictor.get_output_names()
-            output_tensor = self.gpu_predictor.get_output_tensor(output_name[0])
+            crf_decode = self.gpu_predictor.run([tensor_words])
         else:
-            names = self.cpu_predictor.get_input_names()
-            self.input_tensor = self.cpu_predictor.get_input_tensor(names[0])
-            self.input_tensor.reshape([lod[-1], 1])
-            self.input_tensor.copy_from_cpu(
-                np.array(data).reshape([lod[-1], 1]).astype("int64"))
-            self.input_tensor.set_lod([lod])
-            self.cpu_predictor.zero_copy_run()
-            output_name = self.cpu_predictor.get_output_names()
-            output_tensor = self.cpu_predictor.get_output_tensor(output_name[0])
+            crf_decode = self.cpu_predictor.run([tensor_words])
 
         results = parse_result(
             predicted_data,
-            output_tensor,
+            crf_decode[0],
             self.id2label_dict,
             interventer=self.interventer)
 
@@ -392,6 +384,7 @@ if __name__ == '__main__':
     # lac.set_user_dict("user.dict")
 
     test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
+
     # execute predict and print the result
     results = lac.lexical_analysis(
         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
