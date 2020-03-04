@@ -185,7 +185,7 @@ class EmotionDetectionTextCNN(hub.Module):
         predicted_data = self.to_unicode(predicted_data)
 
         start_idx = 0
-        itter = math.ceil(len(predicted_data) / batch_size)
+        itter = int(math.ceil(len(predicted_data) / batch_size))
         results = []
         for i in range(itter):
             if i < (itter - 1):
