@@ -57,7 +57,7 @@ class SentaLSTM(hub.Module):
             self._word_seg_module = hub.Module(name="lac")
         return self._word_seg_module
 
-    def _set_config(self, ):
+    def _set_config(self):
         """
         predictor config setting
         """
@@ -79,10 +79,7 @@ class SentaLSTM(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(
-            self,
-            trainable=False,
-    ):
+    def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained senta_lstm
 
