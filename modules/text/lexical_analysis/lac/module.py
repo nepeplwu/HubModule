@@ -22,8 +22,6 @@ from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
 from lac.network import lex_net
 from lac.processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
