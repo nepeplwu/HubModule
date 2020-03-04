@@ -7,6 +7,7 @@ import argparse
 import ast
 import io
 import json
+import math
 import numpy as np
 import os
 import six
@@ -18,6 +19,7 @@ import paddlehub as hub
 from paddlehub.common.logger import logger
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
@@ -199,6 +201,7 @@ class LAC(hub.Module):
         tensor.shape = [lod[-1], 1]
         return tensor
 
+    @serving
     def lexical_analysis(self,
                          texts=[],
                          data={},
@@ -240,17 +243,28 @@ class LAC(hub.Module):
                 "The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
-        tensor_words = self.texts2tensor(predicted_data)
-        if use_gpu:
-            crf_decode = self.gpu_predictor.run([tensor_words])
-        else:
-            crf_decode = self.cpu_predictor.run([tensor_words])
+        start_idx = 0
+        iteration = int(math.ceil(len(predicted_data) / batch_size))
+        results = []
+        for i in range(iteration):
+            if i < (iteration - 1):
+                batch_data = predicted_data[start_idx:(start_idx + batch_size)]
+            else:
+                batch_data = predicted_data[start_idx:]
 
-        results = parse_result(
-            predicted_data,
-            crf_decode[0],
-            self.id2label_dict,
-            interventer=self.interventer)
+            start_idx = start_idx + batch_size
+            tensor_words = self.texts2tensor(batch_data)
+
+            if use_gpu:
+                batch_out = self.gpu_predictor.run([tensor_words])
+            else:
+                batch_out = self.cpu_predictor.run([tensor_words])
+            batch_result = parse_result(
+                batch_data,
+                batch_out[0],
+                self.id2label_dict,
+                interventer=self.interventer)
+            results += batch_result
 
         if not return_tag:
             for result in results:
