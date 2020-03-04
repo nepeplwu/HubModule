@@ -7,10 +7,10 @@ import argparse
 import ast
 import json
 import math
-import numpy as np
 import os
 import six
 
+import numpy as np
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
@@ -21,6 +21,8 @@ from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
+import sys
+sys.path.append("..")
 from simnet_bow.processor import load_vocab, preprocess, postprocess
 
 
@@ -33,9 +35,9 @@ class DataFormatError(Exception):
     name="simnet_bow",
     version="1.1.0",
     summary=
-    " Baidu's open-source similarity network model based on bow_pairwisei.",
+    "Baidu's open-source similarity network model based on bow_pairwise.",
     author="baidu-nlp",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     type="nlp/sentiment_analysis")
 class SimnetBow(hub.Module):
     def _initialize(self):
@@ -162,12 +164,48 @@ class SimnetBow(hub.Module):
             texts = unicode_texts
         return texts
 
+    def check_data(self, texts=[], data={}):
+        """
+        check input data
+        Args:
+             texts(list): the input texts to be predicted which the first element is text_1(list)
+                          and the second element is text_2(list), such as [['这道题很难'], ['这道题不简单']]
+                          if texts not data.
+             data(dict): key must be 'text_1' and 'text_2', value is the texts(list) to be predicted
+        Returns:
+             results(dict): predicted data
+        """
+        predicted_data = {'text_1': [], 'text_2': []}
+        if texts != [] and isinstance(texts, list) and len(texts) == 2 and (len(
+                texts[0]) == len(
+                    texts[1])) and texts[0] and texts[1] and data == {}:
+
+            predicted_data['text_1'] = texts[0]
+            predicted_data['text_2'] = texts[1]
+
+        elif texts == [] and isinstance(data, dict) and isinstance(
+                data.get('text_1', None), list) and isinstance(
+                    data.get('text_2', None),
+                    list) and (len(data['text_1']) == len(
+                        data['text_2'])) and data['text_1'] and data['text_2']:
+
+            predicted_data = data
+
+        else:
+            raise ValueError(
+                "The input data is inconsistent with expectations.")
+
+        return predicted_data
+
     @serving
-    def similarity(self, data={}, use_gpu=False, batch_size=1):
+    def similarity(self, texts=[], data={}, use_gpu=False, batch_size=1):
         """
         Get the sentiment prediction results results with the texts as input
         Args:
-             data(dict): key must be 'text_1' and 'text_2', value is the texts to be predicted
+             texts(list): the input texts to be predicted which the first element is text_1(list)
+                          and the second element is text_2(list), such as [['这道题很难'], ['这道题不简单']]
+                          if texts not data.
+             data(dict): key must be 'text_1' and 'text_2', value is the texts(list) to be predicted
              use_gpu(bool): whether use gpu to predict or not
              batch_size(int): the program deals once with one batch
         Returns:
@@ -178,6 +216,8 @@ class SimnetBow(hub.Module):
             int(_places[0])
         except:
             use_gpu = False
+
+        data = self.check_data(texts, data)
 
         start_idx = 0
         iteration = int(math.ceil(len(data['text_1']) / batch_size))
@@ -311,7 +351,7 @@ class SimnetBow(hub.Module):
 
         return input_data
 
-    def get_vocab_path(self, ):
+    def get_vocab_path(self):
         """
         Get the path to the vocabulary whih was used to pretrain
         Returns:
