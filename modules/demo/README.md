@@ -159,7 +159,7 @@ hub install senta_test
 import paddlehub as hub
 
 senta_test = hub.Module(name="senta_test")
-senta_test.check(texts=["这部电影太差劲了"])
+senta_test.sentiment_classify(texts=["这部电影太差劲了"])
 ```
 
 ### 调用方法2
@@ -169,7 +169,7 @@ senta_test.check(texts=["这部电影太差劲了"])
 import paddlehub as hub
 
 senta_test = hub.Module(directory="senta_test/")
-senta_test.check(texts=["这部电影太差劲了"])
+senta_test.sentiment_classify(texts=["这部电影太差劲了"])
 ```
 
 ### 调用方法3
@@ -181,7 +181,7 @@ export PYTHONPATH=senta_test:$PYTHONPATH
 ```python
 from senta_test.module import SentaTest
 
-SentaTest.check(texts=["这部电影太差劲了"])
+SentaTest.sentiment_classify(texts=["这部电影太差劲了"])
 ```
 
 ### 调用方法4
