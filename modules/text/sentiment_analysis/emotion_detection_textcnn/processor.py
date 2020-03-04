@@ -34,10 +34,11 @@ def get_predict_label(probs):
     return label, key
 
 
-def preprocess(lac, predicted_data, word_dict, use_gpu=False):
+def preprocess(lac, predicted_data, word_dict, use_gpu=False, batch_size=1):
     result = []
     data_dict = {"text": predicted_data}
-    processed = lac.lexical_analysis(data=data_dict, use_gpu=use_gpu)
+    processed = lac.lexical_analysis(
+        data=data_dict, use_gpu=use_gpu, batch_size=batch_size)
     unk_id = word_dict["<unk>"]
     for index, data in enumerate(processed):
         result_i = {'processed': []}

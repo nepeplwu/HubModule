@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import argparse
 import ast
+import math
 import numpy as np
 import os
 import six
@@ -12,6 +13,7 @@ import six
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
+from paddlehub.module.module import serving
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo
@@ -92,11 +94,8 @@ class EmotionDetectionTextCNN(hub.Module):
                 # word seq data
                 data = fluid.layers.data(
                     name="words", shape=[1], dtype="int64", lod_level=1)
-                # label data
-                label = fluid.layers.data(
-                    name="label", shape=[1], dtype="int64")
 
-                prediction, fc = textcnn_net(data, label, 240465)
+                prediction, fc = textcnn_net(data, 240465)
 
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
@@ -156,6 +155,7 @@ class EmotionDetectionTextCNN(hub.Module):
             texts = unicode_texts
         return texts
 
+    @serving
     def emotion_classify(self, texts=[], data={}, use_gpu=False, batch_size=1):
         """
         Get the emotion prediction results results with the texts as input
@@ -183,16 +183,27 @@ class EmotionDetectionTextCNN(hub.Module):
                 "The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
-        processed_results = preprocess(self.word_seg_module, predicted_data,
-                                       self.vocab, use_gpu)
-        tensor_words = self.texts2tensor(processed_results)
 
-        if use_gpu:
-            fetch_out = self.gpu_predictor.run([tensor_words])
-        else:
-            fetch_out = self.cpu_predictor.run([tensor_words])
-        result = postprocess(fetch_out[0], processed_results)
-        return result
+        start_idx = 0
+        itter = math.ceil(len(predicted_data) / batch_size)
+        results = []
+        for i in range(itter):
+            if i < (itter - 1):
+                batch_data = predicted_data[start_idx:(start_idx + batch_size)]
+            else:
+                batch_data = predicted_data[start_idx:]
+            start_idx = start_idx + batch_size
+            processed_results = preprocess(self.word_seg_module, batch_data,
+                                           self.vocab, use_gpu, batch_size)
+            tensor_words = self.texts2tensor(processed_results)
+
+            if use_gpu:
+                batch_out = self.gpu_predictor.run([tensor_words])
+            else:
+                batch_out = self.cpu_predictor.run([tensor_words])
+            batch_result = postprocess(batch_out[0], processed_results)
+            results += batch_result
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -223,7 +234,7 @@ class EmotionDetectionTextCNN(hub.Module):
             self.parser.print_help()
             return None
 
-        results = self.classify(
+        results = self.emotion_classify(
             texts=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
         return results
 
@@ -298,7 +309,7 @@ if __name__ == "__main__":
 
     input_dict = {"text": test_text}
     results = emotion_detection_textcnn.emotion_classify(
-        data=input_dict, batch_size=10)
+        data=input_dict, batch_size=2)
     for result in results:
         print(result['text'])
         print(result['emotion_label'])

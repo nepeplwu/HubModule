@@ -3,7 +3,6 @@ import paddle.fluid as fluid
 
 
 def textcnn_net(data,
-                label,
                 dict_dim,
                 emb_dim=128,
                 hid_dim=128,
@@ -59,8 +58,5 @@ def textcnn_net(data,
             name="@HUB_emotion_detection_textcnn@fc_1.w_0"),
         bias_attr=fluid.ParamAttr(
             name="@HUB_emotion_detection_textcnn@fc_1.b_0"))
-    cost = fluid.layers.cross_entropy(input=prediction, label=label)
-    avg_cost = fluid.layers.mean(x=cost)
-    acc = fluid.layers.accuracy(input=prediction, label=label)
 
     return prediction, fc_1
