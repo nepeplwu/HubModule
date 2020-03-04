@@ -22,8 +22,6 @@ from paddlehub.module.module import runnable
 from paddlehub.module.module import serving
 from paddlehub.reader import tokenization
 
-import sys
-sys.path.append("..")
 from porn_detection_cnn.processor import load_vocab, preprocess, postprocess
 
 
@@ -188,10 +186,10 @@ class PornDetectionCNN(hub.Module):
 
         predicted_data = self.to_unicode(predicted_data)
         start_idx = 0
-        itter = int(math.ceil(len(predicted_data) / batch_size))
+        iteration = int(math.ceil(len(predicted_data) / batch_size))
         results = []
-        for i in range(itter):
-            if i < (itter - 1):
+        for i in range(iteration):
+            if i < (iteration - 1):
                 batch_data = predicted_data[start_idx:(start_idx + batch_size)]
             else:
                 batch_data = predicted_data[start_idx:]
