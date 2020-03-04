@@ -6,6 +6,7 @@ from __future__ import print_function
 import argparse
 import ast
 import json
+import math
 import numpy as np
 import os
 import six
@@ -15,6 +16,7 @@ from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predic
 import paddlehub as hub
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
@@ -32,7 +34,7 @@ class DataFormatError(Exception):
     version="1.1.0",
     summary="Baidu's open-source Sentiment Classification System.",
     author="baidu-nlp",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     type="nlp/sentiment_analysis")
 class SentaLSTM(hub.Module):
     def _initialize(self, user_dict=None):
@@ -40,11 +42,20 @@ class SentaLSTM(hub.Module):
         initialize with the necessary elements
         """
         self.pretrained_model_path = os.path.join(self.directory, "infer_model")
-        self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
+        self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
         self.word_dict = load_vocab(self.vocab_path)
-        self.lac = None
+        self._word_seg_module = None
 
         self._set_config()
+
+    @property
+    def word_seg_module(self):
+        """
+        lac module
+        """
+        if not self._word_seg_module:
+            self._word_seg_module = hub.Module(name="lac")
+        return self._word_seg_module
 
     def _set_config(self, ):
         """
@@ -89,10 +100,8 @@ class SentaLSTM(hub.Module):
             with fluid.unique_name.guard("@HUB_senta_lstm@"):
                 data = fluid.layers.data(
                     name="words", shape=[1], dtype="int64", lod_level=1)
-                label = fluid.layers.data(
-                    name="label", shape=[1], dtype="int64")
 
-                cost, acc, pred, fc = lstm_net(data, label, 1256606)
+                pred, fc = lstm_net(data, 1256606)
 
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
@@ -151,6 +160,7 @@ class SentaLSTM(hub.Module):
         tensor.shape = [lod[-1], 1]
         return tensor
 
+    @serving
     def sentiment_classify(self, texts=[], data={}, use_gpu=False,
                            batch_size=1):
         """
@@ -181,18 +191,27 @@ class SentaLSTM(hub.Module):
                 "The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
-        if not self.lac:
-            self.lac = hub.Module(name="lac")
-        processed_results = preprocess(self.lac, predicted_data, self.word_dict,
-                                       use_gpu)
+        start_idx = 0
+        iteration = int(math.ceil(len(predicted_data) / batch_size))
+        results = []
+        for i in range(iteration):
+            if i < (iteration - 1):
+                batch_data = predicted_data[start_idx:(start_idx + batch_size)]
+            else:
+                batch_data = predicted_data[start_idx:]
 
-        tensor_words = self.texts2tensor(processed_results)
-        if use_gpu:
-            fetch_out = self.gpu_predictor.run([tensor_words])
-        else:
-            fetch_out = self.cpu_predictor.run([tensor_words])
-        result = postprocess(fetch_out[0], processed_results)
-        return result
+            start_idx = start_idx + batch_size
+            processed_results = preprocess(self.word_seg_module, batch_data,
+                                           self.word_dict, use_gpu, batch_size)
+            tensor_words = self.texts2tensor(processed_results)
+
+            if use_gpu:
+                batch_out = self.gpu_predictor.run([tensor_words])
+            else:
+                batch_out = self.cpu_predictor.run([tensor_words])
+            batch_result = postprocess(batch_out[0], processed_results)
+            results += batch_result
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -291,6 +310,15 @@ class SentaLSTM(hub.Module):
              self.vocab_path(str): the path to vocabulary
         """
         return self.vocab_path
+
+    def get_labels(self):
+        """
+        Get the labels which was used when pretraining
+        Returns:
+             self.labels(dict)
+        """
+        self.labels = {"positive": 1, "negative": 0}
+        return self.labels
 
 
 if __name__ == "__main__":

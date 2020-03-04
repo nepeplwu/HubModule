@@ -17,14 +17,15 @@ def load_vocab(file_path):
     return vocab
 
 
-def preprocess(lac, texts, word_dict, use_gpu=False):
+def preprocess(lac, texts, word_dict, use_gpu=False, batch_size=1):
     """
     firstly, the predicted texts are segmented by lac module
     then, the word segmention results input into senta
     """
     result = []
     input_dict = {'text': texts}
-    processed = lac.lexical_analysis(data=input_dict, use_gpu=use_gpu)
+    processed = lac.lexical_analysis(
+        data=input_dict, use_gpu=use_gpu, batch_size=batch_size)
     unk_id = word_dict["<unk>"]
     for index, data in enumerate(processed):
         result_i = {'processed': []}
@@ -39,10 +40,7 @@ def preprocess(lac, texts, word_dict, use_gpu=False):
     return result
 
 
-def postprocess(
-        predict_out,
-        texts,
-):
+def postprocess(predict_out, texts):
     """
     Convert model's output tensor to sentiment label
     """
