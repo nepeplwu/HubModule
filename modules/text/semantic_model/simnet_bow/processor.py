@@ -21,13 +21,15 @@ text_a_key = "text_1"
 text_b_key = "text_2"
 
 
-def preprocess(lac, word_dict, data_dict, use_gpu=False):
+def preprocess(lac, word_dict, data_dict, use_gpu=False, batch_size=1):
     """
     Convert the word str to word id and pad the text
     """
     result = {text_a_key: [], text_b_key: []}
     processed_a = lac.lexical_analysis(
-        data={'text': data_dict[text_a_key]}, use_gpu=use_gpu)
+        data={'text': data_dict[text_a_key]},
+        use_gpu=use_gpu,
+        batch_size=batch_size)
     processed_b = lac.lexical_analysis(
         data={'text': data_dict[text_b_key]}, use_gpu=use_gpu)
     for index, (text_a, text_b) in enumerate(zip(processed_a, processed_b)):

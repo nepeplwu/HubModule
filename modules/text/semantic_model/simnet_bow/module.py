@@ -6,6 +6,7 @@ from __future__ import print_function
 import argparse
 import ast
 import json
+import math
 import numpy as np
 import os
 import six
@@ -13,34 +14,14 @@ import six
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
-from paddlehub.common import paddle_helper
+from paddlehub.common.paddle_helper import get_variable_info
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
 from simnet_bow.processor import load_vocab, preprocess, postprocess
-
-dtype_map = {
-    fluid.core.VarDesc.VarType.FP32: "float32",
-    fluid.core.VarDesc.VarType.FP64: "float64",
-    fluid.core.VarDesc.VarType.FP16: "float16",
-    fluid.core.VarDesc.VarType.INT32: "int32",
-    fluid.core.VarDesc.VarType.INT16: "int16",
-    fluid.core.VarDesc.VarType.INT64: "int64",
-    fluid.core.VarDesc.VarType.BOOL: "bool",
-    fluid.core.VarDesc.VarType.INT16: "int16",
-    fluid.core.VarDesc.VarType.UINT8: "uint8",
-    fluid.core.VarDesc.VarType.INT8: "int8",
-}
-
-
-def convert_dtype_to_string(dtype):
-    if dtype in dtype_map:
-        return dtype_map[dtype]
-    raise TypeError("dtype shoule in %s" % list(dtype_map.keys()))
 
 
 class DataFormatError(Exception):
@@ -57,20 +38,28 @@ class DataFormatError(Exception):
     author_email="paddle-dev@baidu.com",
     type="nlp/sentiment_analysis")
 class SimnetBow(hub.Module):
-    def _initialize(self, ):
+    def _initialize(self):
         """
         initialize with the necessary elements
         """
         self.pretrained_model_path = os.path.join(self.directory, "infer_model")
-        self.vocab_path = os.path.join(self.directory, "assets/vocab.txt")
+        self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
-        self.lac = None
-
-        self.param_file = os.path.join(self.directory, "assets/params.txt")
+        self.param_file = os.path.join(self.directory, "assets", "params.txt")
+        self._word_seg_module = None
 
         self._set_config()
 
-    def _set_config(self, ):
+    @property
+    def word_seg_module(self):
+        """
+        lac module
+        """
+        if not self._word_seg_module:
+            self._word_seg_module = hub.Module(name="lac")
+        return self._word_seg_module
+
+    def _set_config(self):
         """
         predictor config setting
         """
@@ -92,10 +81,7 @@ class SimnetBow(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(
-            self,
-            trainable=False,
-    ):
+    def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained simnet_bow
         Args:
@@ -111,20 +97,16 @@ class SimnetBow(hub.Module):
         program, feed_target_names, fetch_targets = fluid.io.load_inference_model(
             dirname=self.pretrained_model_path, executor=exe)
         with open(self.param_file, 'r') as file:
-            params_list = file.read().split("\n")
+            params_list = file.readlines()
         for param in params_list:
+            param = param.strip()
             var = program.global_block().var(param)
-            var_info = {
-                'name': var.name,
-                'dtype': convert_dtype_to_string(var.dtype),
-                'lod_level': var.lod_level,
-                'shape': var.shape,
-                'stop_gradient': var.stop_gradient,
-                'is_data': var.is_data,
-                'error_clip': var.error_clip
-            }
-            program.global_block().create_parameter(**var_info)
-        paddle_helper.remove_feed_fetch_op(program)
+            var_info = get_variable_info(var)
+
+            program.global_block().create_parameter(
+                shape=var_info['shape'],
+                dtype=var_info['dtype'],
+                name=var_info['name'])
 
         for param in program.global_block().iter_parameters():
             param.trainable = trainable
@@ -180,6 +162,7 @@ class SimnetBow(hub.Module):
             texts = unicode_texts
         return texts
 
+    @serving
     def similarity(self, data={}, use_gpu=False, batch_size=1):
         """
         Get the sentiment prediction results results with the texts as input
@@ -196,21 +179,37 @@ class SimnetBow(hub.Module):
         except:
             use_gpu = False
 
-        data['text_1'] = self.to_unicode(data['text_1'])
-        data['text_2'] = self.to_unicode(data['text_2'])
-        if not self.lac:
-            self.lac = hub.Module(name='lac')
-        processed_results = preprocess(self.lac, self.vocab, data, use_gpu)
+        start_idx = 0
+        iteration = int(math.ceil(len(data['text_1']) / batch_size))
+        results = []
+        for i in range(iteration):
+            batch_data = {'text_1': [], 'text_2': []}
+            if i < (iteration - 1):
+                batch_data['text_1'] = data['text_1'][start_idx:(
+                    start_idx + batch_size)]
+                batch_data['text_2'] = data['text_2'][start_idx:(
+                    start_idx + batch_size)]
+            else:
+                batch_data['text_1'] = data['text_1'][start_idx:(
+                    start_idx + batch_size)]
+                batch_data['text_2'] = data['text_2'][start_idx:(
+                    start_idx + batch_size)]
+            start_idx = start_idx + batch_size
+            processed_results = preprocess(self.word_seg_module, self.vocab,
+                                           batch_data, use_gpu, batch_size)
 
-        tensor_words_1 = self.texts2tensor(processed_results["text_1"])
-        tensor_words_2 = self.texts2tensor(processed_results["text_2"])
+            tensor_words_1 = self.texts2tensor(processed_results["text_1"])
+            tensor_words_2 = self.texts2tensor(processed_results["text_2"])
 
-        if use_gpu:
-            fetch_out = self.gpu_predictor.run([tensor_words_1, tensor_words_2])
-        else:
-            fetch_out = self.cpu_predictor.run([tensor_words_1, tensor_words_2])
-        result = postprocess(fetch_out[1], processed_results)
-        return result
+            if use_gpu:
+                batch_out = self.gpu_predictor.run(
+                    [tensor_words_1, tensor_words_2])
+            else:
+                batch_out = self.cpu_predictor.run(
+                    [tensor_words_1, tensor_words_2])
+            batch_result = postprocess(batch_out[1], processed_results)
+            results += batch_result
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -330,7 +329,7 @@ if __name__ == "__main__":
     test_text_2 = ["这道题是上一年的考题", "这道题不简单", "这道题很有意思"]
 
     inputs = {"text_1": test_text_1, "text_2": test_text_2}
-    results = simnet_bow.similarity(data=inputs)
+    results = simnet_bow.similarity(data=inputs, batch_size=2)
     print(results)
     max_score = -1
     result_text = ""
