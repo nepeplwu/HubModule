@@ -292,6 +292,15 @@ class PornDetectionCNN(hub.Module):
         """
         return self.vocab_path
 
+    def get_labels(self):
+        """
+        Get the labels which was used when pretraining
+        Returns:
+             self.labels(dict)
+        """
+        self.labels = {"porn": 1, "not_porn": 0}
+        return self.labels
+
 
 if __name__ == "__main__":
     porn_detection_cnn = PornDetectionCNN()

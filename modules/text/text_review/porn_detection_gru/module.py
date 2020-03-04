@@ -282,14 +282,14 @@ class PornDetectionGRU(hub.Module):
 
         return input_data
 
-    def get_vocab_path(self):
+    def get_labels(self):
         """
-        Get the path to the vocabulary whih was used to pretrain
-
+        Get the labels which was used when pretraining
         Returns:
-             self.vocab_path(str): the path to vocabulary
+             self.labels(dict)
         """
-        return self.vocab_path
+        self.labels = {"porn": 1, "not_porn": 0}
+        return self.labels
 
 
 if __name__ == "__main__":
