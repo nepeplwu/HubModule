@@ -21,8 +21,6 @@ from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
-import sys
-sys.path.append("..")
 from simnet_bow.processor import load_vocab, preprocess, postprocess
 
 
