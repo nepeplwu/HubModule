@@ -19,6 +19,7 @@ import paddlehub as hub
 from paddlehub.common.logger import logger
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
+from paddlehub.module.module import serving
 from paddlehub.module.module import moduleinfo
 from paddlehub.module.module import runnable
 
@@ -200,6 +201,7 @@ class LAC(hub.Module):
         tensor.shape = [lod[-1], 1]
         return tensor
 
+    @serving
     def lexical_analysis(self,
                          texts=[],
                          data={},
