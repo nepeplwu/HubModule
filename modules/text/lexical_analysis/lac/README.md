@@ -58,3 +58,11 @@ lac预测接口，预测输入句子的分词结果
 **返回**
 
 * tag_name_dict(dict): lac的标签
+
+## get_vocab_path()
+
+获取预训练时使用的词汇表
+
+**返回**
+
+* vocab_path(str): 词汇表路径
