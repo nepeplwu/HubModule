@@ -13,7 +13,7 @@ porn_detection_cnn预测接口，鉴定输入句子是否为黄雯
 
 **返回**
 
-* results(dict): 鉴定结果
+* results(list): 鉴定结果
 
 ## context(trainable=False)
 
