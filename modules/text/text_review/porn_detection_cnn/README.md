@@ -36,3 +36,11 @@ porn_detection_cnn预测接口，鉴定输入句子是否为黄文
 **返回**
 
 * labels(dict): porn_detection_cnn的类别(二分类，是/不是）
+
+## get_vocab_path()
+
+获取预训练时使用的词汇表
+
+**返回**
+
+* vocab_path(str): 词汇表路径
