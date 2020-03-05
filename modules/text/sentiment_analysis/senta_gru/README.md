@@ -35,4 +35,4 @@ senta_gru预测接口，预测输入句子的情感分类(二分类，积极/消
 
 **返回**
 
-* labels(dict): senta_bow的类别(二分类，积极/消极)
+* labels(dict): senta_gru的类别(二分类，积极/消极)
