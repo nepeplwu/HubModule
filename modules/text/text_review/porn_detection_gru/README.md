@@ -36,3 +36,11 @@ porn_detection_gru预测接口，鉴定输入句子是否为黄雯
 **返回**
 
 * labels(dict): porn_detection_gru的类别
+
+## get_vocab_path()
+
+获取预训练时使用的词汇表
+
+**返回**
+
+* vocab_path(str): 词汇表路径
