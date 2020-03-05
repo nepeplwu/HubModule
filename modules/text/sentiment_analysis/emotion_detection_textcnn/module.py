@@ -165,7 +165,7 @@ class EmotionDetectionTextCNN(hub.Module):
              use_gpu(bool): whether use gpu to predict or not
              batch_size(int): the program deals once with one batch
         Returns:
-             results(dict): the emotion prediction results
+             results(list): the emotion prediction results
         """
         try:
             _places = os.environ["CUDA_VISIBLE_DEVICES"]
