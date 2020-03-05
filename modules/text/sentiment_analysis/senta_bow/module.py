@@ -34,7 +34,7 @@ class DataFormatError(Exception):
     version="1.1.0",
     summary="Baidu's open-source Sentiment Classification System.",
     author="baidu-nlp",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     type="nlp/sentiment_analysis")
 class SentaBow(hub.Module):
     def _initialize(self):
