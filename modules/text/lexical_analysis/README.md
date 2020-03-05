@@ -36,7 +36,7 @@ lac预测接口，预测输入句子的分词结果
 * data(dict): 预测数据，key必须为text，value是带预测数据。如果使用data参数，则不用传入texts参数，二选一即可
 * use_gpu(bool): 是否使用GPU预测
 * batch_size(int): 批处理大小
-* user_dict(None): 该参数不推荐使用，请在使用lexical_analysis()方法之前调用set_user_dict()方法设自定义词典
+* user_dict(None): 该参数不推荐使用，请在使用lexical_analysis()方法之前调用set_user_dict()方法设置自定义词典
 
 **返回**
 
