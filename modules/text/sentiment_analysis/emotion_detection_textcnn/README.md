@@ -36,3 +36,11 @@ emotion_detection_textcnn预测接口，预测输入句子的情感分类(三分
 **返回**
 
 * labels(dict): emotion_detection_textcnn的类别(三分类，积极/中立/消极)
+
+## get_vocab_path()
+
+获取预训练时使用的词汇表
+
+**返回**
+
+* vocab_path(str): 词汇表路径
