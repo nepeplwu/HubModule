@@ -19,10 +19,11 @@ lac预测接口，预测输入句子的分词结果
 * use_gpu(bool): 是否使用GPU预测
 * batch_size(int): 批处理大小
 * user_dict(None): 该参数不推荐使用，请在使用lexical_analysis()方法之前调用set_user_dict()方法设置自定义词典
+* return_tag(bool): 预测结果是否需要返回分词标签结果
 
 **返回**
 
-* results(dict): 分词结果
+* results(list): 分词结果
 
 ## context(trainable=False)
 
