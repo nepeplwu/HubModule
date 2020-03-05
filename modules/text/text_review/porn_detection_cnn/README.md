@@ -2,7 +2,7 @@
 
 ## detection(texts=[], data={}, use_gpu=False, batch_size=1)
 
-porn_detection_cnn预测接口，鉴定输入句子是否为黄雯
+porn_detection_cnn预测接口，鉴定输入句子是否为黄文
 
 **参数**
 
@@ -35,4 +35,4 @@ porn_detection_cnn预测接口，鉴定输入句子是否为黄雯
 
 **返回**
 
-* labels(dict): porn_detection_cnn的类别
+* labels(dict): porn_detection_cnn的类别(二分类，是/不是）
