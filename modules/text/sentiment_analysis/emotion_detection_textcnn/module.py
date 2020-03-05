@@ -301,6 +301,15 @@ class EmotionDetectionTextCNN(hub.Module):
         """
         return self.vocab_path
 
+    def get_labels(self):
+        """
+        Get the labels which was used when pretraining
+        Returns:
+             self.labels(dict)
+        """
+        self.labels = {"positive": 2, "negative": 0, "neutral": 1}
+        return self.labels
+
 
 if __name__ == "__main__":
     emotion_detection_textcnn = EmotionDetectionTextCNN()
