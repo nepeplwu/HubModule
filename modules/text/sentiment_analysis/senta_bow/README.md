@@ -36,3 +36,11 @@ senta_bow预测接口，预测输入句子的情感分类(二分类，积极/消
 **返回**
 
 * labels(dict): senta_bow的类别(二分类，积极/消极)
+
+## get_vocab_path()
+
+获取预训练时使用的词汇表
+
+**返回**
+
+* vocab_path(str): 词汇表路径
