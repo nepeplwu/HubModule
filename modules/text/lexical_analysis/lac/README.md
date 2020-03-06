@@ -15,8 +15,8 @@ lac预测接口，预测输入句子的分词结果
 **参数**
 
 * texts(list): 待预测数据，如果使用texts参数，则不用传入data参数，二选一即可
-* data(dict): 预测数据，key必须为text，value是带预测数据。如果使用data参数，则不用传入texts参数，二选一即可。建议使用texts参数，data参数后续会废弃。
-* use_gpu(bool): 是否使用GPU预测
+* data(dict): 预测数据，key必须为text，value是带预测数据。如果使用data参数，则不用传入texts参数，二选一即可。建议使用texts参数，data参数后续会废弃
+* use_gpu(bool): 是否使用GPU预测，如果使用GPU预测，则在预测之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置
 * batch_size(int): 批处理大小
 * user_dict(None): 该参数不推荐使用，请在使用lexical_analysis()方法之前调用set_user_dict()方法设置自定义词典
 * return_tag(bool): 预测结果是否需要返回分词标签结果
@@ -58,4 +58,3 @@ lac预测接口，预测输入句子的分词结果
 **返回**
 
 * tag_name_dict(dict): lac的标签
-

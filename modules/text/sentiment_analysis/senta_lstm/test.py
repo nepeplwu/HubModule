@@ -7,29 +7,25 @@ import six
 import paddlehub as hub
 
 if __name__ == "__main__":
-    # Load porn_detection module
-    porn_detection_lstm = hub.Module(name="porn_detection_lstm")
-
-    test_text = ["黄片下载", "打击黄牛党"]
-
-    input_dict = {"text": test_text}
-    results = porn_detection_lstm.detection(
-        data=input_dict, use_gpu=True, batch_size=1)
+    # Load Senta Module
+    senta = hub.Module(name='senta_lstm')
+    test_text = ["这家餐厅很好吃", "这部电影真的很差劲"]
+    results = senta.sentiment_classify(
+        data={'text': test_text}, use_gpu=True, batch_size=1)
+    # execute predict and print the result
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(result, encoding="utf8", ensure_ascii=False))
         else:
-            print(results[index])
+            print(result)
 
-    results = porn_detection_lstm.detection(
+    results = senta.sentiment_classify(
         texts=test_text, use_gpu=False, batch_size=2)
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(json.dumps(result, encoding="utf8", ensure_ascii=False))
         else:
-            print(results[index])
+            print(result)
 
-    print(porn_detection_lstm.get_vocab_path())
-    print(porn_detection_lstm.get_labels())
+    print(senta.get_vocab_path())
+    print(senta.get_labels())

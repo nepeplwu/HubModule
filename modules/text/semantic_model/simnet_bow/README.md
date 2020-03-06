@@ -13,7 +13,7 @@ simnet_bow预测接口，计算两个句子的cosin相似度
 如data={"text_1": ["这道题太难了", "这道题太难了", "这道题太难了"], "text_2": ["这道题是上一年的考题", "这道题不简单", "这道题很有意思"]}。
 如果使用data参数，则不用传入texts参数，二选一即可。建议使用texts参数，data参数后续会废弃。
 * data(dict): 预测数据，key必须为'text_1' 和'text_2'，相应的value(list)是第一顺序句子和第二顺序句子。如果使用data参数，则不用传入texts参数，二选一即可。建议使用texts参数，data参数后续会废弃。
-* use_gpu(bool): 是否使用GPU预测
+* use_gpu(bool): 是否使用GPU预测，如果使用GPU预测，则在预测之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置
 * batch_size(int): 批处理大小
 
 **返回**
