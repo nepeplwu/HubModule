@@ -220,7 +220,7 @@ class LAC(hub.Module):
              user_dict(None): the parameter is not to be recommended. Please set the dictionause the function set_user_dict()
 
         Returns:
-             results(dict): the word segmentation results
+             results(list): the word segmentation results
         """
         if user_dict:
             logger.warning(

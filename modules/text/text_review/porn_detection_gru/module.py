@@ -166,7 +166,7 @@ class PornDetectionGRU(hub.Module):
              batch_size(int): the program deals once with one batch
 
         Returns:
-             results(dict): the porn prediction results
+             results(list): the porn prediction results
         """
         try:
             _places = os.environ["CUDA_VISIBLE_DEVICES"]
@@ -303,6 +303,15 @@ class PornDetectionGRU(hub.Module):
         """
         self.labels = {"porn": 1, "not_porn": 0}
         return self.labels
+
+    def get_vocab_path(self):
+        """
+        Get the path to the vocabulary whih was used to pretrain
+
+        Returns:
+             self.vocab_path(str): the path to vocabulary
+        """
+        return self.vocab_path
 
 
 if __name__ == "__main__":

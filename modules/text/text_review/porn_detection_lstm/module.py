@@ -166,7 +166,7 @@ class PornDetectionLSTM(hub.Module):
              batch_size(int): the program deals once with one batch
 
         Returns:
-             results(dict): the porn prediction results
+             results(list): the porn prediction results
         """
         try:
             _places = os.environ["CUDA_VISIBLE_DEVICES"]

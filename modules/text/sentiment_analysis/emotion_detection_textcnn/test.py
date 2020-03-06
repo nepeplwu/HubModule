@@ -7,22 +7,25 @@ import six
 import paddlehub as hub
 
 if __name__ == "__main__":
-    # Load Senta Module
-    senta = hub.Module(name='senta_cnn')
+    # Load emotion_detection_textcnn Module
+    emotion_detection_textcnn = hub.Module(name='emotion_detection_textcnn')
     test_text = ["这家餐厅很好吃", "这部电影真的很差劲"]
-    results = senta.sentiment_classify(data={'text': test_text}, use_gpu=True)
+    results = emotion_detection_textcnn.emotion_classify(
+        data={'text': test_text}, use_gpu=True, batch_size=1)
     # execute predict and print the result
     for index, result in enumerate(results):
         if six.PY2:
             print(json.dumps(result, encoding="utf8", ensure_ascii=False))
         else:
             print(result)
-    results = senta.sentiment_classify(texts=test_text, use_gpu=False)
+
+    results = emotion_detection_textcnn.emotion_classify(
+        texts=test_text, use_gpu=False, batch_size=2)
     for index, result in enumerate(results):
         if six.PY2:
             print(json.dumps(result, encoding="utf8", ensure_ascii=False))
         else:
             print(result)
 
-    print(senta.get_vocab_path())
-    print(senta.get_labels())
+    print(emotion_detection_textcnn.get_vocab_path())
+    print(emotion_detection_textcnn.get_labels())
