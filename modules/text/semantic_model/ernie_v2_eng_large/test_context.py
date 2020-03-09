@@ -32,7 +32,7 @@ args = parser.parse_args()
 # yapf: enable.
 
 
-class TestDataset(hub.dataset.ChnSentiCorp):
+class TestDataset(hub.dataset.GLUE):
     def get_train_examples(self):
         return self.train_examples[:200]
 
@@ -44,8 +44,8 @@ class TestDataset(hub.dataset.ChnSentiCorp):
 
 
 if __name__ == '__main__':
-    # Load Paddlehub ERNIE Tiny pretrained model
-    module = hub.Module(name="ernie_tiny")
+    # Load Paddlehub pretrained model
+    module = hub.Module(name="ernie_v2_eng_large")
     inputs, outputs, program = module.context(
         trainable=True, max_seq_len=args.max_seq_len)
 
@@ -53,8 +53,6 @@ if __name__ == '__main__':
     dataset = TestDataset()
     metrics_choices = ["acc"]
 
-    # For ernie_tiny, it use sub-word to tokenize chinese sentence
-    # If not ernie tiny, sp_model_path and word_dict_path should be set None
     reader = hub.reader.ClassifyReader(
         dataset=dataset,
         vocab_path=module.get_vocab_path(),
@@ -105,7 +103,7 @@ if __name__ == '__main__':
     cls_task.finetune_and_eval()
 
     predict_data = [[example.text_a, example.text_b]
-                    for example in dataset.get_test_examples()]
+                    for example in dataset.get_dev_examples()]
     print(
         cls_task.predict(
             data=predict_data, return_result=True, accelerate_mode=True))

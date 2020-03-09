@@ -24,30 +24,26 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from ernie_tiny.model.ernie import ErnieModel, ErnieConfig
+from ernie_v2_eng_large.model.ernie import ErnieModel, ErnieConfig
 
 
 @moduleinfo(
-    name="ernie_tiny",
+    name="ernie_v2_eng_large",
     version="1.1.0",
     summary=
-    "Baidu's ERNIE-tiny, Enhanced Representation through kNowledge IntEgration, tiny version, max_seq_len=512",
+    "Baidu's ERNIE 2.0, Enhanced Representation through kNowledge IntEgration, A Continual Pre-training Framework for Language Understanding. 12-layer, 768-hidden, 12-heads, 110M parameters.",
     author="baidu-nlp",
     author_email="nlp@baidu.com",
     type="nlp/semantic_model",
 )
-class ErnieTiny(BERTModule):
+class ErnieV2EngBase(BERTModule):
     def _initialize(self):
-        ernie_config_path = os.path.join(self.directory,
-                                         "ernie_tiny_config.json")
+        ernie_config_path = os.path.join(self.directory, "assets",
+                                         "ernie_config.json")
         self.ernie_config = ErnieConfig(ernie_config_path)
         self.MAX_SEQ_LEN = 512
         self.params_path = os.path.join(self.directory, "assets", "params")
-        self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
-        self.spm_path = os.path.join(self.directory, "assets", "subword",
-                                     "spm_cased_simp_sampled.model")
-        self.word_dict_path = os.path.join(self.directory, "assets", "subword",
-                                           "dict.wordseg.pickle")
+        self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")\
 
     def net(self,
             input_ids,
@@ -71,4 +67,4 @@ class ErnieTiny(BERTModule):
 
 
 if __name__ == '__main__':
-    test_module = ErnieTiny()
+    test_module = ErnieV2EngBase()
