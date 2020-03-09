@@ -11,7 +11,7 @@ from mobilenet_v1.data_feed import test_reader
 @moduleinfo(
     name="mobilenet_v1",
     version="2.0.0",
-    type="cv/object_detection",
+    type="cv/image_classification",
     summary="for test",
     author="paddle",
     author_email="paddlepaddle@baidu.com")
