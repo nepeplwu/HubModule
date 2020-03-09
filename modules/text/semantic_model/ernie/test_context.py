@@ -26,26 +26,26 @@ parser.add_argument("--use_gpu", type=ast.literal_eval, default=True, help="Whet
 parser.add_argument("--learning_rate", type=float, default=5e-5, help="Learning rate used to train with warmup.")
 parser.add_argument("--checkpoint_dir", type=str, default="test_ckpt", help="Directory to model checkpoint")
 parser.add_argument("--max_seq_len", type=int, default=512, help="Number of words of the longest seqence.")
-parser.add_argument("--batch_size", type=int, default=4, help="Total examples' number in batch for training.")
+parser.add_argument("--batch_size", type=int, default=8, help="Total examples' number in batch for training.")
 parser.add_argument("--use_data_parallel", type=ast.literal_eval, default=True, help="Whether use data parallel.")
 args = parser.parse_args()
 # yapf: enable.
 
 
-class TestDataset(hub.dataset.GLUE):
+class TestDataset(hub.dataset.ChnSentiCorp):
     def get_train_examples(self):
-        return self.train_examples[:100]
+        return self.train_examples[:200]
 
     def get_dev_examples(self):
-        return self.dev_examples[:25]
+        return self.dev_examples[:50]
 
     def get_test_examples(self):
-        return self.test_examples[:25]
+        return self.test_examples[:50]
 
 
 if __name__ == '__main__':
     # Load Paddlehub pretrained model
-    module = hub.Module(name="ernie_v2_eng_large")
+    module = hub.Module(name="ernie")
     inputs, outputs, program = module.context(
         trainable=True, max_seq_len=args.max_seq_len)
 

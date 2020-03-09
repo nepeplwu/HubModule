@@ -24,19 +24,19 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from ernie_v2_eng_large.model.ernie import ErnieModel, ErnieConfig
+from ernie.model.ernie import ErnieModel, ErnieConfig
 
 
 @moduleinfo(
-    name="ernie_v2_eng_large",
-    version="1.1.0",
+    name="ernie",
+    version="1.2.0",
     summary=
-    "Baidu's ERNIE 2.0, Enhanced Representation through kNowledge IntEgration, A Continual Pre-training Framework for Language Understanding. 12-layer, 768-hidden, 12-heads, 110M parameters.",
+    "Baidu's ERNIE, Enhanced Representation through kNowledge IntEgration, max_seq_len=512 when predtrained",
     author="baidu-nlp",
     author_email="nlp@baidu.com",
     type="nlp/semantic_model",
 )
-class ErnieV2EngLarge(BERTModule):
+class Ernie(BERTModule):
     def _initialize(self):
         ernie_config_path = os.path.join(self.directory, "assets",
                                          "ernie_config.json")
@@ -57,7 +57,6 @@ class ErnieV2EngLarge(BERTModule):
             src_ids=input_ids,
             position_ids=position_ids,
             sentence_ids=segment_ids,
-            task_ids=task_ids,
             input_mask=input_mask,
             config=self.ernie_config,
             use_fp16=False)
@@ -67,4 +66,4 @@ class ErnieV2EngLarge(BERTModule):
 
 
 if __name__ == '__main__':
-    test_module = ErnieV2EngLarge()
+    test_module = Ernie()

@@ -1,6 +1,0 @@
-name: ernie-tiny
-type: nlp/semantic_model
-author: baidu-nlp
-author_email: nlp@baidu.com
-version: 1.1.0
-summary: Baidu's ERNIE-tiny, Enhanced Representation through kNowledge IntEgration, tiny version, max_seq_len=512
