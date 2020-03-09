@@ -7,13 +7,11 @@ import paddle.fluid as fluid
 import paddlehub as hub
 
 
-class TestMobileNetV1(unittest.TestCase):
+class TestSSDMobileNet(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests."""
-        # self.mobilenet_v1 = hub.Module(name="mobilenet_v1")
-        self.mobilenet_v1 = hub.Module(
-            directory='/root/.paddlehub/modules/mobilenet_v1')
+        self.ssd = hub.Module(name="ssd_mobilenet_v1_pascal")
 
     @classmethod
     def tearDownClass(self):
@@ -31,22 +29,22 @@ class TestMobileNetV1(unittest.TestCase):
     def test_context(self):
         with fluid.program_guard(self.test_prog):
             image = fluid.layers.data(
-                name='image', shape=[3, 224, 224], dtype='float32')
-            inputs, outputs, program = self.mobilenet_v1.context(
+                name='image', shape=[3, 300, 300], dtype='float32')
+            inputs, outputs, program = self.ssd.context(
                 input_image=image,
                 pretrained=False,
                 trainable=True,
                 param_prefix='BaiDu')
             image = inputs["image"]
-            body_feats = outputs['body_feats']
+            head_features = outputs["body_feats"]
 
-    def test_classification(self):
+    def test_object_detection(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = "../../object_detection/images/pascal_voc/"
-            #image_dir = '../images/pascal_voc/'
-            #airplane = cv2.imread(os.path.join(image_dir, 'airplane.jpg')).astype('float32')
-            #airplanes = np.array([airplane, airplane])
-            classification_results = self.mobilenet_v1.classification(
+            image_dir = '../../images/pascal_voc/'
+            airplane = cv2.imread(os.path.join(
+                image_dir, 'airplane.jpg')).astype('float32')
+            airplanes = np.array([airplane, airplane])
+            detection_results = self.ssd.object_detection(
                 paths=[
                     os.path.join(image_dir, 'bird.jpg'),
                     os.path.join(image_dir, 'bike.jpg'),
@@ -54,14 +52,14 @@ class TestMobileNetV1(unittest.TestCase):
                     os.path.join(image_dir, 'sheep.jpg'),
                     os.path.join(image_dir, 'train.jpg')
                 ],
-                #images = airplanes,
+                images=airplanes,
                 batch_size=2)
-            print(classification_results)
+            print(detection_results)
 
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestMobileNetV1('test_context'))
-    suite.addTest(TestMobileNetV1('test_classification'))
+    suite.addTest(TestSSDMobileNet('test_context'))
+    suite.addTest(TestSSDMobileNet('test_object_detection'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

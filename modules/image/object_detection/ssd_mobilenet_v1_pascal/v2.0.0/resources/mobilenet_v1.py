@@ -31,9 +31,7 @@ class MobileNet(object):
                  with_extra_blocks=False,
                  extra_block_filters=[[256, 512], [128, 256], [128, 256],
                                       [64, 128]],
-                 weight_prefix_name='',
-                 class_dim=1000,
-                 yolo_v3=False):
+                 weight_prefix_name=''):
         self.norm_type = norm_type
         self.norm_decay = norm_decay
         self.conv_group_scale = conv_group_scale
@@ -41,8 +39,6 @@ class MobileNet(object):
         self.with_extra_blocks = with_extra_blocks
         self.extra_block_filters = extra_block_filters
         self.prefix_name = weight_prefix_name
-        self.class_dim = class_dim
-        self.yolo_v3 = yolo_v3
 
     def _conv_norm(self,
                    input,
@@ -138,6 +134,7 @@ class MobileNet(object):
 
     def __call__(self, input):
         scale = self.conv_group_scale
+
         blocks = []
         # input 1/1
         out = self._conv_norm(
@@ -178,19 +175,7 @@ class MobileNet(object):
             out, 1024, 1024, 1024, 1, scale, name=self.prefix_name + "conv6")
         module13 = out
         blocks.append(out)
-        if self.yolo_v3:
-            return blocks
         if not self.with_extra_blocks:
-            out = fluid.layers.pool2d(
-                input=out, pool_type='avg', global_pooling=True)
-            out = fluid.layers.fc(
-                input=out,
-                size=self.class_dim,
-                param_attr=ParamAttr(
-                    initializer=fluid.initializer.MSRA(), name="fc7_weights"),
-                bias_attr=ParamAttr(name="fc7_offset"))
-            out = fluid.layers.softmax(out)
-            blocks.append(out)
             return blocks
 
         num_filters = self.extra_block_filters

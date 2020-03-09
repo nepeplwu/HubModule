@@ -29,7 +29,8 @@ class MobuleNet_V1(hub.Module):
                 trainable=True,
                 pretrained=False,
                 param_prefix='',
-                get_prediction=False):
+                get_prediction=False,
+                yolo_v3=False):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param input_image: image tensor.
@@ -48,7 +49,7 @@ class MobuleNet_V1(hub.Module):
         context_prog = input_image.block.program if input_image else fluid.Program(
         )
         with fluid.program_guard(context_prog):
-            # with fluid.unique_name.guard('HUB@MobileNetV1@'):
+            #with fluid.unique_name.guard():
             # image
             image = input_image if input_image else fluid.data(
                 name='image',
@@ -61,7 +62,8 @@ class MobuleNet_V1(hub.Module):
                 conv_learning_rate=0.1,
                 extra_block_filters=[[256, 512], [128, 256], [128, 256],
                                      [64, 128]],
-                with_extra_blocks=not get_prediction)
+                with_extra_blocks=not get_prediction,
+                yolo_v3=yolo_v3)
             out = backbone(image)
 
             inputs = {'image': image}
@@ -115,7 +117,7 @@ class MobuleNet_V1(hub.Module):
 
         images_num = len(all_images)
         loop_num = int(np.ceil(images_num / batch_size))
-
+        class_maps = load_label_info('./label_file.txt')
         res_list = []
         TOPK = 1
         for iter_id in range(loop_num):
@@ -134,5 +136,6 @@ class MobuleNet_V1(hub.Module):
                 return_numpy=True)
             for i, res in enumerate(result[0]):
                 pred_label = np.argsort(res)[::-1][:TOPK]
-                res_list.append(pred_label)
+                class_name = class_maps[int(pred_label)]
+                res_list.append([pred_label, class_name])
         return res_list
