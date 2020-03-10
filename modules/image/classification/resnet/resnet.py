@@ -23,7 +23,7 @@ class ResNet(object):
     """
     Residual Network, see https://arxiv.org/abs/1512.03385
     Args:
-        depth (int): ResNet depth, should be 18, 34, 50, 101, 152.
+        depth (int): ResNet depth, should be 34, 50.
         freeze_at (int): freeze the backbone at which stage
         norm_type (str): normalization type, 'bn'/'sync_bn'/'affine_channel'
         freeze_norm (bool): freeze normalization layers
@@ -53,8 +53,8 @@ class ResNet(object):
         if isinstance(feature_maps, Integral):
             feature_maps = [feature_maps]
 
-        assert depth in [18, 34, 50, 101, 152, 200], \
-            "depth {} not in [18, 34, 50, 101, 152, 200]"
+        assert depth in [34, 50], \
+            "depth {} not in [34, 50]"
         assert variant in ['a', 'b', 'c', 'd'], "invalid ResNet variant"
         assert 0 <= freeze_at <= 4, "freeze_at should be 0, 1, 2, 3 or 4"
         assert len(feature_maps) > 0, "need one or more feature maps"
@@ -72,24 +72,20 @@ class ResNet(object):
         self.feature_maps = feature_maps
         self.dcn_v2_stages = dcn_v2_stages
         self.depth_cfg = {
-            18: ([2, 2, 2, 2], self.basicblock),
             34: ([3, 4, 6, 3], self.basicblock),
             50: ([3, 4, 6, 3], self.bottleneck),
-            101: ([3, 4, 23, 3], self.bottleneck),
-            152: ([3, 8, 36, 3], self.bottleneck),
-            200: ([3, 12, 48, 3], self.bottleneck),
         }
         self.stage_filters = [64, 128, 256, 512]
         self._c1_out_chan_num = 64
         self.na = NameAdapter(self)
         self.prefix_name = weight_prefix_name
-        
+
         self.nonlocal_stages = nonlocal_stages
         self.nonlocal_mod_cfg = {
-            50  : 2,
-            101 : 5,
-            152 : 8,
-            200 : 12,
+            50: 2,
+            101: 5,
+            152: 8,
+            200: 12,
         }
         self.get_prediction = get_prediction
         self.class_dim = class_dim
@@ -108,10 +104,8 @@ class ResNet(object):
             filter_size=filter_size,
             stride=stride,
             padding=padding,
-            param_attr=ParamAttr(
-                initializer=Constant(0.0), name=name + ".w_0"),
-            bias_attr=ParamAttr(
-                initializer=Constant(0.0), name=name + ".b_0"),
+            param_attr=ParamAttr(initializer=Constant(0.0), name=name + ".w_0"),
+            bias_attr=ParamAttr(initializer=Constant(0.0), name=name + ".b_0"),
             act=act,
             name=name)
         return out
@@ -266,11 +260,10 @@ class ResNet(object):
             shortcut_name = self.na.fix_bottleneck_name(name)
         std_senet = getattr(self, 'std_senet', False)
         if std_senet:
-            conv_def = [
-                [int(num_filters / 2), 1, stride1, 'relu', 1, conv_name1],
-                [num_filters, 3, stride2, 'relu', groups, conv_name2],
-                [num_filters * expand, 1, 1, None, 1, conv_name3]
-            ]
+            conv_def = [[
+                int(num_filters / 2), 1, stride1, 'relu', 1, conv_name1
+            ], [num_filters, 3, stride2, 'relu', groups, conv_name2],
+                        [num_filters * expand, 1, 1, None, 1, conv_name3]]
         else:
             conv_def = [[num_filters, 1, stride1, 'relu', 1, conv_name1],
                         [num_filters, 3, stride2, 'relu', groups, conv_name2],
@@ -342,11 +335,12 @@ class ResNet(object):
         ch_out = self.stage_filters[stage_num - 2]
         is_first = False if stage_num != 2 else True
         dcn_v2 = True if stage_num in self.dcn_v2_stages else False
-        
+
         nonlocal_mod = 1000
         if stage_num in self.nonlocal_stages:
-            nonlocal_mod = self.nonlocal_mod_cfg[self.depth] if stage_num==4 else 2
-        
+            nonlocal_mod = self.nonlocal_mod_cfg[
+                self.depth] if stage_num == 4 else 2
+
         # Make the layer name and parameter name consistent
         # with ImageNet pre-trained model
         conv = input
@@ -361,14 +355,14 @@ class ResNet(object):
                 is_first=is_first,
                 name=conv_name,
                 dcn_v2=dcn_v2)
-            
+
             # add non local model
             dim_in = conv.shape[1]
-            nonlocal_name = "nonlocal_conv{}".format( stage_num )
+            nonlocal_name = "nonlocal_conv{}".format(stage_num)
             if i % nonlocal_mod == nonlocal_mod - 1:
-                conv = add_space_nonlocal(
-                    conv, dim_in, dim_in,
-                    nonlocal_name + '_{}'.format(i), int(dim_in / 2) )
+                conv = add_space_nonlocal(conv, dim_in, dim_in,
+                                          nonlocal_name + '_{}'.format(i),
+                                          int(dim_in / 2))
         return conv
 
     def c1_stage(self, input):
@@ -450,4 +444,3 @@ class ResNetC5(ResNet):
         super(ResNetC5, self).__init__(depth, freeze_at, norm_type, freeze_norm,
                                        norm_decay, variant, feature_maps)
         self.severed_head = True
-
