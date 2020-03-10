@@ -28,8 +28,8 @@ def lstm_net(data,
         input=fc0,
         size=hid_dim * 4,
         is_reverse=False,
-        param_attr=fluid.ParamAttr(name="@HUB_senta_lstm@fc_0.w_0"),
-        bias_attr=fluid.ParamAttr(name="@HUB_senta_lstm@fc_0.b_0"))
+        param_attr=fluid.ParamAttr(name="@HUB_senta_lstm@lstm_0.w_0"),
+        bias_attr=fluid.ParamAttr(name="@HUB_senta_lstm@lstm_0.b_0"))
     # max pooling layer
     lstm_max = fluid.layers.sequence_pool(input=lstm_h, pool_type='max')
     lstm_max_tanh = fluid.layers.tanh(lstm_max)
