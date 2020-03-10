@@ -49,7 +49,8 @@ class DarkNet53(hub.Module):
         """
         context_prog = input_image.block.program if input_image else fluid.Program(
         )
-        with fluid.program_guard(context_prog):
+        startup_program = fluid.Program()
+        with fluid.program_guard(context_prog, startup_program):
             image = input_image if input_image else fluid.data(
                 name='image',
                 shape=[-1, 3, 224, 224],
@@ -63,25 +64,24 @@ class DarkNet53(hub.Module):
             else:
                 outputs = {'body_feats': out}
 
-        place = fluid.CPUPlace()
-        exe = fluid.Executor(place)
-        if pretrained:
+            place = fluid.CPUPlace()
+            exe = fluid.Executor(place)
+            if pretrained:
 
-            def _if_exist(var):
-                return os.path.exists(
-                    os.path.join(self.default_pretrained_model_path,
-                                 var.name))
+                def _if_exist(var):
+                    return os.path.exists(
+                        os.path.join(self.default_pretrained_model_path,
+                                     var.name))
 
-            if not param_prefix:
-                fluid.io.load_vars(
-                    exe,
-                    self.default_pretrained_model_path,
-                    main_program=context_prog,
-                    predicate=_if_exist)
-        else:
-            startup_program = fluid.Program()
-            exe.run(startup_program)
-        return inputs, outputs, context_prog
+                if not param_prefix:
+                    fluid.io.load_vars(
+                        exe,
+                        self.default_pretrained_model_path,
+                        main_program=context_prog,
+                        predicate=_if_exist)
+            else:
+                exe.run(startup_program)
+            return inputs, outputs, context_prog
 
     def classification(self,
                        paths=None,
@@ -121,6 +121,7 @@ class DarkNet53(hub.Module):
         loop_num = int(np.ceil(images_num / batch_size))
 
         res_list = []
+        top_k = max(min(top_k, 999), 1)
         for iter_id in range(loop_num):
             batch_data = []
             handle_id = iter_id * batch_size
