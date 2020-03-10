@@ -15,7 +15,7 @@ from resnet_imagenet.data_feed import test_reader
     version="1.1.0",
     type="cv/classification",
     summary="ResNet is a image classfication model trained with ImageNet-2012 dataset.",
-    author="paddle",
+    author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class _ResNet(hub.Module):
     def _initialize(self):
