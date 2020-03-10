@@ -120,7 +120,6 @@ class DarkNet53(hub.Module):
         images_num = len(all_images)
         loop_num = int(np.ceil(images_num / batch_size))
 
-        class_maps = load_label_info("./label_file.txt")
         res_list = []
         for iter_id in range(loop_num):
             batch_data = []
@@ -138,6 +137,6 @@ class DarkNet53(hub.Module):
                 return_numpy=True)
             for i, res in enumerate(result[0]):
                 pred_label = np.argsort(res)[::-1][:top_k]
-                class_name = class_maps[int(pred_label)].split(',')[0]
+                class_name = self.label_names[int(pred_label)].split(',')[0]
                 res_list.append([pred_label, class_name])
         return res_list
