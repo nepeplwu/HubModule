@@ -18,8 +18,8 @@ from paddlehub.module.module import moduleinfo
     type="cv/object_detection",
     summary=
     "Baidu's YOLOv3 model for object detection with backbone MobileNet_V1, trained with dataset COCO2017.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
