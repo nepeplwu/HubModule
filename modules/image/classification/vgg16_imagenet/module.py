@@ -56,7 +56,8 @@ class VGG16(hub.Module):
         """
         context_prog = input_image.block.program if input_image else fluid.Program(
         )
-        with fluid.program_guard(context_prog):
+        startup_program = fluid.Program()
+        with fluid.program_guard(context_prog, startup_program):
             image = input_image if input_image else fluid.data(
                 name='image',
                 shape=[-1, 3, 224, 224],
@@ -76,9 +77,8 @@ class VGG16(hub.Module):
             else:
                 outputs = {'body_feats': out}
 
-        place = fluid.CPUPlace()
-        exe = fluid.Executor(place)
-        with fluid.program_guard(context_prog):
+            place = fluid.CPUPlace()
+            exe = fluid.Executor(place)
             if pretrained:
 
                 def _if_exist(var):
@@ -134,6 +134,7 @@ class VGG16(hub.Module):
         loop_num = int(np.ceil(images_num / batch_size))
 
         res_list = []
+        top_k = max(min(top_k, 1000), 1)
         for iter_id in range(loop_num):
             batch_data = []
             handle_id = iter_id * batch_size
