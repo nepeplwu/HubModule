@@ -63,9 +63,9 @@ class HubModule(hub.Module):
         :param phase: Optional Choice: 'predict', 'train'
         :type phase: str
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
-        with fluid.program_guard(wrapped_prog):
+        wrapped_prog = input_image.block.program if input_image else fluid.Program()
+        startup_program = fluid.Program() 
+        with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
@@ -146,9 +146,8 @@ class HubModule(hub.Module):
                     param_prefix=param_prefix,
                     phase=phase)
 
-            place = fluid.CPUPlace()
-            exe = fluid.Executor(place)
-            with fluid.program_guard(context_prog):
+                place = fluid.CPUPlace()
+                exe = fluid.Executor(place)
                 if pretrained:
 
                     def _if_exist(var):
@@ -168,7 +167,7 @@ class HubModule(hub.Module):
                             self.default_pretrained_model_path,
                             predicate=_if_exist)
                 else:
-                    exe.run(fluid.default_startup_program())
+                    exe.run(startup_program)
                 return inputs, outputs, context_prog
 
     def object_detection(self,
