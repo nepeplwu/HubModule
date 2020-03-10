@@ -15,7 +15,7 @@ from vgg16_imagenet.data_feed import test_reader
     version="1.1.0",
     type="cv/classification",
     summary="VGG16 is a image classfication model trained with ImageNet-2012 dataset.",
-    author="paddle",
+    author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class VGG16(hub.Module):
     def _initialize(self):
