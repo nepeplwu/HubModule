@@ -58,9 +58,9 @@ class HubModule(hub.Module):
             if False, outputs is {'head_features': head_features}.
         :type get_prediction: bool
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
-        with fluid.program_guard(wrapped_prog):
+        wrapped_prog = input_image.block.program if input_image else fluid.Program()
+        startup_program = fluid.Program()
+        with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 # image
                 image = input_image if input_image else fluid.layers.data(
@@ -115,9 +115,8 @@ class HubModule(hub.Module):
                     param_prefix=param_prefix,
                     get_prediction=get_prediction)
 
-            place = fluid.CPUPlace()
-            exe = fluid.Executor(place)
-            with fluid.program_guard(context_prog):
+                place = fluid.CPUPlace()
+                exe = fluid.Executor(place)
                 if pretrained:
 
                     def _if_exist(var):
@@ -136,6 +135,8 @@ class HubModule(hub.Module):
                             exe,
                             self.default_pretrained_model_path,
                             predicate=_if_exist)
+                else:
+                    exe.run(startup_program)
                 return inputs, outputs, context_prog
 
     def object_detection(self,
