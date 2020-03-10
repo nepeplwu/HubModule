@@ -29,7 +29,7 @@ class TestVGG16(unittest.TestCase):
 
     def test_context(self):
         with fluid.program_guard(self.test_prog):
-            image = fluid.layers.data(name='image', shape=[3, 224, 224], dtype='float32')
+            image = fluid.layers.data(name='image', shape=[3, 300, 300], dtype='float32')
             inputs, outputs, program=self.vgg16.context(
                 input_image=image,
                 pretrained=False,
@@ -58,7 +58,7 @@ class TestVGG16(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestVGG16('test_context'))
-    #suite.addTest(TestVGG16('test_classification'))
+    #suite.addTest(TestVGG16('test_context'))
+    suite.addTest(TestVGG16('test_classification'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
