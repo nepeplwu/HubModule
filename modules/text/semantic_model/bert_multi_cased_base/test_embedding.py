@@ -15,6 +15,6 @@
 
 import paddlehub as hub
 
-module = hub.Module(name="bert_multi_cased_L-12_H-768_A-12")
+module = hub.Module(name="bert_multi_cased_base")
 
 print(module.get_embedding(texts=[["床前明月光", "疑是地上霜"], ["举头望明月"]]))
