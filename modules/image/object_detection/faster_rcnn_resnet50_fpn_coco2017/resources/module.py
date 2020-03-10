@@ -18,10 +18,10 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="faster_rcnn_resnet50_fpn_coco2017",
-    version="2.0.0",
+    version="1.1.0",
     type="cv/object_detection",
-    summary="Faster RCNN.",
-    author="paddle",
+    summary="Baidu's Faster-RCNN model for object detection, whose backbone is ResNet50, processed with Feature Pyramid Networks",
+    author="paddlepaddle",
     author_email="paddlepaddle@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
@@ -69,7 +69,7 @@ class HubModule(hub.Module):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
-                resnet = hub.Module(name='resnet')
+                resnet = hub.Module(name='resnet_imagenet')
                 _, _outputs, _ = resnet.context(input_image=image, depth=50, variant='b',\
                                                  norm_type='affine_channel', feature_maps=[2, 3, 4, 5])
                 body_feats = _outputs['body_feats']
@@ -168,6 +168,8 @@ class HubModule(hub.Module):
                             exe,
                             self.default_pretrained_model_path,
                             predicate=_if_exist)
+                else:
+                    exe.run(fluid.default_startup_program())
                 return inputs, outputs, context_prog
 
     def object_detection(self,
