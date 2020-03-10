@@ -1,9 +1,9 @@
+import os
+import numpy as np
+
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
-
-import os
-import numpy as np
 
 from darknet53_imagenet.darknet import DarkNet
 from darknet53_imagenet.processor import load_label_info
