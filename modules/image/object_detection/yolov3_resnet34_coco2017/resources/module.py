@@ -69,7 +69,7 @@ class HubModule(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                resnet = hub.Module(name='resnet')
+                resnet = hub.Module(name='resnet_imagenet')
                 _, _outputs, _ = resnet.context(
                     input_image=image,
                     depth=34,

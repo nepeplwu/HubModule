@@ -16,11 +16,11 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="yolov3",
-    version="1.0.0",
+    version="1.1.0",
     type="cv/object_detection",
-    summary="Single Shot Detection.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    summary="Baidu's YOLOv3 model for object detection.",
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.reader = reader

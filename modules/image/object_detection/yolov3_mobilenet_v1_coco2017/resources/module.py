@@ -68,7 +68,7 @@ class HubModule(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                mobilenet = hub.Module(name='mobilenet_v1')
+                mobilenet = hub.Module(name='mobilenetv1_imagenet')
                 _, _outputs, _ = mobilenet.context(
                     input_image=image, yolo_v3=True)
                 body_feats = _outputs['body_feats']

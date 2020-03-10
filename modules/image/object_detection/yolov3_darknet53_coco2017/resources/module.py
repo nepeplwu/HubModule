@@ -14,11 +14,11 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="yolov3_darknet53_coco2017",
-    version="2.0.0",
+    version="1.1.0",
     type="cv/object_detection",
-    summary="YOLOV3.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    summary="Baidu's YOLOv3 model for object detection, with backbone DarkNet.",
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
@@ -66,7 +66,7 @@ class HubModule(hub.Module):
                 # yolo_head
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
-                darknet = hub.Module(name='darknet')
+                darknet = hub.Module(name='darknet53_imagenet')
                 _, _outputs, _ = darknet.context(input_image=image)
                 body_feats = _outputs['body_feats']
                 inputs, outputs, context_prog = self.yolov3.context(
