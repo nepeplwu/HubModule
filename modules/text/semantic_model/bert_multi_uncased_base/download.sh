@@ -1,3 +1,3 @@
-wget https://bert-models.bj.bcebos.com/multi_uncased_L-12_H-768_A-12.tar.gz --no-check-certificate
-tar xzvf multi_uncased_L-12_H-768_A-12.tar.gz
-mv multi_uncased_L-12_H-768_A-12 assets
+wget https://bert-models.bj.bcebos.com/multilingual_L-12_H-768_A-12.tar.gz --no-check-certificate
+tar xvf multilingual_L-12_H-768_A-12.tar.gz
+mv multilingual_L-12_H-768_A-12 assets
