@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 class TestDataset(hub.dataset.ChnSentiCorp):
     def get_train_examples(self):
-        return self.train_examples[:5000]
+        return self.train_examples[:2500]
 
     def get_dev_examples(self):
         return self.dev_examples[:50]
