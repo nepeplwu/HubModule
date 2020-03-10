@@ -65,23 +65,23 @@ class DarkNet53(hub.Module):
 
         place = fluid.CPUPlace()
         exe = fluid.Executor(place)
-        with fluid.program_guard(context_prog):
-            if pretrained:
+        if pretrained:
 
-                def _if_exist(var):
-                    return os.path.exists(
-                        os.path.join(self.default_pretrained_model_path,
-                                     var.name))
+            def _if_exist(var):
+                return os.path.exists(
+                    os.path.join(self.default_pretrained_model_path,
+                                 var.name))
 
-                if not param_prefix:
-                    fluid.io.load_vars(
-                        exe,
-                        self.default_pretrained_model_path,
-                        main_program=context_prog,
-                        predicate=_if_exist)
-            else:
-                exe.run(fluid.default_startup_program())
-            return inputs, outputs, context_prog
+            if not param_prefix:
+                fluid.io.load_vars(
+                    exe,
+                    self.default_pretrained_model_path,
+                    main_program=context_prog,
+                    predicate=_if_exist)
+        else:
+            startup_program = fluid.Program()
+            exe.run(startup_program)
+        return inputs, outputs, context_prog
 
     def classification(self,
                        paths=None,
@@ -136,6 +136,7 @@ class DarkNet53(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)
             for i, res in enumerate(result[0]):
+                top_k = max(min(top_k, np.array(res).shape[0]), 1)
                 pred_label = np.argsort(res)[::-1][:top_k]
                 class_name = self.label_names[int(pred_label)].split(',')[0]
                 res_list.append([pred_label, class_name])
