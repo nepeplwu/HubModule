@@ -27,8 +27,7 @@ class MobuleNet_V1(hub.Module):
                 pretrained=False, 
                 param_prefix='',
                 get_prediction=False,
-                yolo_v3=False,
-                top_k=1):
+                yolo_v3=False):
         """Distill the Head Features, so as to perform transfer learning.
           
         :param input_image: image tensor.
@@ -47,7 +46,8 @@ class MobuleNet_V1(hub.Module):
         :type yolo_v3: bool
         """
         context_prog = input_image.block.program if input_image else fluid.Program()
-        with fluid.program_guard(context_prog):
+        startup_program = fluid.Program()
+        with fluid.program_guard(context_prog, startup_program):
             image = input_image if input_image else fluid.data(
                 name='image', shape=[-1, 3, 224, 224], dtype='float32', lod_level=0)
             backbone = MobileNet(
@@ -65,16 +65,15 @@ class MobuleNet_V1(hub.Module):
             else:
                 outputs = {'body_feats': out}
              
-        place = fluid.CPUPlace()
-        exe = fluid.Executor(place)
-        with fluid.program_guard(context_prog):
+            place = fluid.CPUPlace()
+            exe = fluid.Executor(place)
             if pretrained:
                 def _if_exist(var):
                     return os.path.exists(os.path.join(self.default_pretrained_model_path, var.name))
                 if not param_prefix:
                     fluid.io.load_vars(exe, self.default_pretrained_model_path, main_program=context_prog, predicate=_if_exist)
             else:
-                exe.run(fluid.default_startup_program())
+                exe.run(startup_program)
             return inputs, outputs, context_prog
 
     def classification(
@@ -84,7 +83,8 @@ class MobuleNet_V1(hub.Module):
             use_gpu=False,
             batch_size=1,
             output_dir=None,
-            score_thresh=0.5):
+            score_thresh=0.5,
+            top_k=1):
         """API of Classification.
         :param paths: the path of images.
         :type paths: list, each element is correspond to the path of an image.
@@ -117,7 +117,7 @@ class MobuleNet_V1(hub.Module):
         images_num = len(all_images)
         loop_num = int(np.ceil(images_num / batch_size))
         res_list = []
-        TOPK=1
+        top_k = max(min(top_k, 1000), 1)
         for iter_id in range(loop_num):
             batch_data = []
             handle_id = iter_id * batch_size
@@ -134,7 +134,7 @@ class MobuleNet_V1(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)       
             for i, res in enumerate(result[0]):
-                pred_label = np.argsort(res)[::-1][:TOPK]
+                pred_label = np.argsort(res)[::-1][:top_k]
                 class_name = self.label_names[int(pred_label)]
                 res_list.append([pred_label, class_name])
         return res_list
