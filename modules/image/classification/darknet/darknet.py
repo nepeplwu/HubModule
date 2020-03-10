@@ -9,7 +9,6 @@ from paddle import fluid
 from paddle.fluid.param_attr import ParamAttr
 from paddle.fluid.regularizer import L2Decay
 
-
 __all__ = ['DarkNet']
 
 
@@ -19,7 +18,10 @@ class DarkNet(object):
         depth (int): network depth, currently only darknet 53 is supported
         norm_type (str): normalization type, 'bn' and 'sync_bn' are supported
         norm_decay (float): weight decay for normalization layer weights
+        get_prediction (bool): whether to get prediction
+        class_dim (int): number of class while classification
     """
+
     def __init__(self,
                  depth=53,
                  norm_type='sync_bn',
@@ -35,6 +37,7 @@ class DarkNet(object):
         self.prefix_name = weight_prefix_name
         self.class_dim = class_dim
         self.get_prediction = get_prediction
+
     def _conv_norm(self,
                    input,
                    ch_out,
@@ -151,16 +154,15 @@ class DarkNet(object):
                     name=self.prefix_name + "stage.{}.downsample".format(i))
         if self.get_prediction:
             pool = fluid.layers.pool2d(
-            input=downsample_, pool_type='avg', global_pooling=True)
+                input=downsample_, pool_type='avg', global_pooling=True)
             stdv = 1.0 / math.sqrt(pool.shape[1] * 1.0)
             out = fluid.layers.fc(
                 input=pool,
                 size=self.class_dim,
                 param_attr=ParamAttr(
                     initializer=fluid.initializer.Uniform(-stdv, stdv),
-                    name='fc_weights'), bias_attr=ParamAttr(name='fc_offset'))
+                    name='fc_weights'),
+                bias_attr=ParamAttr(name='fc_offset'))
             return out
         else:
             return blocks
-
-
