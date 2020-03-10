@@ -121,7 +121,7 @@ class DarkNet53(hub.Module):
         loop_num = int(np.ceil(images_num / batch_size))
 
         res_list = []
-        top_k = max(min(top_k, 999), 1)
+        top_k = max(min(top_k, 1000), 1)
         for iter_id in range(loop_num):
             batch_data = []
             handle_id = iter_id * batch_size
