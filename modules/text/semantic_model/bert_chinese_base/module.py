@@ -24,14 +24,14 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from bert_multi_cased_base.model.bert import BertConfig, BertModel
+from bert_chinese_base.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="bert_multi_cased_base",
+    name="bert_chinese_base",
     version="1.1.0",
     summary=
-    "bert_multi_cased_base, 12-layer, 768-hidden, 12-heads, 110M parameters ",
+    "bert_chinese_base, 12-layer, 768-hidden, 12-heads, 110M parameters ",
     author="google",
     author_email="",
     type="nlp/semantic_model",
