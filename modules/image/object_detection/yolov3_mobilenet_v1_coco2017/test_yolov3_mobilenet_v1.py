@@ -41,7 +41,7 @@ class TestYoloV3MoobileNetV1(unittest.TestCase):
 
     def test_object_detection(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = '../images/'
+            image_dir = '../../image_dataset/'
             zebra = cv2.imread(os.path.join(image_dir,
                                             'zebra.jpg')).astype('float32')
             zebra = np.array([zebra, zebra])
