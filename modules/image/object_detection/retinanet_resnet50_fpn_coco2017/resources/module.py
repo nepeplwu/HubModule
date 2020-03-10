@@ -19,12 +19,12 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="retinanet_resnet50_fpn_coco2017",
-    version="2.0.0",
+    version="1.1.0",
     type="cv/object_detection",
     summary=
     "Baidu's RetinaNet model for object detection, with backbone ResNet50 and FPN.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         # default pretrained model of Retinanet_ResNet50_FPN, the shape of input image tensor is (3, 608, 608)
@@ -71,7 +71,7 @@ class HubModule(hub.Module):
             im_info = fluid.layers.data(
                 name='im_info', shape=[3], dtype='float32', lod_level=0)
             # backbone
-            resnet = hub.Module(name='resnet')
+            resnet = hub.Module(name='resnet_imagenet')
             _, _outputs, _ = resnet.context(
                 input_image=image,
                 depth=50,
