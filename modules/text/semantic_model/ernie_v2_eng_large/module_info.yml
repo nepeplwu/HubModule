@@ -1,0 +1,6 @@
+name: ernie_v2_eng_large
+type: nlp/semantic_model
+author: baidu-nlp
+author_email: nlp@baidu.com
+version: 1.1.0
+summary: Baidu's ERNIE 2.0, Enhanced Representation through kNowledge IntEgration, A Continual Pre-training Framework for Language Understanding. 24-layer, 1024-hidden, 16-heads, 340M parameters.
