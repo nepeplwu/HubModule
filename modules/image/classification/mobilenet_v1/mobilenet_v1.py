@@ -20,6 +20,8 @@ class MobileNet(object):
         conv_group_scale (int): scaling factor for convolution groups
         with_extra_blocks (bool): if extra blocks should be added
         extra_block_filters (list): number of filter for each extra block
+        class_dim (int): number of class while classification
+        yolo_v3 (bool): whether to output layers which yolo_v3 needs
     """
     __shared__ = ['norm_type', 'weight_prefix_name']
 
@@ -183,12 +185,11 @@ class MobileNet(object):
         if not self.with_extra_blocks:
             out = fluid.layers.pool2d(
                 input=out, pool_type='avg', global_pooling=True)
-            out = fluid.layers.fc(
-                input=out,
-                size=self.class_dim,
-                param_attr=ParamAttr(
-                    initializer=fluid.initializer.MSRA(), name="fc7_weights"),
-                bias_attr=ParamAttr(name="fc7_offset"))
+            out = fluid.layers.fc(input=out,
+                                 size=self.class_dim,
+                                 param_attr=ParamAttr(
+                                     initializer=fluid.initializer.MSRA(), name="fc7_weights"),
+                                 bias_attr=ParamAttr(name="fc7_offset"))
             out = fluid.layers.softmax(out)
             blocks.append(out)
             return blocks
@@ -207,3 +208,4 @@ class MobileNet(object):
                                      num_filters[3][1], 1, 2,
                                      self.prefix_name + "conv7_4")
         return module11, module13, module14, module15, module16, module17
+
