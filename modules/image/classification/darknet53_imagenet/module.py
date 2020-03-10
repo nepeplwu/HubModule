@@ -1,19 +1,21 @@
+import paddle.fluid as fluid
+import paddlehub as hub
+from paddlehub.module.module import moduleinfo
+
 import os
 import numpy as np
-import paddlehub as hub
-import paddle.fluid as fluid
-from darknet.darknet import DarkNet
-from paddlehub.module.module import moduleinfo
-from darknet.processor import load_label_info
-from darknet.data_feed import test_reader
+
+from darknet53_imagenet.darknet import DarkNet
+from darknet53_imagenet.processor import load_label_info
+from darknet53_imagenet.data_feed import test_reader
 
 
 @moduleinfo(
-    name="darknet",
-    version="2.0.0",
-    type="cv/object_detection",
-    summary="for test",
-    author="paddle",
+    name="darknet53_imagenet",
+    version="1.1.0",
+    type="cv/classification",
+    summary="DarkNet53 is a image classfication model trained with ImageNet-2012 dataset.",
+    author="paddlepaddle",
     author_email="paddlepaddle@baidu.com")
 class DarkNet53(hub.Module):
     def _initialize(self):
@@ -77,7 +79,8 @@ class DarkNet53(hub.Module):
                         self.default_pretrained_model_path,
                         main_program=context_prog,
                         predicate=_if_exist)
-
+            else:
+                exe.run(context_prog)
             return inputs, outputs, context_prog
 
     def classification(self,
@@ -86,7 +89,8 @@ class DarkNet53(hub.Module):
                        use_gpu=False,
                        batch_size=1,
                        output_dir=None,
-                       score_thresh=0.5):
+                       score_thresh=0.5,
+                       top_k=1):
         """API of Classification.
         :param paths: the path of images.
         :type paths: list, each element is correspond to the path of an image.
@@ -118,7 +122,6 @@ class DarkNet53(hub.Module):
 
         class_maps = load_label_info("./label_file.txt")
         res_list = []
-        TOPK = 1
         for iter_id in range(loop_num):
             batch_data = []
             handle_id = iter_id * batch_size
@@ -134,7 +137,7 @@ class DarkNet53(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)
             for i, res in enumerate(result[0]):
-                pred_label = np.argsort(res)[::-1][:TOPK]
-                class_name = class_maps[int(pred_label)]
+                pred_label = np.argsort(res)[::-1][:top_k]
+                class_name = class_maps[int(pred_label)].split(',')[0]
                 res_list.append([pred_label, class_name])
         return res_list

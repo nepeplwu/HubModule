@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import six
 import math
+
 from paddle import fluid
 from paddle.fluid.param_attr import ParamAttr
 from paddle.fluid.regularizer import L2Decay
