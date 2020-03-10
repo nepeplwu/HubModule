@@ -88,8 +88,6 @@ class DarkNet53(hub.Module):
                        images=None,
                        use_gpu=False,
                        batch_size=1,
-                       output_dir=None,
-                       score_thresh=0.5,
                        top_k=2):
         """API of Classification.
         :param paths: the path of images.
@@ -98,12 +96,10 @@ class DarkNet53(hub.Module):
         :type images: numpy.ndarray
         :param use_gpu: whether to use gpu or not.
         :type use_gpu: bool
-        :param batch_size: bathc size.
+        :param batch_size: batch size.
         :type batch_size: int
-        :param output_dir: the directory to store the detection result.
-        :type output_dir: str
-        :param score_thresh: the threshold of detection confidence.
-        :type score_thresh: float
+        :param top_k : top k 
+        :type top_k : int
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
@@ -139,9 +135,6 @@ class DarkNet53(hub.Module):
             for i, res in enumerate(result[0]):
                 res_dict = {}
                 pred_label = np.argsort(res)[::-1][:top_k]
-                if top_k == 1:
-                    pred_list = []
-                    pred_list.append(pred_label)
                 for k in pred_label:
                     class_name = self.label_names[int(k)].split(',')[0]
                     max_prob = res[k]
