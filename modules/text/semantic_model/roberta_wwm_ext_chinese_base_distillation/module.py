@@ -24,14 +24,14 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from bert_wwm_chinese_base.model.bert import BertConfig, BertModel
+from roberta_wwm_ext_chinese_base_distillation.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="bert_wwm_chinese_base",
+    name="roberta_wwm_ext_chinese_base_distillation",
     version="1.1.0",
     summary=
-    "bert_wwm_chinese_base, 12-layer, 768-hidden, 12-heads, 110M parameters ",
+    "roberta_wwm_ext_chinese_base_distillation, 3-layer, 768-hidden, 12-heads, 38M parameters ",
     author="kinghuin",
     author_email="kinghuin_chull@163.com",
     type="nlp/semantic_model",
