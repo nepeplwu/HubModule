@@ -26,7 +26,7 @@ parser.add_argument("--use_gpu", type=ast.literal_eval, default=True, help="Whet
 parser.add_argument("--learning_rate", type=float, default=5e-5, help="Learning rate used to train with warmup.")
 parser.add_argument("--checkpoint_dir", type=str, default="test_ckpt", help="Directory to model checkpoint")
 parser.add_argument("--max_seq_len", type=int, default=512, help="Number of words of the longest seqence.")
-parser.add_argument("--batch_size", type=int, default=25, help="Total examples' number in batch for training.")
+parser.add_argument("--batch_size", type=int, default=8, help="Total examples' number in batch for training.")
 parser.add_argument("--use_data_parallel", type=ast.literal_eval, default=True, help="Whether use data parallel.")
 args = parser.parse_args()
 # yapf: enable.
@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 class TestDataset(hub.dataset.GLUE):
     def get_train_examples(self):
-        return self.train_examples[:2500]
+        return self.train_examples[:800]
 
     def get_dev_examples(self):
         return self.dev_examples[:50]
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     cls_task.finetune_and_eval()
 
     predict_data = [[example.text_a, example.text_b]
-                    for example in dataset.get_test_examples()]
+                    for example in dataset.get_dev_examples()]
     print(
         cls_task.predict(
             data=predict_data, return_result=True, accelerate_mode=True))

@@ -102,7 +102,7 @@ if __name__ == '__main__':
     cls_task.finetune_and_eval()
 
     predict_data = [[example.text_a, example.text_b]
-                    for example in dataset.get_test_examples()]
+                    for example in dataset.get_dev_examples()]
     print(
         cls_task.predict(
             data=predict_data, return_result=True, accelerate_mode=True))
