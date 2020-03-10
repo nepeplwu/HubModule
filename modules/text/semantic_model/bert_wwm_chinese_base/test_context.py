@@ -44,7 +44,7 @@ class TestDataset(hub.dataset.ChnSentiCorp):
 
 
 if __name__ == '__main__':
-    module = hub.Module(name="bert_chinese_base")
+    module = hub.Module(name="bert_wwm_chinese_base")
     inputs, outputs, program = module.context(
         trainable=True, max_seq_len=args.max_seq_len)
 

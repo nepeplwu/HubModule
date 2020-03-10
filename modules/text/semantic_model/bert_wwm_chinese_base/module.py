@@ -24,19 +24,19 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from bert_chinese_base.model.bert import BertConfig, BertModel
+from bert_wwm_chinese_base.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="bert_chinese_base",
+    name="bert_wwm_chinese_base",
     version="1.1.0",
     summary=
-    "bert_chinese_base, 12-layer, 768-hidden, 12-heads, 110M parameters ",
+    "bert_wwm_chinese_base, 12-layer, 768-hidden, 12-heads, 110M parameters ",
     author="google",
     author_email="",
     type="nlp/semantic_model",
 )
-class BertMulti(BERTModule):
+class BertWwm(BERTModule):
     def _initialize(self):
         self.MAX_SEQ_LEN = 512
         self.params_path = os.path.join(self.directory, "assets", "params")
@@ -60,4 +60,4 @@ class BertMulti(BERTModule):
 
 
 if __name__ == '__main__':
-    test_module = BertMulti()
+    test_module = BertWwm()

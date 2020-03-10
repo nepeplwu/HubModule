@@ -35,7 +35,7 @@ from bert_uncased_base.model.bert import BertConfig, BertModel
     author_email="",
     type="nlp/semantic_model",
 )
-class BertMulti(BERTModule):
+class Bert(BERTModule):
     def _initialize(self):
         self.MAX_SEQ_LEN = 512
         self.params_path = os.path.join(self.directory, "assets", "params")
@@ -59,4 +59,4 @@ class BertMulti(BERTModule):
 
 
 if __name__ == '__main__':
-    test_module = BertMulti()
+    test_module = Bert()

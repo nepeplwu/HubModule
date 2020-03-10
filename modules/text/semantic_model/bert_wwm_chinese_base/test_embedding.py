@@ -15,6 +15,6 @@
 
 import paddlehub as hub
 
-module = hub.Module(name="bert_chinese_base")
+module = hub.Module(name="bert_wwm_chinese_base")
 
 print(module.get_embedding(texts=[["床前明月光", "疑是地上霜"], ["举头望明月"]]))
