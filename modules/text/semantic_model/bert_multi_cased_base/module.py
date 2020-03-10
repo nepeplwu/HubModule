@@ -42,7 +42,8 @@ class BertMulti(BERTModule):
         self.params_path = os.path.join(self.directory, "assets", "params")
         self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
 
-        bert_config_path = os.path.join(self.directory, "bert_config.json")
+        bert_config_path = os.path.join(self.directory, "assets",
+                                        "bert_config.json")
         self.bert_config = BertConfig(bert_config_path)
 
     def net(self, input_ids, position_ids, segment_ids, input_mask):
