@@ -22,7 +22,7 @@ from paddlehub.module.module import moduleinfo
     type="cv/object_detection",
     summary="Baidu's Faster-RCNN model for object detection, whose backbone is ResNet50, processed with Feature Pyramid Networks",
     author="paddlepaddle",
-    author_email="paddlepaddle@baidu.com")
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.faster_rcnn = hub.Module(name="faster_rcnn")

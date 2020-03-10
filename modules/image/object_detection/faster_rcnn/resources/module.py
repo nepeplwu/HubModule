@@ -20,9 +20,9 @@ from paddlehub.module.module import moduleinfo
     name="faster_rcnn",
     version="1.1.0",
     type="cv/object_detection",
-    summary="Faster RCNN.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    summary="Baidu's Faster R-CNN model for object detection.",
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         # data_feed
