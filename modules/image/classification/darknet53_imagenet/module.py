@@ -1,9 +1,9 @@
-import os
-import numpy as np
-
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+
+import os
+import numpy as np
 
 from darknet53_imagenet.darknet import DarkNet
 from darknet53_imagenet.processor import load_label_info
@@ -80,7 +80,7 @@ class DarkNet53(hub.Module):
                         main_program=context_prog,
                         predicate=_if_exist)
             else:
-                exe.run(context_prog)
+                exe.run(fluid.default_startup_program())
             return inputs, outputs, context_prog
 
     def classification(self,
