@@ -93,7 +93,7 @@ class VGG16(hub.Module):
                         main_program=context_prog,
                         predicate=_if_exist)
             else:
-                exe.run(fluid.default_startup_program())
+                exe.run(startup_program)
             return inputs, outputs, context_prog
 
     def classification(self,
