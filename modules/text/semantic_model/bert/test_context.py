@@ -44,7 +44,6 @@ class TestDataset(hub.dataset.ChnSentiCorp):
 
 
 if __name__ == '__main__':
-    # Load Paddlehub ERNIE Tiny pretrained model
     module = hub.Module(name="bert_multi_cased_L-12_H-768_A-12")
     inputs, outputs, program = module.context(
         trainable=True, max_seq_len=args.max_seq_len)
@@ -53,8 +52,6 @@ if __name__ == '__main__':
     dataset = TestDataset()
     metrics_choices = ["acc"]
 
-    # For ernie_tiny, it use sub-word to tokenize chinese sentence
-    # If not ernie tiny, sp_model_path and word_dict_path should be set None
     reader = hub.reader.ClassifyReader(
         dataset=dataset,
         vocab_path=module.get_vocab_path(),
