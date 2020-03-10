@@ -137,7 +137,6 @@ class DarkNet53(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)
             for i, res in enumerate(result[0]):
-                top_k = max(min(top_k, np.array(res).shape[0]), 1)
                 pred_label = np.argsort(res)[::-1][:top_k]
                 class_name = self.label_names[int(pred_label)].split(',')[0]
                 res_list.append([pred_label, class_name])
