@@ -90,7 +90,7 @@ class DarkNet53(hub.Module):
                        batch_size=1,
                        output_dir=None,
                        score_thresh=0.5,
-                       top_k=1):
+                       top_k=2):
         """API of Classification.
         :param paths: the path of images.
         :type paths: list, each element is correspond to the path of an image.
@@ -137,7 +137,14 @@ class DarkNet53(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)
             for i, res in enumerate(result[0]):
+                res_dict = {}
                 pred_label = np.argsort(res)[::-1][:top_k]
-                class_name = self.label_names[int(pred_label)].split(',')[0]
-                res_list.append([pred_label, class_name])
+                if top_k == 1:
+                    pred_list = []
+                    pred_list.append(pred_label)
+                for k in pred_label:
+                    class_name = self.label_names[int(k)].split(',')[0]
+                    max_prob = res[k]
+                    res_dict[class_name] = max_prob
+                res_list.append(res_dict)
         return res_list
