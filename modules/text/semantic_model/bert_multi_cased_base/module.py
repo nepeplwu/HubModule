@@ -24,11 +24,11 @@ import os
 from paddlehub import BERTModule
 from paddlehub.module.module import moduleinfo
 
-from bert.model.bert import BertConfig, BertModel
+from bert_multi_cased_base.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="bert_multi_cased_L-12_H-768_A-12",
+    name="bert_multi_cased_base",
     version="1.1.0",
     summary=
     "bert_multi_cased_L-12_H-768_A-12, 12 - layer, 768 - hidden, 12 - heads, 110 Mparameters ",

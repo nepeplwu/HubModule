@@ -20,7 +20,7 @@ from __future__ import print_function
 import six
 import json
 import paddle.fluid as fluid
-from bert.model.transformer_encoder import encoder, pre_process_layer
+from bert_multi_cased_base.model.transformer_encoder import encoder, pre_process_layer
 
 
 class BertConfig(object):

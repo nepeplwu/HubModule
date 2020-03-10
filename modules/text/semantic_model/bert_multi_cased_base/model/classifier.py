@@ -20,7 +20,7 @@ from __future__ import print_function
 import paddle.fluid as fluid
 import paddlehub as hub
 
-from bert.model.bert import BertModel
+from bert_multi_cased_base.model.bert import BertModel
 
 
 def create_model(args,
