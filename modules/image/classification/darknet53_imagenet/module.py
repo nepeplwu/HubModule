@@ -16,7 +16,7 @@ from darknet53_imagenet.data_feed import test_reader
     type="cv/classification",
     summary="DarkNet53 is a image classfication model trained with ImageNet-2012 dataset.",
     author="paddlepaddle",
-    author_email="paddlepaddle@baidu.com")
+    author_email="paddle-dev@baidu.com")
 class DarkNet53(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
