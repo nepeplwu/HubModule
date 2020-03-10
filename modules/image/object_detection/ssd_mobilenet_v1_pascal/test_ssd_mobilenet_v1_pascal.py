@@ -40,7 +40,7 @@ class TestSSDMobileNet(unittest.TestCase):
 
     def test_object_detection(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = '../images/pascal_voc/'
+            image_dir = '../../image_dataset/pascal_voc/'
             airplane = cv2.imread(os.path.join(
                 image_dir, 'airplane.jpg')).astype('float32')
             airplanes = np.array([airplane, airplane])

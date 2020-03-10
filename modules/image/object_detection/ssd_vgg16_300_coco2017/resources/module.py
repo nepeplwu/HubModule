@@ -14,11 +14,11 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="ssd_vgg16_300_coco2017",
-    version="1.0.0",
+    version="1.1.0",
     type="cv/object_detection",
     summary="SSD with backbone VGG16, trained with dataset COCO.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.ssd = hub.Module(name="ssd")
@@ -66,7 +66,7 @@ class HubModule(hub.Module):
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 300, 300], dtype='float32')
                 # backbone
-                vgg = hub.Module(name='vgg16')
+                vgg = hub.Module(name='vgg16_imagenet')
                 _, _outputs, _ = vgg.context(input_image=image)
                 body_feats = _outputs['body_feats']
                 # multi_box_head

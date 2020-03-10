@@ -16,11 +16,11 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="ssd",
-    version="1.0.0",
+    version="1.1.0",
     type="cv/object_detection",
-    summary="Single Shot Detection.",
-    author="paddle",
-    author_email="paddlepaddle@baidu.com")
+    summary="SSD (Single Shot MultiBox Detector) is a object detection model, which trained with PASCAL VOC dataset.",
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com")
 class HubModule(hub.Module):
     def _initialize(self):
         self.reader = reader
