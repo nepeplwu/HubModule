@@ -4,8 +4,9 @@ import os
 import numpy as np
 import paddlehub as hub
 import paddle.fluid as fluid
-from mobilenet_v1_imagenet.mobilenet_v1 import MobileNet 
 from paddlehub.module.module import moduleinfo
+
+from mobilenet_v1_imagenet.mobilenet_v1 import MobileNet 
 from mobilenet_v1_imagenet.processor import load_label_info
 from mobilenet_v1_imagenet.data_feed import test_reader
 @moduleinfo(
