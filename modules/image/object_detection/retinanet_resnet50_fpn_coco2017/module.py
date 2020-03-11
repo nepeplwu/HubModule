@@ -72,7 +72,7 @@ class HubModule(hub.Module):
             im_info = fluid.layers.data(
                 name='im_info', shape=[3], dtype='float32', lod_level=0)
             # backbone
-            resnet = hub.Module(name='resnet_imagenet')
+            resnet = hub.Module(name='resnet50_v2_imagenet')
             _, _outputs, _ = resnet.context(
                 input_image=image,
                 depth=50,
