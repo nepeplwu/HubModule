@@ -9,15 +9,15 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
-from .data_feed import reader, DecodeImage, ResizeImage, NormalizeImage, Permute
-from .processor import load_label_info, postprocess
-from .multi_box_head import MultiBoxHead
-from .output_decoder import SSDOutputDecoder
+from ssd.data_feed import reader, DecodeImage, ResizeImage, NormalizeImage, Permute
+from ssd.processor import load_label_info, postprocess
+from ssd.multi_box_head import MultiBoxHead
+from ssd.output_decoder import SSDOutputDecoder
 
 
 @moduleinfo(
     name="ssd",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary="SSD (Single Shot MultiBox Detector) is a object detection model, which trained with PASCAL VOC dataset.",
     author="paddlepaddle",
