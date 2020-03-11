@@ -1,11 +1,11 @@
 ```shell
-$ hub install roberta_wwm_ext_chinese_base_distillation==1.1.0
+$ hub install bert_wwm_ext_chinese_base==1.1.0
 ```
 <p align="center">
 <img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
 </p>
 
-更多详情请参考[RoBERTa论文](https://arxiv.org/abs/1907.11692)、[Chinese-BERT-wwm技术报告](https://arxiv.org/abs/1906.08101)
+更多详情请参考[BERT论文](https://arxiv.org/abs/1810.04805), [Chinese-BERT-wwm技术报告](https://arxiv.org/abs/1906.08101)
 
 ## API
 ```python
@@ -39,11 +39,11 @@ def context(
 ```python
 import paddlehub as hub
 
-# Load $ hub install roberta_wwm_ext_chinese_base_distillation pretrained model
-module = hub.Module(name="roberta_wwm_ext_chinese_base_distillation")
+# Load $ hub install bert_wwm_ext_chinese_base pretrained model
+module = hub.Module(name="bert_wwm_ext_chinese_base")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of roberta_wwm_ext_chinese_base_distillation's module need
+# Must feed all the tensor of bert_wwm_ext_chinese_base's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]
@@ -118,4 +118,4 @@ paddlehub >= 1.5.0
 
 * 1.1.0
 
-  支持Module v2，支持get_embedding与get_params_layer
+  支持get_embedding与get_params_layer

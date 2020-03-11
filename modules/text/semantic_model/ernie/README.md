@@ -1,11 +1,22 @@
 ```shell
-$ hub install bert_cased_base==1.1.0
+$ hub install ernie==1.1.0
 ```
+## 在线体验
+<a class="ant-btn large" href="https://aistudio.baidu.com/aistudio/projectDetail/79380" target="_blank">AI Studio 快速体验</a>
+
+
 <p align="center">
-<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
+<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie_network_1.png" hspace='10'/> <br />
 </p>
 
-更多详情请参考[BERT论文](https://arxiv.org/abs/1810.04805)
+
+<p align="center">
+<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie_network_2.png" hspace='10'/> <br />
+</p>
+
+
+
+更多详情请参考[ERNIE论文](https://arxiv.org/abs/1904.09223)
 
 ## API
 ```python
@@ -39,11 +50,11 @@ def context(
 ```python
 import paddlehub as hub
 
-# Load $ hub install bert_cased_base pretrained model
-module = hub.Module(name="bert_cased_base")
+# Load $ hub install ernie pretrained model
+module = hub.Module(name="ernie")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of bert_cased_base's module need
+# Must feed all the tensor of ernie's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]
@@ -55,6 +66,10 @@ pooled_output = outputs["pooled_output"]
 # Use "sequence_output" for token-level output.
 sequence_output = outputs["sequence_output"]
 ```
+利用该PaddleHub Module Fine-tune示例，可参考[文本分类](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.2/demo/text-classification)、[序列标注](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.2/demo/sequence-labeling)。
+
+`Note`：建议该PaddleHub Module在**GPU**环境中运行。如出现显存不足，可以将**batch_size**或**max_seq_len**调小。
+
 
 ```python
 def get_embedding(
@@ -94,8 +109,7 @@ def get_params_layer()
 
 ##   查看代码
 
-https://github.com/PaddlePaddle/ERNIE/tree/develop/BERT
-
+https://github.com/PaddlePaddle/ERNIE
 
 
 ## 依赖
@@ -110,6 +124,15 @@ paddlehub >= 1.5.0
 
   初始发布
 
-* 1.1.0
+* 1.0.1
+  修复该PaddleHub Module在paddlepaddle1.4.0版本、CPU环境下运行错误的问题
 
-  支持Module v2，支持get_embedding与get_params_layer
+* 1.0.2
+  修复该PaddleHub Module在paddlepaddle1.5.0版本下兼容问题
+
+* 1.1.0
+  ERNIE预训练时max_seq_len设置为512
+
+* 1.2.0
+
+  支持get_embedding与get_params_layer

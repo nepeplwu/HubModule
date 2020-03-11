@@ -1,9 +1,15 @@
 ```shell
-$ hub install ernie_tiny==1.1.0
+$ hub install ernie_v2_eng_large==1.1.0
 ```
 <p align="center">
-<img src="https://paddlehub.bj.bcebos.com/paddlehub-img%2Fernie_tiny_framework.PNG" hspace='10'/> <br />
+<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie2.0_arch.png" hspace='10'/> <br />
 </p>
+
+<p align="center">
+<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie2.0_model.png" hspace='10'/> <br />
+</p>
+
+更多详情请参考[ERNIE论文](https://arxiv.org/abs/1907.12412)
 
 ## API
 ```python
@@ -20,14 +26,15 @@ def context(
 
 **返回**
 > inputs：dict类型，有以下字段：
-> >**input_ids**字段存放Token Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
-> >**position_ids**字段存放Position Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
-> >**segment_ids**字段存放Sentence Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
-> >**input_mask**字段存放token是否为padding的标识，shape为\[batch_size, max_seq_len\]，int64类型；
+> >**input_ids**对应于上图的Token Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
+> >**position_ids**对应于上图的Position Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
+> >**segment_ids**对应于上图的Sentence Embedding，shape为\[batch_size, max_seq_len\]，int64类型；
+> >**input_mask**存放token是否为padding的标识，shape为\[batch_size, max_seq_len\]，int64类型；
+> >**task_id**对应于上图的Task Embedding的标识，shape为\[batch_size, max_seq_len\]，int64类型；
 >
 > outputs：dict类型，Module的输出特征，有以下字段：
 > >**pooled_output**字段存放句子粒度的特征，可用于文本分类等任务，shape为 \[batch_size, 768\]，int64类型；
-> >**sequence_output**字段存放字粒度的特征，可用于序列标注等任务，shape为 \[batch_size, seq_len, 768\]，int64类型；
+> >**sequence_output**字段存放字粒度的特征，可用于序列标注等任务，shape为\[batch_size, seq_len, 768\]，int64类型；
 >
 >  program：包含该Module计算图的Program。
 
@@ -37,14 +44,16 @@ def context(
 import paddlehub as hub
 
 # Load ernie pretrained model
-module = hub.Module(name="ernie_tiny")
+module = hub.Module(name="ernie_v2_eng_large")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of ernie's module need
+# Must feed all the following tensor of ernie's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]
 input_mask = inputs["input_mask"]
+# task_ids is not necessary during finetuning
+task_ids = inputs["task_ids"]
 
 # Use "pooled_output" for sentence-level output.
 pooled_output = outputs["pooled_output"]
@@ -52,9 +61,9 @@ pooled_output = outputs["pooled_output"]
 # Use "sequence_output" for token-level output.
 sequence_output = outputs["sequence_output"]
 ```
-利用该PaddleHub Module Fine-tune示例，可参考[文本分类](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.4.0/demo/text-classification)。
+利用该PaddleHub Module Fine-tune示例，可参考[文本分类](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.2/demo/text-classification)。
 
-**Note**：建议该PaddleHub Module在**GPU**环境中运行。如出现显存不足，可以将**batch_size**或**max_seq_len**调小。
+`Note`：建议该PaddleHub Module在**GPU**环境中运行。如出现显存不足，可以将**batch_size**或**max_seq_len**调小。
 
 
 ```python
@@ -104,6 +113,7 @@ paddlepaddle >= 1.6.2
 
 paddlehub >= 1.5.0
 
+
 ## 更新历史
 
 * 1.0.0
@@ -116,4 +126,4 @@ paddlehub >= 1.5.0
 
 * 1.1.0
 
-  支持Module v2，支持get_embedding与get_params_layer
+  支持get_embedding与get_params_layer

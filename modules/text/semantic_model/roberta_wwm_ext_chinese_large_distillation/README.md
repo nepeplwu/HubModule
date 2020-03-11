@@ -1,5 +1,5 @@
 ```shell
-$ hub install roberta_wwm_ext_chinese_large==1.1.0
+$ hub install roberta_wwm_ext_chinese_large_distillation==1.1.0
 ```
 <p align="center">
 <img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
@@ -39,11 +39,11 @@ def context(
 ```python
 import paddlehub as hub
 
-# Load $ hub install roberta_wwm_ext_chinese_large pretrained model
-module = hub.Module(name="roberta_wwm_ext_chinese_large")
+# Load $ hub install roberta_wwm_ext_chinese_large_distillation pretrained model
+module = hub.Module(name="roberta_wwm_ext_chinese_large_distillation")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of roberta_wwm_ext_chinese_large's module need
+# Must feed all the tensor of roberta_wwm_ext_chinese_large_distillation's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]
@@ -110,7 +110,6 @@ paddlepaddle >= 1.6.2
 
 paddlehub >= 1.5.0
 
-
 ## 更新历史
 
 * 1.0.0
@@ -119,4 +118,4 @@ paddlehub >= 1.5.0
 
 * 1.1.0
 
-  支持Module v2，支持get_embedding与get_params_layer
+  支持get_embedding与get_params_layer

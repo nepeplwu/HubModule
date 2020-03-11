@@ -1,4 +1,4 @@
-#   Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
+# Copyright (c) 2019 PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ from __future__ import print_function
 
 import six
 import json
+
 import paddle.fluid as fluid
-from bert_chinese_base.model.transformer_encoder import encoder, pre_process_layer
+
+from bert_cased_base.model.transformer_encoder import encoder, pre_process_layer
 
 
 class BertConfig(object):

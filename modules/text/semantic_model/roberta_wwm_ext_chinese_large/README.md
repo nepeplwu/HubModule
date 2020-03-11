@@ -1,22 +1,11 @@
 ```shell
-$ hub install ernie==1.1.0
+$ hub install roberta_wwm_ext_chinese_large==1.1.0
 ```
-## 在线体验
-<a class="ant-btn large" href="https://aistudio.baidu.com/aistudio/projectDetail/79380" target="_blank">AI Studio 快速体验</a>
-
-
 <p align="center">
-<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie_network_1.png" hspace='10'/> <br />
+<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
 </p>
 
-
-<p align="center">
-<img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ernie_network_2.png" hspace='10'/> <br />
-</p>
-
-
-
-更多详情请参考[ERNIE论文](https://arxiv.org/abs/1904.09223)
+更多详情请参考[RoBERTa论文](https://arxiv.org/abs/1907.11692)、[Chinese-BERT-wwm技术报告](https://arxiv.org/abs/1906.08101)
 
 ## API
 ```python
@@ -50,11 +39,11 @@ def context(
 ```python
 import paddlehub as hub
 
-# Load $ hub install ernie pretrained model
-module = hub.Module(name="ernie")
+# Load $ hub install roberta_wwm_ext_chinese_large pretrained model
+module = hub.Module(name="roberta_wwm_ext_chinese_large")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of ernie's module need
+# Must feed all the tensor of roberta_wwm_ext_chinese_large's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]
@@ -66,10 +55,6 @@ pooled_output = outputs["pooled_output"]
 # Use "sequence_output" for token-level output.
 sequence_output = outputs["sequence_output"]
 ```
-利用该PaddleHub Module Fine-tune示例，可参考[文本分类](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.2/demo/text-classification)、[序列标注](https://github.com/PaddlePaddle/PaddleHub/tree/release/v1.2/demo/sequence-labeling)。
-
-`Note`：建议该PaddleHub Module在**GPU**环境中运行。如出现显存不足，可以将**batch_size**或**max_seq_len**调小。
-
 
 ```python
 def get_embedding(
@@ -109,8 +94,15 @@ def get_params_layer()
 
 ##   查看代码
 
-https://github.com/PaddlePaddle/ERNIE
+https://github.com/PaddlePaddle/ERNIE/tree/develop/BERT
 
+## 参数来源
+
+[Chinese-BERT-wwm](https://github.com/ymcui/Chinese-BERT-wwm)
+
+## Module贡献者
+
+[kinghuin](https://github.com/kinghuin)
 
 ## 依赖
 
@@ -118,21 +110,13 @@ paddlepaddle >= 1.6.2
 
 paddlehub >= 1.5.0
 
+
 ## 更新历史
 
 * 1.0.0
 
   初始发布
 
-* 1.0.1
-  修复该PaddleHub Module在paddlepaddle1.4.0版本、CPU环境下运行错误的问题
-
-* 1.0.2
-  修复该PaddleHub Module在paddlepaddle1.5.0版本下兼容问题
-
 * 1.1.0
-  ERNIE预训练时max_seq_len设置为512
 
-* 1.2.0
-
-  支持Module v2，支持get_embedding与get_params_layer
+  支持get_embedding与get_params_layer

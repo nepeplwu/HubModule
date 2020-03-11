@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 # Copyright (c) 2019  PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"
@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import os
 
-from paddlehub import BERTModule
+from paddlehub import TransformerModule
 from paddlehub.module.module import moduleinfo
 
 from ernie_v2_eng_base.model.ernie import ErnieModel, ErnieConfig
@@ -36,7 +36,7 @@ from ernie_v2_eng_base.model.ernie import ErnieModel, ErnieConfig
     author_email="nlp@baidu.com",
     type="nlp/semantic_model",
 )
-class ErnieV2EngBase(BERTModule):
+class ErnieV2EngBase(TransformerModule):
     def _initialize(self):
         ernie_config_path = os.path.join(self.directory, "assets",
                                          "ernie_config.json")
@@ -45,19 +45,26 @@ class ErnieV2EngBase(BERTModule):
         self.params_path = os.path.join(self.directory, "assets", "params")
         self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")\
 
-    def net(self,
-            input_ids,
-            position_ids,
-            segment_ids,
-            input_mask,
-            task_ids=None):
-        if not task_ids:
-            self.ernie_config._config_dict['use_task_id'] = False
+    def net(self, input_ids, position_ids, segment_ids, input_mask):
+        """
+        create neural network.
+
+        Args:
+            input_ids (tensor): the word ids.
+            position_ids (tensor): the position ids.
+            segment_ids (tensor): the segment ids.
+            input_mask (tensor): the padding mask.
+
+        Returns:
+            pooled_output (tensor):  sentence-level output for classification task.
+            sequence_output (tensor): token-level output for sequence task.
+        """
+        self.ernie_config._config_dict['use_task_id'] = False
         ernie = ErnieModel(
             src_ids=input_ids,
             position_ids=position_ids,
             sentence_ids=segment_ids,
-            task_ids=task_ids,
+            task_ids=None,
             input_mask=input_mask,
             config=self.ernie_config,
             use_fp16=False)

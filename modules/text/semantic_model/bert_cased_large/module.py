@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 # Copyright (c) 2019  PaddlePaddle Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"
@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import os
 
-from paddlehub import BERTModule
+from paddlehub import TransformerModule
 from paddlehub.module.module import moduleinfo
 
 from bert_cased_large.model.bert import BertConfig, BertModel
@@ -32,11 +32,11 @@ from bert_cased_large.model.bert import BertConfig, BertModel
     version="1.1.0",
     summary=
     "bert_cased_large, 24-layer, 1024-hidden, 16-heads, 340M parameters ",
-    author="google",
-    author_email="",
+    author="paddlepaddle",
+    author_email="paddle-dev@baidu.com",
     type="nlp/semantic_model",
 )
-class Bert(BERTModule):
+class Bert(TransformerModule):
     def _initialize(self):
         self.MAX_SEQ_LEN = 512
         self.params_path = os.path.join(self.directory, "assets", "params")
@@ -47,6 +47,19 @@ class Bert(BERTModule):
         self.bert_config = BertConfig(bert_config_path)
 
     def net(self, input_ids, position_ids, segment_ids, input_mask):
+        """
+        create neural network.
+
+        Args:
+            input_ids (tensor): the word ids.
+            position_ids (tensor): the position ids.
+            segment_ids (tensor): the segment ids.
+            input_mask (tensor): the padding mask.
+
+        Returns:
+            pooled_output (tensor):  sentence-level output for classification task.
+            sequence_output (tensor): token-level output for sequence task.
+        """
         bert = BertModel(
             src_ids=input_ids,
             position_ids=position_ids,

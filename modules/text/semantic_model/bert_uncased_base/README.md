@@ -113,4 +113,4 @@ paddlehub >= 1.5.0
 
 * 1.1.0
 
-  支持Module v2，支持get_embedding与get_params_layer
+  支持get_embedding与get_params_layer
