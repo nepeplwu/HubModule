@@ -1,7 +1,8 @@
 # coding=utf-8
 import os
-import cv2
 import unittest
+
+import cv2
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub

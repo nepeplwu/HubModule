@@ -3,6 +3,7 @@ import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
 import os
+
 import numpy as np
 
 from darknet53_imagenet.darknet import DarkNet
