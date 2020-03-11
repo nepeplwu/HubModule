@@ -101,8 +101,6 @@ class VGG16(hub.Module):
                        images=None,
                        use_gpu=False,
                        batch_size=1,
-                       output_dir=None,
-                       score_thresh=0.5,
                        top_k=1):
         """API of Classification.
         :param paths: the path of images.
@@ -113,10 +111,8 @@ class VGG16(hub.Module):
         :type use_gpu: bool
         :param batch_size: bathc size.
         :type batch_size: int
-        :param output_dir: the directory to store the detection result.
-        :type output_dir: str
-        :param score_thresh: the threshold of detection confidence.
-        :type score_thresh: float
+        :param top_k: result of top k
+        :type top_k: int
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
@@ -150,7 +146,11 @@ class VGG16(hub.Module):
                 fetch_list=[self.pred_out],
                 return_numpy=True)
             for i, res in enumerate(result[0]):
+                res_dict = {}
                 pred_label = np.argsort(res)[::-1][:top_k]
-                class_name = self.label_names[int(pred_label)]
-                res_list.append([pred_label, class_name])
+                for k in pred_label:
+                    class_name = self.label_names[int(k)].split(',')[0]
+                    max_prob = res[k]
+                    res_dict[class_name] = max_prob
+                res_list.append(res_dict) 
         return res_list
