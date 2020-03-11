@@ -34,8 +34,7 @@ class HubModule(hub.Module):
                 yolo_head,
                 image,
                 trainable=True,
-                param_prefix='',
-                get_prediction=False):
+                param_prefix=''):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param body_feats: feature maps of backbone
@@ -60,11 +59,8 @@ class HubModule(hub.Module):
             head_features = yolo_head._get_outputs(
                 body_feats, is_train=trainable)
             inputs = {'image': image, 'im_size': im_size}
-            if get_prediction:
-                bbox_out = yolo_head.get_prediction(head_features, im_size)
-                outputs = {'bbox_out': bbox_out}
-            else:
-                outputs = {'head_features': head_features}
+            bbox_out = yolo_head.get_prediction(head_features, im_size)
+            outputs = {'bbox_out': bbox_out}
 
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)

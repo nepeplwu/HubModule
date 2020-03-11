@@ -37,8 +37,7 @@ class HubModule(hub.Module):
                 input_image=None,
                 trainable=True,
                 pretrained=False,
-                param_prefix='',
-                get_prediction=False):
+                param_prefix=''):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param yolo_head: Head of YOLOv3.
@@ -51,10 +50,6 @@ class HubModule(hub.Module):
         :type pretrained: bool
         :param param_prefix: the prefix of parameters in yolo_head and backbone
         :type param_prefix: str
-        :param get_prediction: whether to get prediction,
-            if True, outputs is {'bbox_out': bbox_out},
-            if False, outputs is {'head_features': head_features}.
-        :type get_prediction: bool
         """
         wrapped_prog = input_image.block.program if input_image else fluid.Program()
         startup_program = fluid.Program()
@@ -74,8 +69,7 @@ class HubModule(hub.Module):
                     yolo_head=yolo_head,
                     image=image,
                     trainable=trainable,
-                    param_prefix=param_prefix,
-                    get_prediction=get_prediction)
+                    param_prefix=param_prefix)
 
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
@@ -125,7 +119,7 @@ class HubModule(hub.Module):
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
-                trainable=False, pretrained=True, get_prediction=True)
+                trainable=False, pretrained=True)
 
             self.infer_prog = self.infer_prog.clone(for_test=True)
             self.image = inputs['image']
