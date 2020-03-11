@@ -426,6 +426,9 @@ class ResNet(object):
                 size=self.class_dim,
                 param_attr=fluid.param_attr.ParamAttr(
                     initializer=fluid.initializer.Uniform(-stdv, stdv)))
+            fluid.layers.Print(out)
+            out = fluid.layers.softmax(out)
+            fluid.layers.Print(out)
             return out
         return OrderedDict([('res{}_sum'.format(self.feature_maps[idx]), feat)
                             for idx, feat in enumerate(res_endpoints)])
