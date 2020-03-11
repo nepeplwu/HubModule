@@ -32,9 +32,9 @@ class VGG16(hub.Module):
                 pretrained=False,
                 param_prefix='',
                 get_prediction=False,
-                extra_block_filters=[[256, 512, 1, 2, 3], [128, 256, 1, 2, 3],
-                                     [128, 256, 0, 1, 3], [128, 256, 0, 1, 3]],
-                normalizations=[20., -1, -1, -1, -1, -1]):
+                extra_block_filters=((256, 512, 1, 2, 3), (128, 256, 1, 2, 3),
+                                     (128, 256, 0, 1, 3), (128, 256, 0, 1, 3)),
+                normalizations=(20., -1, -1, -1, -1, -1)):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param input_image: image tensor.
