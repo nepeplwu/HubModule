@@ -4,8 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import copy
-
 from collections import OrderedDict
+
 from paddle import fluid
 from paddle.fluid.param_attr import ParamAttr
 from paddle.fluid.initializer import Xavier

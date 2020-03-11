@@ -5,7 +5,6 @@ from __future__ import print_function
 
 import numpy as np
 import paddle.fluid as fluid
-
 from paddle.fluid.param_attr import ParamAttr
 from paddle.fluid.initializer import Normal, Constant
 from paddle.fluid.regularizer import L2Decay

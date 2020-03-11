@@ -4,17 +4,18 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from functools import partial
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
-from functools import partial
-from .fpn import FPN
-from .retina_head import AnchorGenerator, RetinaTargetAssign, RetinaOutputDecoder, RetinaHead
-from .processor import load_label_info, postprocess
-from .data_feed import test_reader, padding_minibatch
-
 from paddlehub.module.module import moduleinfo
+
+from retinanet_resnet50_fpn_coco2017.fpn import FPN
+from retinanet_resnet50_fpn_coco2017.retina_head import AnchorGenerator, RetinaTargetAssign, RetinaOutputDecoder, RetinaHead
+from retinanet_resnet50_fpn_coco2017.processor import load_label_info, postprocess
+from retinanet_resnet50_fpn_coco2017.data_feed import test_reader, padding_minibatch
+
 
 
 @moduleinfo(
