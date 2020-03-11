@@ -91,10 +91,10 @@ def lex_net(word_dict_len, label_dict_len):
         crf_decode = fluid.layers.crf_decoding(
             input=emission, param_attr=fluid.ParamAttr(name='crfw'))
 
-        return crf_decode
+        return crf_decode, emission
 
     word = fluid.layers.data(name='word', shape=[1], dtype='int64', lod_level=1)
 
-    crf_decode = _net_conf(word)
+    crf_decode, emission = _net_conf(word)
 
-    return crf_decode, word
+    return crf_decode, word, emission

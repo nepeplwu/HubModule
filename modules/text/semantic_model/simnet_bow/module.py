@@ -127,7 +127,7 @@ class SimnetBow(hub.Module):
         """
         Tranform the texts(dict) to PaddleTensor
         Args:
-             texts(dict): texts
+             texts(list): texts
         Returns:
              tensor(PaddleTensor): tensor with texts data
         """
@@ -154,7 +154,7 @@ class SimnetBow(hub.Module):
         if six.PY2:
             unicode_texts = []
             for text in texts:
-                if not isinstance(text, unicode):
+                if not isinstance(text, six.string_types):
                     unicode_texts.append(
                         text.decode(sys_stdin_encoding()).decode("utf8"))
                 else:
