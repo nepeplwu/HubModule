@@ -9,12 +9,12 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
-from .data_feed import test_reader, padding_minibatch
-from .processor import load_label_info, postprocess
-from .bbox_head import MultiClassNMS, BBoxHead, SmoothL1Loss, TwoFCHead
-from .rpn_head import AnchorGenerator, RPNTargetAssign, GenerateProposals, RPNHead, FPNRPNHead
-from .bbox_assigner import BBoxAssigner
-from .roi_extractor import RoIAlign, FPNRoIAlign
+from faster_rcnn.data_feed import test_reader, padding_minibatch
+from faster_rcnn.processor import load_label_info, postprocess
+from faster_rcnn.bbox_head import MultiClassNMS, BBoxHead, SmoothL1Loss, TwoFCHead
+from faster_rcnn.rpn_head import AnchorGenerator, RPNTargetAssign, GenerateProposals, RPNHead, FPNRPNHead
+from faster_rcnn.bbox_assigner import BBoxAssigner
+from faster_rcnn.roi_extractor import RoIAlign, FPNRoIAlign
 
 
 @moduleinfo(

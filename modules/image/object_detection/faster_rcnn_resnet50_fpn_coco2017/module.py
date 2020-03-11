@@ -13,7 +13,7 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
-from .fpn import FPN
+from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
 
 
 @moduleinfo(
