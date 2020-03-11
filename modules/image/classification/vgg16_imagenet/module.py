@@ -1,10 +1,10 @@
+# coding=utf-8
 import os
-import numpy as np
 
+import numpy as np
 import paddlehub as hub
 import paddle.fluid as fluid
 from paddlehub.module.module import moduleinfo
-
 from vgg16_imagenet.vgg import VGG
 from vgg16_imagenet.processor import load_label_info
 from vgg16_imagenet.data_feed import test_reader
