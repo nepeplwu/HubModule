@@ -36,7 +36,7 @@ class ResNet(object):
     __shared__ = ['norm_type', 'freeze_norm', 'weight_prefix_name']
 
     def __init__(self,
-                 depth=34,
+                 depth=50,
                  freeze_at=0,
                  norm_type='sync_bn',
                  freeze_norm=False,

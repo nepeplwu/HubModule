@@ -1,6 +1,6 @@
 import os
-import numpy as np
 
+import numpy as np
 import paddlehub as hub
 import paddle.fluid as fluid
 from paddlehub.module.module import moduleinfo
