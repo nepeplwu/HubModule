@@ -4,17 +4,17 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from functools import partial
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
-from functools import partial
 from paddlehub.module.module import moduleinfo
 
 
 @moduleinfo(
     name="yolov3_mobilenet_v1_coco2017",
-    version="2.0.0",
+    version="1.1.0",
     type="cv/object_detection",
     summary=
     "Baidu's YOLOv3 model for object detection with backbone MobileNet_V1, trained with dataset COCO2017.",
@@ -68,7 +68,7 @@ class HubModule(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                mobilenet = hub.Module(name='mobilenetv1_imagenet')
+                mobilenet = hub.Module(name='mobilenet_v1_imagenet')
                 _, _outputs, _ = mobilenet.context(
                     input_image=image, yolo_v3=True)
                 body_feats = _outputs['body_feats']

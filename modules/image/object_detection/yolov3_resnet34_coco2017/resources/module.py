@@ -4,12 +4,11 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from functools import partial
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
-from functools import partial
-
 from paddlehub.module.module import moduleinfo
 
 
@@ -69,7 +68,7 @@ class HubModule(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                resnet = hub.Module(name='resnet_imagenet')
+                resnet = hub.Module(name='resnet34_v2_imagenet')
                 _, _outputs, _ = resnet.context(
                     input_image=image,
                     depth=34,
