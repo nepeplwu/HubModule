@@ -9,15 +9,15 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
-from .data_feed import reader
-from .processor import load_label_info, postprocess
-from .yolo_head import YOLOv3Head
+from yolov3.data_feed import reader
+from yolov3.processor import load_label_info, postprocess
+from yolov3.yolo_head import YOLOv3Head
 
 
 
 @moduleinfo(
     name="yolov3",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary="Baidu's YOLOv3 model for object detection.",
     author="paddlepaddle",

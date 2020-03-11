@@ -4,11 +4,11 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from functools import partial
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
-from functools import partial
 from paddlehub.module.module import moduleinfo
 
 
