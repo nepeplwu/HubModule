@@ -3,15 +3,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from collections import OrderedDict
+
 import paddle.fluid as fluid
 import paddlehub as hub
+from paddlehub.module.module import moduleinfo
 
-from collections import OrderedDict
 from .data_feed import reader, DecodeImage, ResizeImage, NormalizeImage, Permute
 from .processor import load_label_info, postprocess
 from .multi_box_head import MultiBoxHead
 from .output_decoder import SSDOutputDecoder
-from paddlehub.module.module import moduleinfo
 
 
 @moduleinfo(

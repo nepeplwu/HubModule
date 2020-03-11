@@ -4,11 +4,11 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from functools import partial
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
-from functools import partial
 from paddlehub.module.module import moduleinfo
 
 
@@ -65,7 +65,7 @@ class HubModule(hub.Module):
                 # image
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 300, 300], dtype='float32')
-                mobilenet_v1 = hub.Module(name='mobilenetv1_imagenet')
+                mobilenet_v1 = hub.Module(name='mobilenet_v1_imagenet')
                 _, _outputs, _ = mobilenet_v1.context(input_image=image)
                 body_feats = _outputs['body_feats']
                 # multi_box_head
