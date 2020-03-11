@@ -1,5 +1,5 @@
 ```shell
-$ hub install bert_uncased_base==1.1.0
+$ hub install bert_uncased_L_12_H_768_A_12==1.1.0
 ```
 <p align="center">
 <img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
@@ -39,11 +39,11 @@ def context(
 ```python
 import paddlehub as hub
 
-# Load $ hub install bert_uncased_base pretrained model
-module = hub.Module(name="bert_uncased_base")
+# Load $ hub install bert_uncased_L_12_H_768_A_12 pretrained model
+module = hub.Module(name="bert_uncased_L_12_H_768_A_12")
 inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
 
-# Must feed all the tensor of bert_uncased_base's module need
+# Must feed all the tensor of bert_uncased_L_12_H_768_A_12's module need
 input_ids = inputs["input_ids"]
 position_ids = inputs["position_ids"]
 segment_ids = inputs["segment_ids"]

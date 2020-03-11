@@ -44,7 +44,7 @@ class TestDataset(hub.dataset.GLUE):
 
 
 if __name__ == '__main__':
-    module = hub.Module(name="bert_uncased_base")
+    module = hub.Module(name="bert_uncased_L-12_H-768_A-12")
     inputs, outputs, program = module.context(
         trainable=True, max_seq_len=args.max_seq_len)
 

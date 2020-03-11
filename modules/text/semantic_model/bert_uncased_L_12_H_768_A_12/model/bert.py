@@ -22,7 +22,7 @@ import json
 
 import paddle.fluid as fluid
 
-from bert_cased_base.model.transformer_encoder import encoder, pre_process_layer
+from bert_uncased_L_12_H_768_A_12.model.transformer_encoder import encoder, pre_process_layer
 
 
 class BertConfig(object):

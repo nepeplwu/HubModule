@@ -24,13 +24,14 @@ import os
 from paddlehub import TransformerModule
 from paddlehub.module.module import moduleinfo
 
-from bert_uncased_base.model.bert import BertConfig, BertModel
+from bert_uncased_L_12_H_768_A_12.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="bert_uncased_base",
+    name="bert_uncased_L-12_H-768_A-12",
     version="1.1.0",
-    summary="bert_uncased_base, 12-layer, 768-hidden, 12-heads, 110M parameters",
+    summary=
+    "bert_uncased_L-12_H-768_A-12, 12-layer, 768-hidden, 12-heads, 110M parameters",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com",
     type="nlp/semantic_model",
