@@ -3,17 +3,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from collections import OrderedDict
+
 import paddle.fluid as fluid
 import paddlehub as hub
+from paddlehub.module.module import moduleinfo
 
-from collections import OrderedDict
 from .data_feed import test_reader, padding_minibatch
 from .processor import load_label_info, postprocess
 from .bbox_head import MultiClassNMS, BBoxHead, SmoothL1Loss, TwoFCHead
 from .rpn_head import AnchorGenerator, RPNTargetAssign, GenerateProposals, RPNHead, FPNRPNHead
 from .bbox_assigner import BBoxAssigner
 from .roi_extractor import RoIAlign, FPNRoIAlign
-from paddlehub.module.module import moduleinfo
 
 
 @moduleinfo(

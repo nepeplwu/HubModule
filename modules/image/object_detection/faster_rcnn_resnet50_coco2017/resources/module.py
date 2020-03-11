@@ -4,14 +4,13 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import numpy as np
-import paddle.fluid as fluid
-import paddlehub as hub
-
 from collections import OrderedDict
 from functools import partial
 from math import ceil
 
+import numpy as np
+import paddle.fluid as fluid
+import paddlehub as hub
 from paddlehub.module.module import moduleinfo
 
 
@@ -69,7 +68,7 @@ class HubModule(hub.Module):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
-                resnet = hub.Module(name='resnet_imagenet')
+                resnet = hub.Module(name='resnet50_v2_imagenet')
                 _, _outputs, _ = resnet.context(
                     input_image=image,
                     depth=50,

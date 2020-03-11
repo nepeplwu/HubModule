@@ -4,9 +4,10 @@ from __future__ import print_function
 from __future__ import division
 
 import cv2
+from collections import OrderedDict
+
 import os
 import numpy as np
-from collections import OrderedDict
 from PIL import Image, ImageEnhance
 from paddle import fluid
 
