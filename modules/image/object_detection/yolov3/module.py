@@ -47,10 +47,6 @@ class HubModule(hub.Module):
         :type trainable: bool
         :param param_prefix: the prefix of parameters in yolo_head and backbone
         :type param_prefix: str
-        :param get_prediction: whether to get prediction,
-            if True, outputs is bbox_out,
-            if False, outputs is head_features.
-        :type get_prediction: bool
         """
         context_prog = image.block.program
         with fluid.program_guard(context_prog):
