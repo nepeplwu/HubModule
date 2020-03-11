@@ -71,6 +71,27 @@ class LAC(hub.Module):
 
         self._set_config()
 
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
+
     def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained lac
