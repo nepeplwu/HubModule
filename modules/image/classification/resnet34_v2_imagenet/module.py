@@ -17,7 +17,7 @@ from resnet34_v2_imagenet.data_feed import test_reader
     summary="ResNet34 is a image classfication model trained with ImageNet-2012 dataset.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class _ResNet(hub.Module):
+class ResNet34(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "ResNet34_vd_pretrained")
@@ -32,7 +32,6 @@ class _ResNet(hub.Module):
                 pretrained=False,
                 param_prefix='',
                 get_prediction=False,
-                depth=34,
                 variant='d',
                 norm_type='bn',
                 feature_maps=[3, 4, 5],
@@ -66,7 +65,7 @@ class _ResNet(hub.Module):
         with fluid.program_guard(context_prog, startup_program):
             if return_c5:
                 return ResNetC5(
-                    depth=depth,
+                    depth=34,
                     norm_type=norm_type,
                     variant=variant,
                     feature_maps=feature_maps)
@@ -75,7 +74,7 @@ class _ResNet(hub.Module):
                 shape=[-1, 3, 224, 224],
                 dtype='float32',
                 lod_level=0)
-            backbone = ResNet(depth=depth, variant=variant, norm_type=norm_type,\
+            backbone = ResNet(depth=34, variant=variant, norm_type=norm_type,\
                               feature_maps=feature_maps, get_prediction=get_prediction)
 
             out = backbone(image)
