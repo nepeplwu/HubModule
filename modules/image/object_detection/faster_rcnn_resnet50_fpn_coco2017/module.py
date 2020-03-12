@@ -18,12 +18,12 @@ from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
 
 @moduleinfo(
     name="faster_rcnn_resnet50_fpn_coco2017",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary="Baidu's Faster-RCNN model for object detection, whose backbone is ResNet50, processed with Feature Pyramid Networks",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class FasterRCNNResNet50RPN(hub.Module):
     def _initialize(self):
         self.faster_rcnn = hub.Module(name="faster_rcnn")
         # default pretrained model, Faster-RCNN with backbone ResNet50, shape of input tensor is [3, 800, 1333]
