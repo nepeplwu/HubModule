@@ -44,7 +44,7 @@ simnet_bow预测接口，计算两个句子的cosin相似度
 
 # SimnetBow 服务部署
 
-PaddleHub Serving可以部署一个在线词法分析服务，可以将此接口用于词法分析、在线分词等在线web应用。
+PaddleHub Serving可以部署一个在线语义匹配服务，可以将此接口用于在线web应用。
 
 ## 第一步：启动PaddleHub Serving
 
