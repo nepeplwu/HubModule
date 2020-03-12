@@ -2,7 +2,7 @@
 
 ## detection(texts=[], data={}, use_gpu=False, batch_size=1)
 
-porn_detection_gru预测接口，鉴定输入句子是否为包含色情文案
+porn_detection_lstm预测接口，鉴定输入句子是否为包含色情文案
 
 **参数**
 
