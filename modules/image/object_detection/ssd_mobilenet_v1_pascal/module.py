@@ -19,7 +19,7 @@ from paddlehub.module.module import moduleinfo
     summary="SSD with backbone MobileNet_V1, trained with dataset Pasecal VOC.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class SSDMobileNetv1(hub.Module):
     def _initialize(self):
         self.ssd = hub.Module(name="ssd")
         # default pretrained model of SSD_MobileNet_V1_VOC, the shape of image tensor is (3, 300, 300)
