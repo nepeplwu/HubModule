@@ -101,3 +101,5 @@ r = requests.post(url=url, headers=headers, data=json.dumps(data))
 # 打印预测结果
 print(json.dumps(r.json(), indent=4, ensure_ascii=False))
 ```
+
+关于PaddleHub Serving更多信息参考[服务部署](https://github.com/PaddlePaddle/PaddleHub/blob/release/v1.6/docs/tutorial/serving.md)
