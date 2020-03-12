@@ -17,7 +17,7 @@ porn_detection_lstm预测接口，鉴定输入句子是否为包含色情文案
 
 ## context(trainable=False)
 
-获取porn_detection_gru的预训练program以及program的输入输出变量
+获取porn_detection_lstm的预训练program以及program的输入输出变量
 
 **参数**
 
@@ -31,11 +31,11 @@ porn_detection_lstm预测接口，鉴定输入句子是否为包含色情文案
 
 ## get_labels()
 
-获取porn_detection_gru的类别
+获取porn_detection_lstm的类别
 
 **返回**
 
-* labels(dict): porn_detection_gru的类别
+* labels(dict): porn_detection_lstm的类别
 
 ## get_vocab_path()
 
@@ -75,7 +75,7 @@ import json
 text = ["今天是个好日子", "天气预报说今天要下雨"]
 
 # 设置运行配置
-# 对应本地预测porn_detection_gru.detection(texts=text, batch_size=1, use_gpu=True)
+# 对应本地预测porn_detection_lstm.detection(texts=text, batch_size=1, use_gpu=True)
 data = {"texts": text, "batch_size": 1, "use_gpu":True}
 
 # 指定预测方法为porn_detection_lstm并发送post请求，content-type类型应指定json方式
