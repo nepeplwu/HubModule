@@ -14,13 +14,13 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="yolov3_resnet34_coco2017",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary=
     "Baidu's YOLOv3 model for object detection with backbone ResNet34, trained with dataset COCO2017.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class YOLOv3ResNet34(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
         # default pretrained model of YOLOv3_ResNet34, the shape of input image tensor is (3, 608, 608)
