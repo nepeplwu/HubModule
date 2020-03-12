@@ -10,6 +10,6 @@ cd assets/params
 for f in * ; do mv "$f" "@HUB_$name@$f"; done
 
 cd ../../..
-python /qjx/PaddleHub/paddlehub/commands/hub.py install roberta_wwm_ext_chinese_L_24_H_1024_A_16_distillation
-cd roberta_wwm_ext_chinese_L_24_H_1024_A_16_distillation
+python /qjx/PaddleHub/paddlehub/commands/hub.py install roberta_wwm_ext_chinese_L_12_H_768_A_12_distillation
+cd roberta_wwm_ext_chinese_L_12_H_768_A_12_distillation
 python test_embedding.py
