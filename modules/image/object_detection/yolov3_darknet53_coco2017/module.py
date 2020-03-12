@@ -36,7 +36,7 @@ class YoloV3DarkNet53(hub.Module):
                 yolo_head=None,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix=''):
         """Distill the Head Features, so as to perform transfer learning.
 
@@ -51,7 +51,8 @@ class YoloV3DarkNet53(hub.Module):
         :param param_prefix: the prefix of parameters in yolo_head and backbone
         :type param_prefix: str
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program()
+        wrapped_prog = input_image.block.program if input_image else fluid.Program(
+        )
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():

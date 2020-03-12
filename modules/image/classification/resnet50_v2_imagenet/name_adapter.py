@@ -59,4 +59,3 @@ class NameAdapter(object):
 
     def fix_c1_stage_name(self):
         return "res_conv1" if self.model_type == 'ResNeXt' else "conv1"
-

@@ -14,7 +14,8 @@ from resnet34_v2_imagenet.data_feed import test_reader
     name="resnet34_v2_imagenet",
     version="1.1.0",
     type="cv/classification",
-    summary="ResNet34 is a image classfication model trained with ImageNet-2012 dataset.",
+    summary=
+    "ResNet34 is a image classfication model trained with ImageNet-2012 dataset.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class ResNet34(hub.Module):
@@ -29,7 +30,7 @@ class ResNet34(hub.Module):
     def context(self,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 get_prediction=False,
                 variant='d',

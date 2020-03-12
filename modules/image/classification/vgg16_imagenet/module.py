@@ -14,7 +14,8 @@ from vgg16_imagenet.data_feed import test_reader
     name="vgg16_imagenet",
     version="1.1.0",
     type="cv/classification",
-    summary="VGG16 is a image classfication model trained with ImageNet-2012 dataset.",
+    summary=
+    "VGG16 is a image classfication model trained with ImageNet-2012 dataset.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class VGG16(hub.Module):
@@ -29,7 +30,7 @@ class VGG16(hub.Module):
     def context(self,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 get_prediction=False,
                 extra_block_filters=((256, 512, 1, 2, 3), (128, 256, 1, 2, 3),
@@ -152,5 +153,5 @@ class VGG16(hub.Module):
                     class_name = self.label_names[int(k)].split(',')[0]
                     max_prob = res[k]
                     res_dict[class_name] = max_prob
-                res_list.append(res_dict) 
+                res_list.append(res_dict)
         return res_list

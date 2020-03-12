@@ -36,7 +36,7 @@ class SSDMobileNetv1(hub.Module):
                 ssd_output_decoder=None,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
@@ -58,7 +58,8 @@ class SSDMobileNetv1(hub.Module):
             if False, outputs is {'head_features': head_features}.
         :type get_prediction: bool
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program()
+        wrapped_prog = input_image.block.program if input_image else fluid.Program(
+        )
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():

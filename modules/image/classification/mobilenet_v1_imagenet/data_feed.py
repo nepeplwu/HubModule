@@ -15,6 +15,7 @@ DATA_DIM = 224
 img_mean = np.array([0.485, 0.456, 0.406]).reshape((3, 1, 1))
 img_std = np.array([0.229, 0.224, 0.225]).reshape((3, 1, 1))
 
+
 def resize_short(img, target_size):
     percent = float(target_size) / min(img.size[0], img.size[1])
     resized_width = int(round(img.size[0] * percent))
@@ -60,7 +61,8 @@ def test_reader(paths=None, images=None):
     img_list = []
     if paths:
         for img_path in paths:
-            assert os.path.isfile(img_path), "The {} isn't a valid file path.".format(img_path)
+            assert os.path.isfile(
+                img_path), "The {} isn't a valid file path.".format(img_path)
             img = Image.open(img_path)
             #img = cv2.imread(img_path)
             img_list.append(img)

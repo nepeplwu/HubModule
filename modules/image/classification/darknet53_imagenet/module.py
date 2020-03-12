@@ -15,7 +15,8 @@ from darknet53_imagenet.data_feed import test_reader
     name="darknet53_imagenet",
     version="1.1.0",
     type="cv/classification",
-    summary="DarkNet53 is a image classfication model trained with ImageNet-2012 dataset.",
+    summary=
+    "DarkNet53 is a image classfication model trained with ImageNet-2012 dataset.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class DarkNet53(hub.Module):
@@ -30,7 +31,7 @@ class DarkNet53(hub.Module):
     def context(self,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
@@ -99,7 +100,7 @@ class DarkNet53(hub.Module):
         :type use_gpu: bool
         :param batch_size: batch size.
         :type batch_size: int
-        :param top_k : top k 
+        :param top_k : top k
         :type top_k : int
         """
         if self.infer_prog is None:

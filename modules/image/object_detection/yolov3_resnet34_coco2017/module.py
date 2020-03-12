@@ -37,7 +37,7 @@ class YOLOv3ResNet34(hub.Module):
                 yolo_head=None,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix=''):
         """Distill the Head Features, so as to perform transfer learning.
 

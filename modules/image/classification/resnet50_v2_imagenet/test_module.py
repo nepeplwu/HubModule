@@ -30,8 +30,9 @@ class TestResNet(unittest.TestCase):
 
     def test_context(self):
         with fluid.program_guard(self.test_prog):
-            image = fluid.layers.data(name='image', shape=[3, 224, 224], dtype='float32')
-            inputs, outputs, program=self.resnet.context(
+            image = fluid.layers.data(
+                name='image', shape=[3, 224, 224], dtype='float32')
+            inputs, outputs, program = self.resnet.context(
                 input_image=image,
                 pretrained=False,
                 trainable=True,
@@ -51,7 +52,8 @@ class TestResNet(unittest.TestCase):
                     os.path.join(image_dir, 'bike.jpg'),
                     os.path.join(image_dir, 'cowboy.jpg'),
                     os.path.join(image_dir, 'sheep.jpg'),
-                    os.path.join(image_dir, 'train.jpg')],
+                    os.path.join(image_dir, 'train.jpg')
+                ],
                 #images = airplanes,
                 batch_size=2)
             print(classification_results)

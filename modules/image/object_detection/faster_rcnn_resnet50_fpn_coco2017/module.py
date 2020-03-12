@@ -20,7 +20,8 @@ from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
     name="faster_rcnn_resnet50_fpn_coco2017",
     version="1.0.0",
     type="cv/object_detection",
-    summary="Baidu's Faster-RCNN model for object detection, whose backbone is ResNet50, processed with Feature Pyramid Networks",
+    summary=
+    "Baidu's Faster-RCNN model for object detection, whose backbone is ResNet50, processed with Feature Pyramid Networks",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class FasterRCNNResNet50RPN(hub.Module):
@@ -41,7 +42,7 @@ class FasterRCNNResNet50RPN(hub.Module):
                 bbox_assigner=None,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 phase='train'):
         """Distill the Head Features, so as to perform transfer learning.

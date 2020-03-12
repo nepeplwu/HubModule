@@ -40,7 +40,7 @@ class FasterRCNNResNet50(hub.Module):
                 bbox_assigner=None,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 phase='train'):
         """Distill the Head Features, so as to perform transfer learning.
@@ -62,8 +62,9 @@ class FasterRCNNResNet50(hub.Module):
         :param phase: Optional Choice: 'predict', 'train'
         :type phase: str
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program()
-        startup_program = fluid.Program() 
+        wrapped_prog = input_image.block.program if input_image else fluid.Program(
+        )
+        startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(

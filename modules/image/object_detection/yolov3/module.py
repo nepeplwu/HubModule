@@ -14,7 +14,6 @@ from yolov3.processor import load_label_info, postprocess
 from yolov3.yolo_head import YOLOv3Head
 
 
-
 @moduleinfo(
     name="yolov3",
     version="1.0.0",

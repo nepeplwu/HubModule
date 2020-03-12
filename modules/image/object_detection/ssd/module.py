@@ -19,7 +19,8 @@ from ssd.output_decoder import SSDOutputDecoder
     name="ssd",
     version="1.0.0",
     type="cv/object_detection",
-    summary="SSD (Single Shot MultiBox Detector) is a object detection model, which trained with PASCAL VOC dataset.",
+    summary=
+    "SSD (Single Shot MultiBox Detector) is a object detection model, which trained with PASCAL VOC dataset.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
 class SSD(hub.Module):

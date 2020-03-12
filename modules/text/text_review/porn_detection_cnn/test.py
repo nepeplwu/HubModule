@@ -17,8 +17,8 @@ if __name__ == "__main__":
         data=input_dict, use_gpu=True, batch_size=1)
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
 
@@ -26,8 +26,8 @@ if __name__ == "__main__":
         texts=test_text, use_gpu=False, batch_size=2)
     for index, result in enumerate(results):
         if six.PY2:
-            print(json.dumps(
-                results[index], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
         else:
             print(results[index])
 

@@ -17,7 +17,6 @@ from retinanet_resnet50_fpn_coco2017.processor import load_label_info, postproce
 from retinanet_resnet50_fpn_coco2017.data_feed import test_reader, padding_minibatch
 
 
-
 @moduleinfo(
     name="retinanet_resnet50_fpn_coco2017",
     version="1.0.0",
@@ -41,7 +40,7 @@ class RetinaNetResNet50FPN(hub.Module):
     def context(self,
                 input_image=None,
                 trainable=True,
-                pretrained=False,
+                pretrained=True,
                 param_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
@@ -59,7 +58,8 @@ class RetinaNetResNet50FPN(hub.Module):
             if False, outputs is {'head_features': head_features}.
         :type get_prediction: bool
         """
-        context_prog = input_image.block.program if input_image else fluid.Program()
+        context_prog = input_image.block.program if input_image else fluid.Program(
+        )
         startup_program = fluid.Program()
         with fluid.program_guard(context_prog, startup_program):
             # image
