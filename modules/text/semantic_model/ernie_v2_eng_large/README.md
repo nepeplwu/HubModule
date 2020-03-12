@@ -109,9 +109,9 @@ https://github.com/PaddlePaddle/ERNIE
 
 ## 依赖
 
-paddlepaddle >= 1.6.2
+paddlepaddle >= 1.6.3
 
-paddlehub >= 1.5.0
+paddlehub >= 1.6.0
 
 
 ## 更新历史

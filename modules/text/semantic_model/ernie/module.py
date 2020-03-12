@@ -33,7 +33,7 @@ from ernie.model.ernie import ErnieModel, ErnieConfig
     summary=
     "Baidu's ERNIE, Enhanced Representation through kNowledge IntEgration, max_seq_len=512 when predtrained",
     author="baidu-nlp",
-    author_email="nlp@baidu.com",
+    author_email="",
     type="nlp/semantic_model",
 )
 class Ernie(TransformerModule):

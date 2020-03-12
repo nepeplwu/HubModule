@@ -33,7 +33,7 @@ from ernie_v2_eng_large.model.ernie import ErnieModel, ErnieConfig
     summary=
     "Baidu's ERNIE 2.0, Enhanced Representation through kNowledge IntEgration, A Continual Pre-training Framework for Language Understanding. 12-layer, 768-hidden, 12-heads, 110M parameters.",
     author="baidu-nlp",
-    author_email="nlp@baidu.com",
+    author_email="",
     type="nlp/semantic_model",
 )
 class ErnieV2EngLarge(TransformerModule):

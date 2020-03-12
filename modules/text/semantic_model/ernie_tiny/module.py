@@ -33,7 +33,7 @@ from ernie_tiny.model.ernie import ErnieModel, ErnieConfig
     summary=
     "Baidu's ERNIE-tiny, Enhanced Representation through kNowledge IntEgration, tiny version, max_seq_len=512",
     author="baidu-nlp",
-    author_email="nlp@baidu.com",
+    author_email="",
     type="nlp/semantic_model",
 )
 class ErnieTiny(TransformerModule):
