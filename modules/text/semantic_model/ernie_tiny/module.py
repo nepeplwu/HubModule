@@ -38,15 +38,15 @@ from ernie_tiny.model.ernie import ErnieModel, ErnieConfig
 )
 class ErnieTiny(TransformerModule):
     def _initialize(self):
-        ernie_config_path = os.path.join(self.directory,
+        ernie_config_path = os.path.join(self.directory, "assets",
                                          "ernie_tiny_config.json")
         self.ernie_config = ErnieConfig(ernie_config_path)
         self.MAX_SEQ_LEN = 512
         self.params_path = os.path.join(self.directory, "assets", "params")
         self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
-        self.spm_path = os.path.join(self.directory, "assets", "subword",
+        self.spm_path = os.path.join(self.directory, "assets",
                                      "spm_cased_simp_sampled.model")
-        self.word_dict_path = os.path.join(self.directory, "assets", "subword",
+        self.word_dict_path = os.path.join(self.directory, "assets",
                                            "dict.wordseg.pickle")
 
     def net(self, input_ids, position_ids, segment_ids, input_mask):
