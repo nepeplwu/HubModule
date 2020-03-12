@@ -44,3 +44,48 @@ senta_lstm预测接口，预测输入句子的情感分类(二分类，积极/�
 **返回**
 
 * vocab_path(str): 词汇表路径
+
+# SentaLSTM 服务部署
+
+PaddleHub Serving可以部署一个在线情感分析服务，可以将此接口用于在线web应用。
+
+## 第一步：启动PaddleHub Serving
+
+运行启动命令：
+```shell
+$ hub serving start -m senta_lstm  
+```
+
+启动时会显示加载模型过程，启动成功后显示
+```shell
+Loading senta_lstm successful.
+```
+
+这样就完成了服务化API的部署，默认端口号为8866。
+
+## 第二步：发送预测请求
+
+配置好服务端，以下数行代码即可实现发送预测请求，获取预测结果
+
+```python
+import request
+import json
+
+# 待预测数据
+text = ["今天是个好日子", "天气预报说今天要下雨"]
+
+# 设置运行配置
+# 对应本地预测senta_lstm.sentiment_classify(texts=text, batch_size=1, use_gpu=True)
+data = {"texts": text, "batch_size": 1, "use_gpu":True}
+
+# 指定预测方法为senta_lstm并发送post请求，content-type类型应指定json方式
+# HOST_IP为服务器IP
+url = "http://HOST_IP:8866/predict/text/senta_lstm"
+headers = {"Content-Type": "application/json"}
+r = requests.post(url=url, headers=headers, data=json.dumps(data))
+
+# 打印预测结果
+print(json.dumps(r.json(), indent=4, ensure_ascii=False))
+```
+
+关于PaddleHub Serving更多信息参考[服务部署](https://github.com/PaddlePaddle/PaddleHub/blob/release/v1.6/docs/tutorial/serving.md)
