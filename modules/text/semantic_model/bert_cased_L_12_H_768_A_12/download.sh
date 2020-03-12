@@ -10,3 +10,4 @@ rm -r ~/.paddlehub/modules/$rawname
 python /qjx/PaddleHub/paddlehub/commands/hub.py install ../$rawname
 
 python test_embedding.py
+rm -r ~/.paddlehub/modules/$rawname
