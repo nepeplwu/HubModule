@@ -71,6 +71,9 @@ class Ernie(TransformerModule):
         sequence_output = ernie.get_sequence_output()
         return pooled_output, sequence_output
 
+    def param_prefix(self):
+        return "@HUB_ernie-stable@"
+
 
 if __name__ == '__main__':
     test_module = Ernie()
