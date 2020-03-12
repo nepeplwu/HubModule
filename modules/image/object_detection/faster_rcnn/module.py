@@ -19,12 +19,12 @@ from faster_rcnn.roi_extractor import RoIAlign, FPNRoIAlign
 
 @moduleinfo(
     name="faster_rcnn",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary="Baidu's Faster R-CNN model for object detection.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class YoloV3Base(hub.Module):
     def _initialize(self):
         # data_feed
         self.test_reader = test_reader
@@ -163,7 +163,6 @@ class HubModule(hub.Module):
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)
             exe.run(fluid.default_startup_program())
-            if trainable:
-                for param in context_prog.global_block().iter_parameters():
-                    param.trainable = trainable
+            for param in context_prog.global_block().iter_parameters():
+                param.trainable = trainable
             return inputs, outputs, context_prog
