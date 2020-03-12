@@ -32,7 +32,6 @@ class ResNet50(hub.Module):
                 pretrained=False,
                 param_prefix='',
                 get_prediction=False,
-                depth=50,
                 variant='d',
                 norm_type='bn',
                 feature_maps=[3, 4, 5],
@@ -66,7 +65,7 @@ class ResNet50(hub.Module):
         with fluid.program_guard(context_prog, startup_program):
             if return_c5:
                 return ResNetC5(
-                    depth=depth,
+                    depth=50,
                     norm_type=norm_type,
                     variant=variant,
                     feature_maps=feature_maps)
@@ -75,7 +74,7 @@ class ResNet50(hub.Module):
                 shape=[-1, 3, 224, 224],
                 dtype='float32',
                 lod_level=0)
-            backbone = ResNet(depth=depth, variant=variant, norm_type=norm_type,\
+            backbone = ResNet(depth=50, variant=variant, norm_type=norm_type,\
                               feature_maps=feature_maps, get_prediction=get_prediction)
 
             out = backbone(image)
