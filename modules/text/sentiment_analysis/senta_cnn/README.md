@@ -1,6 +1,6 @@
 # SentaCNN API说明
 
-##sentiment_classify(texts=[], data={}, use_gpu=False, batch_size=1)
+## sentiment_classify(texts=[], data={}, use_gpu=False, batch_size=1)
 
 senta_cnn预测接口，预测输入句子的情感分类(二分类，积极/消极）
 
