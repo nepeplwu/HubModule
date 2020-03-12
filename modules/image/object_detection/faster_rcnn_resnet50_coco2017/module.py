@@ -22,7 +22,7 @@ from paddlehub.module.module import moduleinfo
     "Baidu's Faster R-CNN model for object detection with backbone ResNet50, trained with dataset COCO2017",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class FasterRCNNResNet50(hub.Module):
     def _initialize(self):
         self.faster_rcnn = hub.Module(name="faster_rcnn")
         # default pretrained model, Faster-RCNN with backbone ResNet50, shape of input tensor is [3, 800, 1333]
