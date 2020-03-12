@@ -8,20 +8,17 @@ import ast
 import io
 import json
 import math
-import numpy as np
 import os
 import six
 
-import paddle
+import numpy as np
 import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.logger import logger
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
-from paddlehub.module.module import serving
-from paddlehub.module.module import moduleinfo
-from paddlehub.module.module import runnable
+from paddlehub.module.module import moduleinfo, runnable, serving
 
 from lac.network import lex_net
 from lac.processor import Interventer, load_kv_dict, word_to_ids, parse_result
@@ -74,7 +71,7 @@ class LAC(hub.Module):
 
         self._set_config()
 
-    def _set_config(self, ):
+    def _set_config(self):
         """
         predictor config setting
         """
@@ -95,10 +92,7 @@ class LAC(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(
-            self,
-            trainable=False,
-    ):
+    def context(self, trainable=False):
         """
         Get the input ,output and program of the pretrained lac
 
@@ -114,8 +108,8 @@ class LAC(hub.Module):
         startup_program = fluid.Program()
         with fluid.program_guard(main_program, startup_program):
             with fluid.unique_name.guard():
-                crf_decode, word = lex_net(self.word_dict_len,
-                                           self.label_dict_len)
+                crf_decode, word, fc = lex_net(self.word_dict_len,
+                                               self.label_dict_len)
 
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
@@ -132,7 +126,7 @@ class LAC(hub.Module):
                     exe, self.pretrained_model_path, predicate=if_exist)
 
                 inputs = {"words": word}
-                outputs = {"predicted": crf_decode}
+                outputs = {"predicted": crf_decode, "sentence_feature": fc}
 
                 return inputs, outputs, main_program
 
@@ -169,7 +163,7 @@ class LAC(hub.Module):
         if six.PY2:
             unicode_texts = []
             for text in texts:
-                if not isinstance(text, unicode):
+                if not isinstance(text, six.string_types):
                     unicode_texts.append(
                         text.decode(sys_stdin_encoding()).decode("utf8"))
                 else:
@@ -313,7 +307,7 @@ class LAC(hub.Module):
 
         return results
 
-    def get_tags(self, ):
+    def get_tags(self):
         """
         Get the tags which was used when pretraining lac
 
@@ -404,10 +398,10 @@ if __name__ == '__main__':
         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
     for result in results:
         if six.PY2:
-            print(json.dumps(
-                result['word'], encoding="utf8", ensure_ascii=False))
-            print(json.dumps(
-                result['tag'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
             print(result['tag'])
@@ -419,8 +413,8 @@ if __name__ == '__main__':
         texts=test_text, use_gpu=False, batch_size=1, return_tag=False)
     for result in results:
         if six.PY2:
-            print(json.dumps(
-                result['word'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
 

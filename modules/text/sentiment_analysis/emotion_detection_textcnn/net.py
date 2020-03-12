@@ -16,47 +16,23 @@ def textcnn_net(data,
         win_sizes = [1, 2, 3]
 
     # embedding layer
-    emb = fluid.layers.embedding(
-        input=data,
-        size=[dict_dim, emb_dim],
-        param_attr=fluid.ParamAttr(
-            name="@HUB_emotion_detection_textcnn@embedding_0.w_0", ))
+    emb = fluid.layers.embedding(input=data, size=[dict_dim, emb_dim])
 
     # convolution layer
     convs = []
-    for index, win_size in enumerate(win_sizes):
+    for win_size in win_sizes:
         conv_h = fluid.nets.sequence_conv_pool(
             input=emb,
             num_filters=hid_dim,
             filter_size=win_size,
             act="tanh",
-            pool_type="max",
-            param_attr=fluid.ParamAttr(
-                name="@HUB_emotion_detection_textcnn@sequence_conv_%d.w_0" %
-                (index)),
-            bias_attr=fluid.ParamAttr(
-                name="@HUB_emotion_detection_textcnn@sequence_conv_%d.b_0" %
-                (index)))
+            pool_type="max")
         convs.append(conv_h)
     convs_out = fluid.layers.concat(input=convs, axis=1)
 
     # full connect layer
-    fc_1 = fluid.layers.fc(
-        input=[convs_out],
-        size=hid_dim2,
-        act="tanh",
-        param_attr=fluid.ParamAttr(
-            name="@HUB_emotion_detection_textcnn@fc_0.w_0"),
-        bias_attr=fluid.ParamAttr(
-            name="@HUB_emotion_detection_textcnn@fc_0.b_0"))
+    fc_1 = fluid.layers.fc(input=[convs_out], size=hid_dim2, act="tanh")
     # softmax layer
-    prediction = fluid.layers.fc(
-        input=[fc_1],
-        size=class_dim,
-        act="softmax",
-        param_attr=fluid.ParamAttr(
-            name="@HUB_emotion_detection_textcnn@fc_1.w_0"),
-        bias_attr=fluid.ParamAttr(
-            name="@HUB_emotion_detection_textcnn@fc_1.b_0"))
+    prediction = fluid.layers.fc(input=[fc_1], size=class_dim, act="softmax")
 
     return prediction, fc_1
