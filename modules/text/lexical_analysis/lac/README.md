@@ -93,6 +93,7 @@ text = ["今天是个好日子", "天气预报说今天要下雨"]
 data = {"texts": text, "batch_size": 1, "use_gpu":True}
 
 # 指定预测方法为lac并发送post请求，content-type类型应指定json方式
+# HOST_IP为服务器IP
 url = "http://HOST_IP:8866/predict/text/lac"
 headers = {"Content-Type": "application/json"}
 r = requests.post(url=url, headers=headers, data=json.dumps(data))
