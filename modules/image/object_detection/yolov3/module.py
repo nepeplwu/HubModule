@@ -22,7 +22,7 @@ from yolov3.yolo_head import YOLOv3Head
     summary="Baidu's YOLOv3 model for object detection.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class YoloV3(hub.Module):
     def _initialize(self):
         self.reader = reader
         self.load_label_info = load_label_info
@@ -49,7 +49,7 @@ class HubModule(hub.Module):
         :type param_prefix: str
         """
         context_prog = image.block.program
-        with fluid.program_guard(context_prog):
+        with fluid.program_guard(context_prog, fluid.Program()):
             im_size = fluid.layers.data(
                 name='im_size', shape=[2], dtype='int32')
             head_features = yolo_head._get_outputs(
