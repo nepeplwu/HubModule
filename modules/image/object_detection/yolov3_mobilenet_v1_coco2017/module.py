@@ -14,7 +14,7 @@ from paddlehub.module.module import moduleinfo
 
 @moduleinfo(
     name="yolov3_mobilenet_v1_coco2017",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary=
     "Baidu's YOLOv3 model for object detection with backbone MobileNet_V1, trained with dataset COCO2017.",
