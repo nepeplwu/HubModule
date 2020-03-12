@@ -53,7 +53,7 @@ PaddleHub Serving可以部署一个在线色情文案检测服务，可以将此
 
 运行启动命令：
 ```shell
-$ hub serving start -m porn_detection_lstm 
+$ hub serving start -m porn_detection_lstm
 ```
 
 启动时会显示加载模型过程，启动成功后显示
@@ -72,7 +72,7 @@ import request
 import json
 
 # 待预测数据
-text = ["今天是个好日子", "天气预报说今天要下雨"]
+text = ["黄片下载", "打击黄牛党"]
 
 # 设置运行配置
 # 对应本地预测porn_detection_lstm.detection(texts=text, batch_size=1, use_gpu=True)

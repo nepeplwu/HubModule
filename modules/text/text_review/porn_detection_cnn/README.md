@@ -72,7 +72,7 @@ import request
 import json
 
 # 待预测数据
-text = ["今天是个好日子", "天气预报说今天要下雨"]
+text = ["黄片下载", "打击黄牛党"]
 
 # 设置运行配置
 # 对应本地预测porn_detection_cnn.detection(texts=text, batch_size=1, use_gpu=True)

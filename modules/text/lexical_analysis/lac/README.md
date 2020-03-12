@@ -67,13 +67,26 @@ PaddleHub Serving可以部署一个在线词法分析服务，可以将此接口
 
 运行启动命令：
 ```shell
-$ hub serving start -m lac  
+$ hub serving start -c serving_config.json
 ```
 
-启动时会显示加载模型过程，启动成功后显示
-```shell
-Loading lac successful.
+`serving_config.json`的内容如下：
+```json
+{
+  "modules_info": {
+    "lac": {
+      "init_args": {
+        "version": "2.1.0"
+        "user_dict": "test_dict.txt"
+      }
+    }
+  },
+  "port": 8866,
+  "use_singleprocess": false,
+  "workers": 2
+}
 ```
+其中user_dict含义为自定义词典路径，如果不使用lac自定义词典功能，则可以不填入。
 
 这样就完成了一个词法分析服务化API的部署，默认端口号为8866。
 

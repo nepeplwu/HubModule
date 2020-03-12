@@ -53,7 +53,7 @@ PaddleHub Serving可以部署一个在线情感分析服务，可以将此接口
 
 运行启动命令：
 ```shell
-$ hub serving start -m senta_gru 
+$ hub serving start -m senta_gru
 ```
 
 启动时会显示加载模型过程，启动成功后显示
@@ -72,7 +72,7 @@ import request
 import json
 
 # 待预测数据
-text = ["今天是个好日子", "天气预报说今天要下雨"]
+text = ["这家餐厅很好吃", "这部电影真的很差劲"]
 
 # 设置运行配置
 # 对应本地预测senta_gru.sentiment_classify(texts=text, batch_size=1, use_gpu=True)

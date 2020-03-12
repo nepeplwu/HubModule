@@ -72,7 +72,7 @@ import request
 import json
 
 # 待预测数据
-text = ["今天是个好日子", "天气预报说今天要下雨"]
+text = ["这家餐厅很好吃", "这部电影真的很差劲"]
 
 # 设置运行配置
 # 对应本地预测senta_lstm.sentiment_classify(texts=text, batch_size=1, use_gpu=True)

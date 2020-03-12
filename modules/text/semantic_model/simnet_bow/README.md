@@ -69,7 +69,10 @@ import request
 import json
 
 # 待预测数据
-text = ["今天是个好日子", "天气预报说今天要下雨"]
+test_text_1 = ["这道题太难了", "这道题太难了", "这道题太难了"]
+test_text_2 = ["这道题是上一年的考题", "这道题不简单", "这道题很有意思"]
+
+text = [test_text_1, test_text_2]
 
 # 设置运行配置
 # 对应本地预测simnet_bow.similarity(texts=text, batch_size=1, use_gpu=True)
