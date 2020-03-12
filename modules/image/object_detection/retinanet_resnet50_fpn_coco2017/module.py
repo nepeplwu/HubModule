@@ -20,13 +20,13 @@ from retinanet_resnet50_fpn_coco2017.data_feed import test_reader, padding_minib
 
 @moduleinfo(
     name="retinanet_resnet50_fpn_coco2017",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary=
     "Baidu's RetinaNet model for object detection, with backbone ResNet50 and FPN.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class RetinaNetResNet50FPN(hub.Module):
     def _initialize(self):
         # default pretrained model of Retinanet_ResNet50_FPN, the shape of input image tensor is (3, 608, 608)
         self.default_pretrained_model_path = os.path.join(
