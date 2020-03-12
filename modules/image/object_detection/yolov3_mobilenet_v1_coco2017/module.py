@@ -20,7 +20,7 @@ from paddlehub.module.module import moduleinfo
     "Baidu's YOLOv3 model for object detection with backbone MobileNet_V1, trained with dataset COCO2017.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class HubModule(hub.Module):
+class YOLOv3MobileNetv1(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
         # default pretrained model of YOLOv3, the shape of input image tensor is (3, 608, 608)
