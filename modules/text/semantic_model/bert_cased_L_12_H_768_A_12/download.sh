@@ -8,3 +8,5 @@ mv ~/.paddlehub/modules/$rawname/assets .
 mv ~/.paddlehub/modules/$rawname/model assets/params
 rm -r ~/.paddlehub/modules/$rawname
 python /qjx/PaddleHub/paddlehub/commands/hub.py install ../$rawname
+
+python test_embedding.py
