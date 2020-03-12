@@ -36,7 +36,6 @@ class SentaLSTM(hub.NLPPredictionModule):
         self._word_seg_module = None
 
         self.predict = self.sentiment_classify
-        self.module_name = 'senta_lstm'
 
         self._set_config()
 
@@ -72,7 +71,7 @@ class SentaLSTM(hub.NLPPredictionModule):
             pred_name = pred.name
             fc_name = fc.name
 
-            prefix_name = "@HUB_" + self.module_name + "@"
+            prefix_name = "@HUB_" + self.name + "@"
             add_vars_prefix(program=main_program, prefix=prefix_name)
 
             for param in main_program.global_block().iter_parameters():

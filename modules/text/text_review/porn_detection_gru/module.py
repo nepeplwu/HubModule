@@ -41,7 +41,6 @@ class PornDetectionGRU(hub.NLPPredictionModule):
         self.param_file = os.path.join(self.directory, "assets", "params.txt")
 
         self.predict = self.detection
-        self.module_name = 'porn_detection_gru'
 
         self._set_config()
 

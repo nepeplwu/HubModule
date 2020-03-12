@@ -41,7 +41,6 @@ class PornDetectionLSTM(hub.NLPPredictionModule):
         self.param_file = os.path.join(self.directory, "assets", "params.txt")
 
         self.predict = self.detection
-        self.module_name = 'porn_detection_lstm'
 
         self._set_config()
 

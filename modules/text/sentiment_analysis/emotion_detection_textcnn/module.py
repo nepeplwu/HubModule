@@ -31,7 +31,6 @@ class EmotionDetectionTextCNN(hub.NLPPredictionModule):
         self.vocab_path = os.path.join(self.directory, "assets", "vocab.txt")
         self.vocab = load_vocab(self.vocab_path)
         self._word_seg_module = None
-        self.module_name = 'emotion_detection_textcnn'
 
         self.predict = self.emotion_classify
 
@@ -68,7 +67,7 @@ class EmotionDetectionTextCNN(hub.NLPPredictionModule):
             pred_name = pred.name
             fc_name = fc.name
 
-            prefix_name = "@HUB_" + self.module_name + "@"
+            prefix_name = "@HUB_" + self.name + "@"
             add_vars_prefix(program=main_program, prefix=prefix_name)
 
             for param in main_program.global_block().iter_parameters():
