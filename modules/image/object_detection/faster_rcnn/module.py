@@ -24,7 +24,7 @@ from faster_rcnn.roi_extractor import RoIAlign, FPNRoIAlign
     summary="Baidu's Faster R-CNN model for object detection.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class YoloV3Base(hub.Module):
+class FasterRCNNBase(hub.Module):
     def _initialize(self):
         # data_feed
         self.test_reader = test_reader
