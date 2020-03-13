@@ -172,7 +172,7 @@ class DarkNet53(hub.Module):
             if use_gpu:
                 result = self.gpu_predictor.run([data_tensor])
             else:
-                result = self.gpu_predictor.run([data_tensor])
+                result = self.cpu_predictor.run([data_tensor])
             for i, res in enumerate(result[0].as_ndarray()):
                 res_dict = {}
                 pred_label = np.argsort(res)[::-1][:top_k]

@@ -178,7 +178,10 @@ class MobuleNetV1(hub.Module):
                 except:
                     pass
             data_tensor = PaddleTensor(np.array(batch_data).astype('float32'))
-            result = self.gpu_predictor.run([data_tensor])
+            if use_gpu:
+                result = self.gpu_predictor.run([data_tensor])
+            else:
+                result = self.cpu_predictor.run([data_tensor])
             for i, res in enumerate(result[0].as_ndarray()):
                 res_dict = {}
                 pred_label = np.argsort(res)[::-1][:top_k]
