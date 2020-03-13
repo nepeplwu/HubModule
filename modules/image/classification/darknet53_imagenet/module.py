@@ -146,7 +146,6 @@ class DarkNet53(hub.Module):
                 trainable=False, pretrained=True, get_prediction=True)
             self.infer_prog = self.infer_prog.clone(for_test=True)
             self.pred_out = outputs['pred_out']
-        #add_vars_prefix(self.infer_prog, "@HubModule_{}@".format(self.name))
         place = fluid.CUDAPlace(0) if use_gpu else fluid.CPUPlace()
         exe = fluid.Executor(place)
         all_images = []
