@@ -32,24 +32,19 @@ def preprocess(lac, word_dict, data_dict, use_gpu=False, batch_size=1):
         batch_size=batch_size)
     processed_b = lac.lexical_analysis(
         data={'text': data_dict[text_b_key]}, use_gpu=use_gpu)
+    unk_id = word_dict['<unk>']
     for index, (text_a, text_b) in enumerate(zip(processed_a, processed_b)):
         result_i = {'processed': []}
         result_i['origin'] = data_dict[text_a_key][index]
         for word in text_a['word']:
-            if word in word_dict:
-                _index = word_dict[word]
-            else:
-                continue
+            _index = word_dict.get(word, unk_id)
             result_i['processed'].append(_index)
         result[text_a_key].append(result_i)
 
         result_i = {'processed': []}
         result_i['origin'] = data_dict[text_b_key][index]
         for word in text_b['word']:
-            if word in word_dict:
-                _index = word_dict[word]
-            else:
-                continue
+            _index = word_dict.get(word, unk_id)
             result_i['processed'].append(_index)
         result[text_b_key].append(result_i)
     return result
