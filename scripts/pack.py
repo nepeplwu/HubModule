@@ -50,7 +50,7 @@ def package_module(config):
         exclude = lambda filename: filename.replace(
             dest + os.sep, "") in config.get("exclude", [])
         module = hub.Module(directory=dest)
-        package = "{}-{}.tar.gz".format(module.name, module.version)
+        package = "{}_{}.tar.gz".format(module.name, module.version)
         with tarfile.open(package, "w:gz") as tar:
             tar.add(
                 dest, arcname=os.path.basename(module.name), exclude=exclude)
