@@ -146,7 +146,7 @@ class RetinaNetResNet50FPN(hub.Module):
                          batch_size=1,
                          output_dir=None,
                          score_thresh=0.5,
-                         draw_bbox=True):
+                         visualization=True):
         """API of Object Detection.
         :param paths: the path of images.
         :type paths: list, each element is correspond to the path of an image.
@@ -160,8 +160,8 @@ class RetinaNetResNet50FPN(hub.Module):
         :type output_dir: str
         :param score_thresh: the threshold of detection confidence.
         :type score_thresh: float
-        :param draw_bbox: whether to draw bounding box and save images.
-        :type draw_bbox: bool
+        :param visualization: whether to draw bounding box and save images.
+        :type visualization: bool
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
@@ -207,6 +207,6 @@ class RetinaNetResNet50FPN(hub.Module):
                 label_names=self.label_names,
                 output_dir=output_dir,
                 handle_id=handle_id,
-                draw_bbox=draw_bbox)
+                visualization=visualization)
             res.append(output)
         return res
