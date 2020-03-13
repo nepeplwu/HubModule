@@ -8,17 +8,16 @@ import paddle.fluid as fluid
 import paddlehub as hub
 
 
-class TestResNet(unittest.TestCase):
+class TestDarkNet(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests."""
-        # self.mobilenet_v1 = hub.Module(name="mobilenet_v1")
-        self.resnet = hub.Module(name='resnet50_v2_imagenet')
+        self.darknet = hub.Module(name='darknet53_imagenet')
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests."""
-        self.resnet = None
+        self.darknet = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -32,7 +31,7 @@ class TestResNet(unittest.TestCase):
         with fluid.program_guard(self.test_prog):
             image = fluid.layers.data(
                 name='image', shape=[3, 224, 224], dtype='float32')
-            inputs, outputs, program = self.resnet.context(
+            inputs, outputs, program = self.darknet.context(
                 input_image=image,
                 pretrained=False,
                 trainable=True,
@@ -42,11 +41,11 @@ class TestResNet(unittest.TestCase):
 
     def test_classification(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = "../../image_dataset/pascal_voc/"
+            image_dir = "../image_dataset/pascal_voc/"
             #image_dir = '../images/pascal_voc/'
             #airplane = cv2.imread(os.path.join(image_dir, 'airplane.jpg')).astype('float32')
             #airplanes = np.array([airplane, airplane])
-            classification_results = self.resnet.classification(
+            classification_results = self.darknet.classification(
                 paths=[
                     os.path.join(image_dir, 'bird.jpg'),
                     os.path.join(image_dir, 'bike.jpg'),
@@ -61,7 +60,7 @@ class TestResNet(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestResNet('test_context'))
-    suite.addTest(TestResNet('test_classification'))
+    suite.addTest(TestDarkNet('test_context'))
+    suite.addTest(TestDarkNet('test_classification'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
