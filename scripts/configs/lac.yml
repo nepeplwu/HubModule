@@ -1,0 +1,10 @@
+name: lac
+dir: "modules/text/lexical_analysis/lac"
+exclude:
+  - user.dict
+  - README.md
+resources:
+  -
+    url: https://baidu-nlp.bj.bcebos.com/lexical_analysis-2.0.0.tar.gz
+    dest: infer_model
+    uncompress: True
