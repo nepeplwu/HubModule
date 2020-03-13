@@ -8,17 +8,17 @@ import paddle.fluid as fluid
 import paddlehub as hub
 
 
-class TestMobileNetV1(unittest.TestCase):
+class TestVGG16(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests."""
         # self.mobilenet_v1 = hub.Module(name="mobilenet_v1")
-        self.mobilenet_v1 = hub.Module(name='mobilenet_v1_imagenet')
+        self.vgg16 = hub.Module(name='vgg16_imagenet')
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests."""
-        self.ssd = None
+        self.vgg166 = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -31,8 +31,8 @@ class TestMobileNetV1(unittest.TestCase):
     def test_context(self):
         with fluid.program_guard(self.test_prog):
             image = fluid.layers.data(
-                name='image', shape=[3, 224, 224], dtype='float32')
-            inputs, outputs, program = self.mobilenet_v1.context(
+                name='image', shape=[3, 300, 300], dtype='float32')
+            inputs, outputs, program = self.vgg16.context(
                 input_image=image,
                 pretrained=False,
                 trainable=True,
@@ -42,11 +42,11 @@ class TestMobileNetV1(unittest.TestCase):
 
     def test_classification(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = "../../image_dataset/pascal_voc"
+            image_dir = "../image_dataset/pascal_voc/"
             #image_dir = '../images/pascal_voc/'
             #airplane = cv2.imread(os.path.join(image_dir, 'airplane.jpg')).astype('float32')
             #airplanes = np.array([airplane, airplane])
-            classification_results = self.mobilenet_v1.classification(
+            classification_results = self.vgg16.classification(
                 paths=[
                     os.path.join(image_dir, 'bird.jpg'),
                     os.path.join(image_dir, 'bike.jpg'),
@@ -61,7 +61,7 @@ class TestMobileNetV1(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestMobileNetV1('test_context'))
-    suite.addTest(TestMobileNetV1('test_classification'))
+    #suite.addTest(TestVGG16('test_context'))
+    suite.addTest(TestVGG16('test_classification'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
