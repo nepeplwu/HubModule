@@ -90,6 +90,8 @@ $ hub serving start -c serving_config.json
 
 这样就完成了一个词法分析服务化API的部署，默认端口号为8866。
 
+**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置。
+
 ## 第二步：发送预测请求
 
 配置好服务端，以下数行代码即可实现发送预测请求，获取预测结果
@@ -107,7 +109,7 @@ data = {"texts": text, "batch_size": 1, "use_gpu":True}
 
 # 指定预测方法为lac并发送post请求，content-type类型应指定json方式
 # HOST_IP为服务器IP
-url = "http://HOST_IP:8866/predict/text/lac"
+url = "http://HOST_IP:8866/predict/lac"
 headers = {"Content-Type": "application/json"}
 r = requests.post(url=url, headers=headers, data=json.dumps(data))
 
