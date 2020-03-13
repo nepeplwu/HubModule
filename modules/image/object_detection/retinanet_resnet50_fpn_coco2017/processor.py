@@ -105,7 +105,7 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
 
     output_dir = output_dir if output_dir else os.path.join(
         os.getcwd(), 'detection_result')
-    if draw_bbox:
+    if visualization:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
