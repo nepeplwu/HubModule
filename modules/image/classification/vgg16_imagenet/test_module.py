@@ -55,8 +55,7 @@ class TestVGG16(unittest.TestCase):
                     os.path.join(image_dir, 'train.jpg')
                 ],
                 #images = airplanes,
-                batch_size=2,
-                use_gpu=True)
+                batch_size=2)
             print(classification_results)
 
 

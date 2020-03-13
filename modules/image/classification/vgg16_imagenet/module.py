@@ -51,6 +51,7 @@ class VGG16(hub.Module):
         cpu_config = AnalysisConfig(self.default_pretrained_model_path)
         cpu_config.disable_glog_info()
         cpu_config.disable_gpu()
+        cpu_config.switch_ir_optim(False)
         self.cpu_predictor = create_paddle_predictor(cpu_config)
 
         try:
