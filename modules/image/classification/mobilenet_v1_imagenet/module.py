@@ -177,7 +177,8 @@ class MobuleNetV1(hub.Module):
                     batch_data.append(all_images[handle_id + image_id])
                 except:
                     pass
-            data_tensor = PaddleTensor(np.array(batch_data).astype('float32'))
+            batch_data = np.array(batch_data).astype('float32')
+            data_tensor = PaddleTensor(batch_data.copy())
             if use_gpu:
                 result = self.gpu_predictor.run([data_tensor])
             else:
