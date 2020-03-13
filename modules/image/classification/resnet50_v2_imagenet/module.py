@@ -27,6 +27,20 @@ class ResNet50(hub.Module):
         self.infer_prog = None
         self.pred_out = None
 
+    def get_expected_image_width(self):
+        return 224
+
+    def get_expected_image_height(self):
+        return 224
+
+    def get_pretrained_images_mean(self):
+        im_mean = np.array([0.485, 0.456, 0.406]).reshape(1, 3)
+        return im_mean
+
+    def get_pretrained_images_std(self):
+        im_std = np.array([0.229, 0.224, 0.225]).reshape(1, 3)
+        return im_std
+
     def context(self,
                 input_image=None,
                 trainable=True,
