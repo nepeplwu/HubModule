@@ -97,7 +97,7 @@ def postprocess(paths,
     :type output_dir: str
     :param handle_id: The number of images that have been handled.
     :type handle_id: int
-    :param visualization: whether to draw bbox.
+    :param visualization: whether to draw bbox and save images.
     :param visualization: bool
     """
     lod_tensor = data_out[0]

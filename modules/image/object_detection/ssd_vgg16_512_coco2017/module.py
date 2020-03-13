@@ -147,7 +147,7 @@ class SSDVGG16(hub.Module):
                          batch_size=1,
                          output_dir=None,
                          score_thresh=0.5,
-                         visualization):
+                         visualization=True):
         """API of Object Detection.
 
         :param paths: the path of images.
