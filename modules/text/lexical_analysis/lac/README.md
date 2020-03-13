@@ -77,7 +77,7 @@ $ hub serving start -c serving_config.json
     "lac": {
       "init_args": {
         "version": "2.1.0"
-        "user_dict": "test_dict.txt"
+        "user_dict": "./test_dict.txt"
       }
     }
   },
