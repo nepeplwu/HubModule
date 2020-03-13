@@ -80,7 +80,7 @@ def postprocess(paths,
                 label_names,
                 output_dir,
                 handle_id,
-                draw_bbox=True):
+                visualization=True):
     """postprocess the lod_tensor produced by fluid.Executor.run
 
     :param paths: the path of images.
@@ -97,8 +97,8 @@ def postprocess(paths,
     :type output_dir: str
     :param handle_id: The number of images that have been handled.
     :type handle_id: int
-    :param draw_bbox: whether to draw bbox.
-    :param draw_bbox: bool
+    :param visualization: whether to draw bbox and save images.
+    :param visualization: bool
     """
     lod_tensor = data_out[0]
     lod = lod_tensor.lod()[0]
@@ -123,8 +123,6 @@ def postprocess(paths,
             org_img_path = get_save_image_name(
                 org_img, output_dir, 'image_numpy_{}.jpg'.format(
                     (handle_id + index)))
-            if draw_bbox:
-                org_img.save(org_img_path)
 
         org_img_height = org_img.height
         org_img_width = org_img.width
@@ -146,7 +144,7 @@ def postprocess(paths,
             output_i['data'].append(dt)
 
         output.append(output_i)
-        if draw_bbox:
+        if visualization:
             draw_bounding_box_on_image(output_i['path'], output_i['data'],
                                        output_dir)
 

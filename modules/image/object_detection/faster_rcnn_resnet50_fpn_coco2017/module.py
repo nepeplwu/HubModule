@@ -179,7 +179,8 @@ class FasterRCNNResNet50RPN(hub.Module):
                          use_gpu=False,
                          batch_size=1,
                          output_dir=None,
-                         score_thresh=0.5):
+                         score_thresh=0.5,
+                         visualization=True):
         """API of Object Detection.
 
         :param paths: the path of images.
@@ -194,6 +195,8 @@ class FasterRCNNResNet50RPN(hub.Module):
         :type output_dir: str
         :param score_thresh: the threshold of detection confidence.
         :type score_thresh: float
+        :param visualization: whether to draw box and save images.
+        :type visualization: bool
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
@@ -242,6 +245,6 @@ class FasterRCNNResNet50RPN(hub.Module):
                 label_names=self.label_names,
                 output_dir=output_path,
                 handle_id=handle_id,
-                draw_bbox=True)
+                visualization=visualization)
             res.append(output)
         return res
