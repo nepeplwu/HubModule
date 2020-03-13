@@ -24,7 +24,7 @@ from darknet53_imagenet.data_feed import test_reader
 class DarkNet53(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "darknet_model")
+            self.directory, "darknet53_model")
         self.label_names = load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
