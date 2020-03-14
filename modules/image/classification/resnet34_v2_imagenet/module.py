@@ -219,4 +219,6 @@ class ResNet34(hub.Module):
         if os.path.exists(input_path) == False:
             raise ValueError("input_path is not exit")
         return self.classification(
-            images=input_path, use_gpu=args.use_gpu, batch_size=args.batch_size)
+            images=[input_path],
+            use_gpu=args.use_gpu,
+            batch_size=args.batch_size)

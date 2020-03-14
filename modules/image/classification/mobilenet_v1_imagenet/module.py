@@ -197,7 +197,7 @@ class MobuleNetV1(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the simnet_bow module.",
+            description="Run the mobilenet_v1_imagenet module.",
             prog='hub run mobilenet_v1_imagenet',
             usage='%(prog)s',
             add_help=True)
@@ -206,4 +206,6 @@ class MobuleNetV1(hub.Module):
         if os.path.exists(input_path) == False:
             raise ValueError("input_path is not exit")
         return self.classification(
-            images=input_path, use_gpu=args.use_gpu, batch_size=args.batch_size)
+            images=[input_path],
+            use_gpu=args.use_gpu,
+            batch_size=args.batch_size)
