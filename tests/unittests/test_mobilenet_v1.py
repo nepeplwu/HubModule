@@ -44,8 +44,8 @@ class TestMobileNetV1(unittest.TestCase):
         with fluid.program_guard(self.test_prog):
             image_dir = "../image_dataset/pascal_voc"
             #image_dir = '../images/pascal_voc/'
-            airplane = cv2.imread(os.path.join(
-                image_dir, 'airplane.jpg')).astype('float32')
+            #airplane = cv2.imread(os.path.join(
+            #    image_dir, 'airplane.jpg')).astype('float32')
             #airplanes = np.array([airplane, airplane])
             classification_results = self.mobilenet_v1.classification(
                 paths=[
@@ -55,7 +55,7 @@ class TestMobileNetV1(unittest.TestCase):
                     os.path.join(image_dir, 'sheep.jpg'),
                     os.path.join(image_dir, 'train.jpg')
                 ],
-                images=airplane,
+                #images=airplanes,
                 batch_size=2)
             print(classification_results)
 
