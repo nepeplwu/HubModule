@@ -15,7 +15,7 @@ from paddlehub.module.module import moduleinfo, runnable
 
 @moduleinfo(
     name="ssd_vgg16_512_coco2017",
-    version="1.1.0",
+    version="1.0.0",
     type="cv/object_detection",
     summary="SSD with backbone VGG16, trained with dataset COCO.",
     author="paddlepaddle",
