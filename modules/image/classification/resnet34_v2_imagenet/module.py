@@ -1,9 +1,10 @@
 import os
+import argparse
 
 import numpy as np
 import paddlehub as hub
 import paddle.fluid as fluid
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 
 from resnet34_v2_imagenet.resnet import ResNet, ResNetC5
@@ -205,3 +206,17 @@ class ResNet34(hub.Module):
                     res_dict[class_name] = max_prob
                 res_list.append(res_dict)
         return res_list
+
+    @runnable
+    def run_cmd(self, argvs):
+        self.parser = argparse.ArgumentParser(
+            description="Run resnet34_v2_imagenet module.",
+            prog='hub run resnet34_v2_imagenet',
+            usage='%(prog)s',
+            add_help=True)
+        args = self.parser.parse_args(argvs)
+        input_path = argvs.input_path
+        if os.path.exists(input_path) == False:
+            raise ValueError("input_path is not exit")
+        return self.classification(
+            images=input_path, use_gpu=args.use_gpu, batch_size=args.batch_size)

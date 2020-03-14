@@ -6,8 +6,8 @@ from __future__ import division
 import os
 from collections import OrderedDict
 
-import numpy as np
 import cv2
+import numpy as np
 from PIL import Image, ImageEnhance
 from paddle import fluid
 
@@ -67,8 +67,8 @@ def test_reader(paths=None, images=None):
             #img = cv2.imread(img_path)
             img_list.append(img)
     if images is not None:
-        for img in images:
-            img_list.append(Image.fromarray(img))
+        img = Image.open(img_path)
+        img_list.append(img)
     for im in img_list:
         im = process_image(im)
         yield im
