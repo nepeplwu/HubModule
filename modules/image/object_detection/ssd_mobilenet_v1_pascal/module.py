@@ -10,6 +10,7 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 
 
 @moduleinfo(
@@ -24,12 +25,35 @@ class SSDMobileNetv1(hub.Module):
         self.ssd = hub.Module(name="ssd")
         # default pretrained model of SSD_MobileNet_V1_VOC, the shape of image tensor is (3, 300, 300)
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "ssd_mobilenet_v1_voc")
+            self.directory, "ssd_mobilenet_v1_model")
         self.label_names = self.ssd.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
         self.image = None
         self.bbox_out = None
+        self._set_config()
+
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.default_pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        cpu_config.switch_ir_optim(False)
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.default_pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
                 multi_box_head=None,
@@ -183,13 +207,16 @@ class SSDMobileNetv1(hub.Module):
         paths = paths if paths else list()
         res = []
         for iter_id, feed_data in enumerate(batch_reader()):
-            feed_data = np.array(feed_data)
-            data_out = exe.run(
-                self.infer_prog,
-                feed=feeder.feed(feed_data),
-                fetch_list=[self.bbox_out],
-                return_numpy=False)
-
+            np_data = np.array(feed_data).astype('float32')
+            if np_data.shape == 1:
+                np_data = np_data[0]
+            else:
+                np_data = np.squeeze(np_data, axis=1)
+            data_tensor = PaddleTensor(np_data.copy())
+            if use_gpu:
+                data_out = self.gpu_predictor.run([data_tensor])
+            else:
+                data_out = self.cpu_predictor.run([data_tensor])
             output = self.ssd.postprocess(
                 paths=paths,
                 images=images,
