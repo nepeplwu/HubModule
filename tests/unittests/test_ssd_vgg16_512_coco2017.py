@@ -67,6 +67,6 @@ class TestSSDVGG(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestSSDVGG('test_object_detection'))
-    #suite.addTest(TestSSDVGG('test_context'))
+    suite.addTest(TestSSDVGG('test_context'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
