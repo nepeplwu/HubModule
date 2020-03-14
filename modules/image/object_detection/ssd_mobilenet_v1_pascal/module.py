@@ -4,12 +4,13 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import argparse
 from functools import partial
 
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable
 
 
 @moduleinfo(
@@ -202,3 +203,17 @@ class SSDMobileNetv1(hub.Module):
             res.append(output)
 
         return res
+
+    @runnable
+    def run_cmd(self, argvs):
+        self.parser = argparse.ArgumentParser(
+            description="Run the simnet_bow module.",
+            prog='hub run mobilenet_v1_imagenet',
+            usage='%(prog)s',
+            add_help=True)
+        args = self.parser.parse_args(argvs)
+        input_path = argvs.input_path
+        if os.path.exists(input_path) == False:
+            raise ValueError("input_path is not exit")
+        return self.object_detection(
+            path=[input_path], use_gpu=args.use_gpu, batch_size=args.batch_size)
