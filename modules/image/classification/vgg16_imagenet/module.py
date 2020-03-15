@@ -1,10 +1,12 @@
 # coding=utf-8
 import os
+import ast
+import argparse
 
 import numpy as np
 import paddlehub as hub
 import paddle.fluid as fluid
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 
 from vgg16_imagenet.vgg import VGG
@@ -193,3 +195,61 @@ class VGG16(hub.Module):
                     res_dict[class_name] = max_prob
                 res_list.append(res_dict)
         return res_list
+
+    def add_module_config_arg(self):
+        """
+        Add the command config options
+        """
+        self.arg_config_group.add_argument(
+            '--use_gpu',
+            type=ast.literal_eval,
+            default=False,
+            help="whether use GPU or not")
+
+        self.arg_config_group.add_argument(
+            '--batch_size',
+            type=int,
+            default=1,
+            help="batch size for prediction")
+        self.arg_config_group.add_argument(
+            '--user_dict',
+            type=str,
+            default=None,
+            help=
+            "customized dictionary for intervening the word segmentation result"
+        )
+
+    def add_module_input_arg(self):
+        """
+        Add the command input options
+        """
+        self.arg_input_group.add_argument(
+            '--input_path',
+            type=str,
+            default=None,
+            help="file contain input data")
+
+    @runnable
+    def run_cmd(self, argvs):
+        self.parser = argparse.ArgumentParser(
+            description="Run the .",
+            prog='hub run vgg16_imagenet',
+            usage='%(prog)s',
+            add_help=True)
+        self.arg_input_group = self.parser.add_argument_group(
+            title="Input options", description="Input data. Required")
+        self.arg_config_group = self.parser.add_argument_group(
+            title="Config options",
+            description=
+            "Run configuration for controlling module behavior, not required.")
+        self.add_module_config_arg()
+
+        self.add_module_input_arg()
+        args = self.parser.parse_args(argvs)
+        input_path = args.input_path
+        if os.path.exists(input_path) == False:
+            raise ValueError("input_path is not exit")
+        return self.classification(
+            paths=[input_path],
+            use_gpu=args.use_gpu,
+            batch_size=args.batch_size)
