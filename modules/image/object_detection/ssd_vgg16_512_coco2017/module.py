@@ -272,8 +272,8 @@ class SSDVGG16(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the .",
-            prog='hub run vgg16_imagenet',
+            description="Run the ssd_vgg16_512_coco2017.",
+            prog='hub run ssd_vgg16_512_coco2017',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

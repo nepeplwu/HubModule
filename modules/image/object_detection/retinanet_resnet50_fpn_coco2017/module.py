@@ -270,8 +270,8 @@ class RetinaNetResNet50FPN(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the .",
-            prog='hub run vgg16_imagenet',
+            description="Run the retinanet_resnet50_fpn_coco2017.",
+            prog='hub run retinanet_resnet50_fpn_coco2017',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(
