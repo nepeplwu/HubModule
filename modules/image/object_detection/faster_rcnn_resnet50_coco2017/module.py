@@ -233,7 +233,6 @@ class FasterRCNNResNet50(hub.Module):
 
         images_num = len(all_images)
         loop_num = ceil(images_num / batch_size)
-        #        fluid.io.save_inference_model(dirname="./faster_rcnn_resnet50_model", feeded_var_names=['image', 'im_info', 'im_shape'], target_vars=[self.bbox_out], executor=exe, main_program=self.infer_prog)
         res = []
         for iter_id in range(loop_num):
             batch_data = []
