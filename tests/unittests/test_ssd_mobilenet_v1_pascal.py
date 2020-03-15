@@ -53,7 +53,7 @@ class TestSSDMobileNet(unittest.TestCase):
                     os.path.join(image_dir, 'sheep.jpg'),
                     os.path.join(image_dir, 'train.jpg')
                 ],
-                #images=airplanes,
+                images=airplanes,
                 batch_size=2)
             print(detection_results)
 
