@@ -10,6 +10,7 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 
 
 @moduleinfo(
@@ -24,13 +25,36 @@ class YoloV3DarkNet53(hub.Module):
         self.yolov3 = hub.Module(name="yolov3")
         # default pretrained model of YOLOv3_DarkNet53, the shape of input image tensor is (3, 608, 608)
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "yolov3_darknet")
+            self.directory, "yolov3_darknet53_model")
         self.label_names = self.yolov3.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
         self.image = None
         self.im_size = None
         self.bbox_out = None
+        self._set_config()
+
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.default_pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        cpu_config.switch_ir_optim(False)
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.default_pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
                 yolo_head=None,
@@ -139,15 +163,26 @@ class YoloV3DarkNet53(hub.Module):
         feeder = fluid.DataFeeder([self.image, self.im_size], place)
         data_reader = partial(self.yolov3.reader, paths, images)
         batch_reader = fluid.io.batch(data_reader, batch_size=batch_size)
-
+        #fluid.io.save_inference_model(dirname="./yolov3_darknet53_model", feeded_var_names=['image', 'im_size'], target_vars=[self.bbox_out], executor=exe, main_program=self.infer_prog)
+        #exit()
         res = []
         for iter_id, feed_data in enumerate(batch_reader()):
             feed_data = np.array(feed_data)
-            data_out = exe.run(
-                self.infer_prog,
-                feed=feeder.feed(feed_data),
-                fetch_list=[self.bbox_out],
-                return_numpy=False)
+            image_ = np.array(feeder.feed(feed_data)['image'])
+            im_size = np.array(feeder.feed(feed_data)['im_size'])
+            image_tensor = PaddleTensor(image_.copy())
+            im_size_tensor = PaddleTensor(im_size.copy())
+            if use_gpu:
+                data_out = self.gpu_predictor.run(
+                    [image_tensor, im_size_tensor])
+            else:
+                data_out = self.cpu_predictor.run(
+                    [image_tensor, im_size_tensor])
+            #data_out = exe.run(
+            #    self.infer_prog,
+            #    feed=feeder.feed(feed_data),
+            #    fetch_list=[self.bbox_out],
+            #    return_numpy=False)
             output = self.yolov3.postprocess(
                 paths=paths,
                 images=images,
