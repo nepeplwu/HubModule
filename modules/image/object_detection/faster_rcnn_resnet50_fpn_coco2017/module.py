@@ -12,6 +12,7 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 
 from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
 
@@ -29,11 +30,33 @@ class FasterRCNNResNet50RPN(hub.Module):
         self.faster_rcnn = hub.Module(name="faster_rcnn")
         # default pretrained model, Faster-RCNN with backbone ResNet50, shape of input tensor is [3, 800, 1333]
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "faster_rcnn_r50_fpn_2x")
+            self.directory, "faster_rcnn_resnet50_fpn_model")
         self.label_names = self.faster_rcnn.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
         self.bbox_out = None
+        self._set_config()
+
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.default_pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.default_pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
                 rpn_head=None,
@@ -72,7 +95,7 @@ class FasterRCNNResNet50RPN(hub.Module):
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
                 resnet = hub.Module(name='resnet50_v2_imagenet')
-                _, _outputs, _ = resnet.context(input_image=image, depth=50, variant='b',\
+                _, _outputs, _ = resnet.context(input_image=image, variant='b',\
                                                  norm_type='affine_channel', feature_maps=[2, 3, 4, 5])
                 body_feats = _outputs['body_feats']
 
@@ -213,7 +236,12 @@ class FasterRCNNResNet50RPN(hub.Module):
         paths = paths if paths else list()
         for yield_data in self.faster_rcnn.test_reader(paths, images):
             all_images.append(yield_data)
-
+        fluid.io.save_inference_model(
+            dirname="./faster_rcnn_resnet50_fpn_model",
+            feeded_var_names=['image', 'im_info', 'im_shape'],
+            target_vars=[self.bbox_out],
+            executor=exe,
+            main_program=self.infer_prog)
         images_num = len(all_images)
         loop_num = ceil(images_num / batch_size)
         res = []
@@ -227,16 +255,17 @@ class FasterRCNNResNet50RPN(hub.Module):
                     pass
             padding_image, padding_info, padding_shape = self.faster_rcnn.padding_minibatch(
                 batch_data, coarsest_stride=32, use_padded_im_info=True)
-            feed = {
-                'image': padding_image,
-                'im_info': padding_info,
-                'im_shape': padding_shape
-            }
-            data_out = exe.run(
-                self.infer_prog,
-                feed=feed,
-                fetch_list=[self.bbox_out],
-                return_numpy=False)
+            padding_image_tensor = PaddleTensor(padding_image.copy())
+            padding_info_tensor = PaddleTensor(padding_info.copy())
+            padding_shape_tensor = PaddleTensor(padding_shape.copy())
+            feed_list = [
+                padding_image_tensor, padding_info_tensor, padding_shape_tensor
+            ]
+            if use_gpu:
+                data_out = self.gpu_predictor.run(feed_list)
+            else:
+                data_out = self.cpu_predictor.run(feed_list)
+
             output = self.faster_rcnn.postprocess(
                 paths=paths,
                 images=images,
