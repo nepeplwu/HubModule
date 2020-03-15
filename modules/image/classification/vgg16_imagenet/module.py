@@ -232,7 +232,7 @@ class VGG16(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the .",
+            description="Run the vgg16_imagenet.",
             prog='hub run vgg16_imagenet',
             usage='%(prog)s',
             add_help=True)

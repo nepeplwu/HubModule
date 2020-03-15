@@ -175,12 +175,6 @@ class ResNet34(hub.Module):
 
         images_num = len(all_images)
         loop_num = int(np.ceil(images_num / batch_size))
-        #fluid.io.save_inference_model(
-        #    dirname="./resnet34_v2_model",
-        #    feeded_var_names=['image'],
-        #    target_vars=[self.pred_out],
-        #    executor=exe,
-        #    main_program=self.infer_prog)
 
         res_list = []
         top_k = max(min(top_k, 1000), 1)
