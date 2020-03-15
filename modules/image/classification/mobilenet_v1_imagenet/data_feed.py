@@ -68,7 +68,7 @@ def test_reader(paths=None, images=None):
             img_list.append(img)
     if images is not None:
         for img in images:
-            img_list.append(Image.fromarray(img))
+            img_list.append(Image.fromarray(np.uint8(img)))
     for im in img_list:
         im = process_image(im)
         yield im

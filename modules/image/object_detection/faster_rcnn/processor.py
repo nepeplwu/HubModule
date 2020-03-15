@@ -127,7 +127,8 @@ def postprocess(paths,
             org_img_path = get_save_image_name(
                 org_img, output_dir, 'image_numpy_{}.jpg'.format(
                     (handle_id + index)))
-
+            if visualization:
+                org_img.save(org_img_path)
         org_img_height = org_img.height
         org_img_width = org_img.width
         result_i = results[lod[index]:lod[index + 1]]

@@ -42,15 +42,15 @@ class TestSSDVGG(unittest.TestCase):
     def test_object_detection(self):
         with fluid.program_guard(self.test_prog):
             image_dir = '../image_dataset/'
-            #zebra = cv2.imread(os.path.join(image_dir,
-            #                                'zebra.jpg')).astype('float32')
-            #zebra = np.array([zebra, zebra])
+            zebra = cv2.imread(os.path.join(image_dir,
+                                            'zebra.jpg')).astype('float32')
+            zebra = np.array([zebra, zebra])
             ## only paths
             print(
                 self.ssd.object_detection(
                     paths=[os.path.join(image_dir, 'cat.jpg')]))
             ## only images
-            #print(self.ssd.object_detection(images=zebra))
+            print(self.ssd.object_detection(images=zebra))
             ## paths and images
             print(
                 self.ssd.object_detection(
@@ -59,7 +59,7 @@ class TestSSDVGG(unittest.TestCase):
                         os.path.join(image_dir, 'dog.jpg'),
                         os.path.join(image_dir, 'giraffe.jpg')
                     ],
-                    #images=zebra,
+                    images=zebra,
                     batch_size=2,
                     score_thresh=0.5))
 
