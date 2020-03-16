@@ -218,10 +218,7 @@ class VGG16(hub.Module):
         Add the command input options
         """
         self.arg_input_group.add_argument(
-            '--input_path',
-            type=str,
-            default=None,
-            help="file contain input data")
+            '--input_path', type=str, default=None, help="input data")
 
         self.arg_input_group.add_argument(
             '--input_file',

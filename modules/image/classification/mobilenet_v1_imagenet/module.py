@@ -9,6 +9,7 @@ import paddle.fluid as fluid
 from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.common.paddle_helper import add_vars_prefix
+from paddlehub.io.parser import txt_parser
 
 from mobilenet_v1_imagenet.mobilenet_v1 import MobileNet
 from mobilenet_v1_imagenet.processor import load_label_info
@@ -216,10 +217,24 @@ class MobuleNetV1(hub.Module):
         Add the command input options
         """
         self.arg_input_group.add_argument(
-            '--input_path',
+            '--input_path', type=str, default=None, help="input data")
+
+        self.arg_input_group.add_argument(
+            '--input_file',
             type=str,
             default=None,
             help="file contain input data")
+
+    def check_input_data(self, args):
+        input_data = []
+        if args.input_path:
+            input_data = [args.input_path]
+        elif args.input_file:
+            if not os.path.exists(args.input_file):
+                raise RuntimeError("File %s is not exist." % args.input_file)
+            else:
+                input_data = txt_parser.parse(args.input_file, use_strip=True)
+        return input_data
 
     @runnable
     def run_cmd(self, argvs):
@@ -238,10 +253,14 @@ class MobuleNetV1(hub.Module):
 
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        input_path = args.input_path
-        if os.path.exists(input_path) == False:
-            raise ValueError("input_path is not exit")
+        input_data = self.check_input_data(args)
+        if len(input_data) == 0:
+            self.parser.print_help
+            exit(1)
+        else:
+            for image_path in input_data:
+                if not os.path.exists(image_path):
+                    raise RuntimeError(
+                        "File %s or %s is not exist." % image_path)
         return self.classification(
-            paths=[input_path],
-            use_gpu=args.use_gpu,
-            batch_size=args.batch_size)
+            paths=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
