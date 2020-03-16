@@ -284,7 +284,7 @@ class SSDVGG16(hub.Module):
         input_path = args.input_path
         input_data = self.check_input_data(args)
         if len(input_data) == 0:
-            self.parser.print_help
+            self.parser.print_help()
             exit(1)
         else:
             for image_path in input_data:
