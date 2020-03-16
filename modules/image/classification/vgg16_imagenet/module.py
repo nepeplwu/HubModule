@@ -211,13 +211,6 @@ class VGG16(hub.Module):
             type=int,
             default=1,
             help="batch size for prediction")
-        self.arg_config_group.add_argument(
-            '--user_dict',
-            type=str,
-            default=None,
-            help=
-            "customized dictionary for intervening the word segmentation result"
-        )
 
     def add_module_input_arg(self):
         """
