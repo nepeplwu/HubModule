@@ -232,8 +232,8 @@ class VGG16(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the vgg16_imagenet.",
-            prog='hub run vgg16_imagenet',
+            description="Run the {}".format(self.name),
+            prog="hub run {}".format(self.name),
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

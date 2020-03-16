@@ -209,13 +209,6 @@ class YOLOv3ResNet34(hub.Module):
             type=int,
             default=1,
             help="batch size for prediction")
-        self.arg_config_group.add_argument(
-            '--user_dict',
-            type=str,
-            default=None,
-            help=
-            "customized dictionary for intervening the word segmentation result"
-        )
 
     def add_module_input_arg(self):
         """
@@ -230,8 +223,8 @@ class YOLOv3ResNet34(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the yolov3_resnet34_coco2017.",
-            prog='hub run yolov3_resnet34_coco2017',
+            description="Run the {}".format(self.name),
+            prog="hub run {}".format(self.name),
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

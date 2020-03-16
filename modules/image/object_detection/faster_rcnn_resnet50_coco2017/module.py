@@ -304,8 +304,8 @@ class FasterRCNNResNet50(hub.Module):
     @runnable
     def run_cmd(self, argvs):
         self.parser = argparse.ArgumentParser(
-            description="Run the faster_rcnn_resnet50_coco2017 .",
-            prog='hub run faster_rcnn_resnet50_coco2017',
+            description="Run the {}".format(self.name),
+            prog="hub run {}".format(self.name),
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(
