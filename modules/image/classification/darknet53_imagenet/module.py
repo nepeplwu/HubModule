@@ -238,13 +238,16 @@ class DarkNet53(hub.Module):
             description=
             "Run configuration for controlling module behavior, not required.")
         self.add_module_config_arg()
-
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        input_path = args.input_path
-        if os.path.exists(input_path) == False:
-            raise ValueError("input_path is not exit")
+        input_data = self.check_input_data(args)
+        if len(input_data) == 0:
+            self.parser.print_help
+            exit(1)
+        else:
+            for image_path in input_data:
+                if not os.path.exists(image_path):
+                    raise RuntimeError(
+                        "File %s or %s is not exist." % image_path)
         return self.classification(
-            paths=[input_path],
-            use_gpu=args.use_gpu,
-            batch_size=args.batch_size)
+            paths=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
