@@ -239,12 +239,6 @@ class FasterRCNNResNet50RPN(hub.Module):
         paths = paths if paths else list()
         for yield_data in self.faster_rcnn.test_reader(paths, images):
             all_images.append(yield_data)
-        fluid.io.save_inference_model(
-            dirname="./faster_rcnn_resnet50_fpn_model",
-            feeded_var_names=['image', 'im_info', 'im_shape'],
-            target_vars=[self.bbox_out],
-            executor=exe,
-            main_program=self.infer_prog)
         images_num = len(all_images)
         loop_num = ceil(images_num / batch_size)
         res = []

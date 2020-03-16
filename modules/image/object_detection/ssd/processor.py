@@ -106,9 +106,8 @@ def postprocess(paths,
     :param visualization: bool
     """
     lod_tensor = data_out[0]
-    lod = lod_tensor.lod()[0]
+    lod = lod_tensor.lod[0]
     results = lod_tensor.as_ndarray()
-    #results = np.array(lod_tensor)
     if handle_id < len(paths):
         unhandled_paths = paths[handle_id:]
         unhandled_paths_num = len(unhandled_paths)
