@@ -411,10 +411,10 @@ if __name__ == '__main__':
         data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
     for result in results:
         if six.PY2:
-            print(json.dumps(
-                result['word'], encoding="utf8", ensure_ascii=False))
-            print(json.dumps(
-                result['tag'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['tag'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
             print(result['tag'])
@@ -426,8 +426,8 @@ if __name__ == '__main__':
         texts=test_text, use_gpu=False, batch_size=1, return_tag=False)
     for result in results:
         if six.PY2:
-            print(json.dumps(
-                result['word'], encoding="utf8", ensure_ascii=False))
+            print(
+                json.dumps(result['word'], encoding="utf8", ensure_ascii=False))
         else:
             print(result['word'])
 
