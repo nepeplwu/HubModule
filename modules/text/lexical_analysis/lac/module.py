@@ -16,6 +16,7 @@ import paddle.fluid as fluid
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 import paddlehub as hub
 from paddlehub.common.logger import logger
+from paddlehub.common.paddle_helper import add_vars_prefix
 from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo, runnable, serving
@@ -110,7 +111,12 @@ class LAC(hub.Module):
             with fluid.unique_name.guard():
                 crf_decode, word, fc = lex_net(self.word_dict_len,
                                                self.label_dict_len)
+                word_name = word.name
+                pred_name = crf_decode.name
+                fc_name = fc.name
 
+                prefix_name = "@HUB_{}@".format(self.name)
+                add_vars_prefix(program=main_program, prefix=prefix_name)
                 for param in main_program.global_block().iter_parameters():
                     param.trainable = trainable
 
@@ -125,9 +131,16 @@ class LAC(hub.Module):
                 fluid.io.load_vars(
                     exe, self.pretrained_model_path, predicate=if_exist)
 
-                inputs = {"words": word}
-                outputs = {"predicted": crf_decode, "sentence_feature": fc}
-
+                inputs = {
+                    "words":
+                    main_program.global_block().vars[prefix_name + word_name]
+                }
+                outputs = {
+                    "predicted":
+                    main_program.global_block().vars[prefix_name + pred_name],
+                    "sentence_feature":
+                    main_program.global_block().vars[prefix_name + fc_name]
+                }
                 return inputs, outputs, main_program
 
     def set_user_dict(self, dict_path):
@@ -163,7 +176,7 @@ class LAC(hub.Module):
         if six.PY2:
             unicode_texts = []
             for text in texts:
-                if not isinstance(text, six.string_types):
+                if isinstance(text, six.string_types):
                     unicode_texts.append(
                         text.decode(sys_stdin_encoding()).decode("utf8"))
                 else:
