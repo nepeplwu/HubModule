@@ -235,8 +235,7 @@ class VGG16(hub.Module):
             input_data = [args.input_path]
         elif args.input_file:
             if not os.path.exists(args.input_file):
-                print("File %s is not exist." % args.input_file)
-                raise RuntimeError
+                raise RuntimeError("File %s is not exist." % args.input_file)
             else:
                 input_data = txt_parser.parse(args.input_file, use_strip=True)
         return input_data
@@ -260,13 +259,12 @@ class VGG16(hub.Module):
         args = self.parser.parse_args(argvs)
         input_data = self.check_input_data(args)
         if len(input_data) == 0:
-            print("File %s or %s is not exist." % (args.input_path,
-                                                   args.input_file))
-            raise RuntimeError
+            self.parser.print_help
+            exit(1)
         else:
             for image_path in input_data:
                 if not os.path.exists(image_path):
-                    print("File %s or %s is not exist." % image_path)
-                    raise RuntimeError
+                    raise RuntimeError(
+                        "File %s or %s is not exist." % image_path)
         return self.classification(
             paths=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)
