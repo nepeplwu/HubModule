@@ -15,7 +15,10 @@ if __name__ == "__main__":
     test_text = [test_text_1, test_text_2]
     # execute predict and print the result
     results = simnet_bow.similarity(texts=test_text, use_gpu=True, batch_size=1)
-    print(results)
+    if six.PY2:
+        print(json.dumps(results, encoding="utf8", ensure_ascii=False))
+    else:
+        print(results)
 
     max_score = -1
     result_text = ""
@@ -28,7 +31,10 @@ if __name__ == "__main__":
 
     input_dict = {'text_1': test_text_1, 'text_2': test_text_2}
     results = simnet_bow.similarity(data=input_dict, use_gpu=True, batch_size=2)
-    print(results)
+    if six.PY2:
+        print(json.dumps(results, encoding="utf8", ensure_ascii=False))
+    else:
+        print(results)
 
     max_score = -1
     result_text = ""
