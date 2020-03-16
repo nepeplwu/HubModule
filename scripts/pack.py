@@ -35,25 +35,27 @@ def package_module(config):
         dest = os.path.join(_dir, config['name'])
         shutil.copytree(directory, dest)
         for resource in config.get("resources", {}):
-            save_path = os.path.join(dest, resource["dest"])
             if resource.get("uncompress", False):
-                downloader.download_file_and_uncompress(
-                    url=resource["url"],
-                    save_path=save_path,
-                    print_progress=True)
+                _, _, file = downloader.download_file_and_uncompress(
+                    url=resource["url"], save_path=dest, print_progress=True)
             else:
-                downloader.download_file(
-                    url=resource["url"],
-                    save_path=save_path,
-                    print_progress=True)
+                _, _, file = downloader.download_file(
+                    url=resource["url"], save_path=dest, print_progress=True)
 
-        exclude = lambda filename: filename.replace(
-            dest + os.sep, "") in config.get("exclude", [])
+            dest_path = os.path.join(dest, resource["dest"])
+            if resource["dest"] != ".":
+                if os.path.realpath(dest_path) != os.path.realpath(file):
+                    shutil.move(file, dest_path)
+
+        tar_filter = lambda tarinfo: None if tarinfo.name.replace(
+            config['name'] + os.sep, "") in config.get("exclude", []
+                                                       ) else tarinfo
+
         module = hub.Module(directory=dest)
         package = "{}_{}.tar.gz".format(module.name, module.version)
         with tarfile.open(package, "w:gz") as tar:
             tar.add(
-                dest, arcname=os.path.basename(module.name), exclude=exclude)
+                dest, arcname=os.path.basename(module.name), filter=tar_filter)
 
 
 def main(args):
