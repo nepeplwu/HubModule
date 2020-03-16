@@ -94,8 +94,8 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
     :param visualization: bool
     """
     lod_tensor = data_out[0]
-    lod = lod_tensor.lod()[0]
-    results = np.array(lod_tensor)
+    lod = lod_tensor.lod[0]
+    results = lod_tensor.as_ndarray()
 
     if handle_id < len(paths):
         unhandled_paths = paths[handle_id:]
@@ -121,6 +121,8 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
             org_img_path = get_save_image_name(
                 org_img, output_dir, 'image_numpy_{}.jpg'.format(
                     (handle_id + index)))
+            if visualization:
+                org_img.save(org_img_path)
         org_img_height = org_img.height
         org_img_width = org_img.width
         result_i = results[lod[index]:lod[index + 1]]

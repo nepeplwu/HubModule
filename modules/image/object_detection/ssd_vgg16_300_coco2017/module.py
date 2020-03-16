@@ -4,12 +4,16 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import ast
+import argparse
 from functools import partial
 
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddlehub.io.parser import txt_parser
 
 
 @moduleinfo(
@@ -24,12 +28,34 @@ class SSDVGG16(hub.Module):
         self.ssd = hub.Module(name="ssd")
         # default pretrained model of SSD_VGG16, the shape of image tensor is (3, 300, 300)
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "ssd_vgg16_300")
+            self.directory, "ssd_vgg16_300_model")
         self.label_names = self.ssd.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
         self.image = None
         self.bbox_out = None
+        self._set_config()
+
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.default_pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.default_pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
                 multi_box_head=None,
@@ -68,7 +94,8 @@ class SSDVGG16(hub.Module):
                     name='image', shape=[3, 300, 300], dtype='float32')
                 # backbone
                 vgg = hub.Module(name='vgg16_imagenet')
-                _, _outputs, _ = vgg.context(input_image=image)
+                _, _outputs, _ = vgg.context(
+                    input_image=image, pretrained=False)
                 body_feats = _outputs['body_feats']
                 # multi_box_head
                 if multi_box_head is None:
@@ -176,12 +203,16 @@ class SSDVGG16(hub.Module):
         paths = paths if paths else list()
         res = []
         for iter_id, feed_data in enumerate(batch_reader()):
-            feed_data = np.array(feed_data)
-            data_out = exe.run(
-                self.infer_prog,
-                feed=feeder.feed(feed_data),
-                fetch_list=[self.bbox_out],
-                return_numpy=False)
+            np_data = np.array(feed_data).astype('float32')
+            if np_data.shape == 1:
+                np_data = np_data[0]
+            else:
+                np_data = np.squeeze(np_data, axis=1)
+            data_tensor = PaddleTensor(np_data.copy())
+            if use_gpu:
+                data_out = self.gpu_predictor.run([data_tensor])
+            else:
+                data_out = self.cpu_predictor.run([data_tensor])
             output = self.ssd.postprocess(
                 paths=paths,
                 images=images,
@@ -193,3 +224,72 @@ class SSDVGG16(hub.Module):
                 visualization=visualization)
             res.append(output)
         return res
+
+    def add_module_config_arg(self):
+        """
+        Add the command config options
+        """
+        self.arg_config_group.add_argument(
+            '--use_gpu',
+            type=ast.literal_eval,
+            default=False,
+            help="whether use GPU or not")
+
+        self.arg_config_group.add_argument(
+            '--batch_size',
+            type=int,
+            default=1,
+            help="batch size for prediction")
+
+    def add_module_input_arg(self):
+        """
+        Add the command input options
+        """
+        self.arg_input_group.add_argument(
+            '--input_path', type=str, default=None, help="input data")
+        self.arg_input_group.add_argument(
+            '--input_file',
+            type=str,
+            default=None,
+            help="file contain input data")
+
+    def check_input_data(self, args):
+        input_data = []
+        if args.input_path:
+            input_data = [args.input_path]
+        elif args.input_file:
+            if not os.path.exists(args.input_file):
+                raise RuntimeError("File %s is not exist." % args.input_file)
+            else:
+                input_data = txt_parser.parse(args.input_file, use_strip=True)
+        return input_data
+
+    @runnable
+    def run_cmd(self, argvs):
+        self.parser = argparse.ArgumentParser(
+            description="Run the {}".format(self.name),
+            prog="hub run {}".format(self.name),
+            usage='%(prog)s',
+            add_help=True)
+        self.arg_input_group = self.parser.add_argument_group(
+            title="Input options", description="Input data. Required")
+        self.arg_config_group = self.parser.add_argument_group(
+            title="Config options",
+            description=
+            "Run configuration for controlling module behavior, not required.")
+        self.add_module_config_arg()
+
+        self.add_module_input_arg()
+        args = self.parser.parse_args(argvs)
+        input_path = args.input_path
+        input_data = self.check_input_data(args)
+        if len(input_data) == 0:
+            self.parser.print_help()
+            exit(1)
+        else:
+            for image_path in input_data:
+                if not os.path.exists(image_path):
+                    raise RuntimeError(
+                        "File %s or %s is not exist." % image_path)
+        return self.object_detection(
+            paths=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)

@@ -43,9 +43,10 @@ class TestResNet(unittest.TestCase):
     def test_classification(self):
         with fluid.program_guard(self.test_prog):
             image_dir = "../image_dataset/pascal_voc/"
-            #image_dir = '../images/pascal_voc/'
-            #airplane = cv2.imread(os.path.join(image_dir, 'airplane.jpg')).astype('float32')
-            #airplanes = np.array([airplane, airplane])
+            airplane = cv2.imread(os.path.join(
+                image_dir, 'airplane.jpg')).astype('float32')
+            airplanes = np.array([airplane, airplane])
+            print(airplanes)
             classification_results = self.resnet.classification(
                 paths=[
                     os.path.join(image_dir, 'bird.jpg'),
@@ -54,7 +55,7 @@ class TestResNet(unittest.TestCase):
                     os.path.join(image_dir, 'sheep.jpg'),
                     os.path.join(image_dir, 'train.jpg')
                 ],
-                #images = airplanes,
+                images=airplanes,
                 batch_size=2)
             print(classification_results)
 
