@@ -6,9 +6,14 @@ from __future__ import print_function
 import os
 import time
 import unittest
+
+import cv2
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
+
+content_dir = '../../image_dataset/style_tranfer/content/'
+style_dir = '../../image_dataset/style_tranfer/style/'
 
 
 class TestStyleProjection(unittest.TestCase):
@@ -30,16 +35,8 @@ class TestStyleProjection(unittest.TestCase):
         "Call tearDown to restore environment.\n"
         self.test_prog = None
 
-    def test_encoder_context(self):
-        self.style_projection.encoder_context(pretrained=True)
-
-    def test_decoder_context(self):
-        self.style_projection.decoder_context()
-
-    def test_style_transfer(self):
+    def test_single_style(self):
         with fluid.program_guard(self.test_prog):
-            content_dir = '../../image_dataset/style_tranfer/content/'
-            style_dir = '../../image_dataset/style_tranfer/style/'
             content_paths = [
                 os.path.join(content_dir, f) for f in os.listdir(content_dir)
             ]
@@ -49,18 +46,58 @@ class TestStyleProjection(unittest.TestCase):
             for style_path in style_paths:
                 t1 = time.time()
                 self.style_projection.style_transfer(
-                    content_paths=[content_paths[0]],
-                    style_paths=[style_path],
+                    paths=[[content_paths[0], [style_path]]],
                     alpha=0.8,
                     use_gpu=True)
                 t2 = time.time()
                 print('\nCost time: {}'.format(t2 - t1))
 
+    def test_multiple_styles(self):
+        with fluid.program_guard(self.test_prog):
+            content_path = os.path.join(content_dir, 'chicago.jpg')
+            style_paths = [
+                os.path.join(style_dir, f) for f in os.listdir(style_dir)
+            ]
+            for j in range(len(style_paths) - 1):
+                res = self.style_projection.style_transfer(
+                    paths=[[
+                        content_path, [style_paths[j], style_paths[j + 1]],
+                        [1, 2]
+                    ]],
+                    alpha=0.8,
+                    use_gpu=True,
+                    visualization=True)
+                print('#' * 100)
+                print(res)
+                print('#' * 100)
+
+    def test_input_ndarray(self):
+        with fluid.program_guard(self.test_prog):
+            content_arr = cv2.imread(os.path.join(content_dir, 'chicago.jpg'))
+            content_arr = cv2.cvtColor(content_arr, cv2.COLOR_BGR2RGB)
+            style_arrs_BGR = [
+                cv2.imread(os.path.join(style_dir, f))
+                for f in os.listdir(style_dir)
+            ]
+            style_arrs_list = [
+                cv2.cvtColor(arr, cv2.COLOR_BGR2RGB) for arr in style_arrs_BGR
+            ]
+            for j in range(len(style_arrs_list) - 1):
+                self.style_projection.style_transfer(
+                    images=[[
+                        content_arr,
+                        [style_arrs_list[j], style_arrs_list[j + 1]]
+                    ]],
+                    alpha=0.8,
+                    use_gpu=True,
+                    output_dir='transfer_output_ndarray',
+                    visualization=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestStyleProjection('test_encoder_context'))
-    suite.addTest(TestStyleProjection('test_decoder_context'))
-    suite.addTest(TestStyleProjection('test_style_transfer'))
+    suite.addTest(TestStyleProjection('test_single_style'))
+    suite.addTest(TestStyleProjection('test_multiple_styles'))
+    suite.addTest(TestStyleProjection('test_input_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

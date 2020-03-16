@@ -4,31 +4,30 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+
 import numpy as np
 from PIL import Image
 
 __all__ = ['postprocess', 'fr']
 
 
-def postprocess(im, content_path, style_path, output_dir):
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    elif os.path.isfile(output_dir):
-        os.remove(output_dir)
-        os.makedirs(output_dir)
-
+def postprocess(im, output_dir, save_im_name, visualization):
     im = np.multiply(im, 255.0) + 0.5
     im = np.clip(im, 0, 255)
     im = im.astype(np.uint8)
     im = im.transpose((1, 2, 0))
-    im = Image.fromarray(im)
-
-    output_im_name = '{:s}/{:s}_stylized_{:s}{:s}'.format(
-        output_dir,
-        os.path.splitext(os.path.basename(content_path))[0],
-        os.path.splitext(os.path.basename(style_path))[0], '.jpg')
-    print('image saved in {}'.format(output_im_name))
-    im.save(output_im_name)
+    if visualization:
+        # create output directory
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        elif os.path.isfile(output_dir):
+            os.remove(output_dir)
+            os.makedirs(output_dir)
+        # save image
+        img = Image.fromarray(im)
+        img.save(save_im_name)
+        print('image saved in {}'.format(save_im_name))
+    return im
 
 
 def fr(content_feat, style_feat, alpha):

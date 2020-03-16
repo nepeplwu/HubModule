@@ -1,13 +1,13 @@
 # coding=utf-8
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
 
+import time
 import os
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo
 
@@ -23,9 +23,9 @@ from .data_feed import reader
     type="cv/style_transfer",
     summary=
     "Style Projection is an algorithm for Arbitrary image style, which is parameter-free, fast yet effective.",
-    author="paddle",
+    author="paddlepaddle",
     author_email="paddlepaddle@baidu.com")
-class HubModule(hub.Module):
+class StyleProjection(hub.Module):
     def _initialize(self):
         self.pretrained_encoder_net = os.path.join(self.directory,
                                                    "style_projection_enc")
@@ -68,106 +68,144 @@ class HubModule(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor_dec = create_paddle_predictor(gpu_config_dec)
 
-    def encoder_context(self, trainable=False, pretrained=False):
-        """encoder for transfer learning."""
-        encoder_prog = fluid.Program()
-        startup_prog = fluid.Program()
-        with fluid.program_guard(encoder_prog, startup_prog):
-            with fluid.unique_name.guard():
-                enc_image, enc_outputs = encoder_net()
-                place = fluid.CPUPlace()
-                exe = fluid.Executor(place)
-                # pretrained
-                if pretrained:
-
-                    def _if_exist(var):
-                        b = os.path.exists(
-                            os.path.join(self.pretrained_encoder_net, var.name))
-                        return b
-
-                    fluid.io.load_vars(
-                        exe,
-                        self.pretrained_encoder_net,
-                        encoder_prog,
-                        predicate=_if_exist)
-                else:
-                    exe.run(startup_prog)
-                # trainable
-                for param in encoder_prog.global_block().iter_parameters():
-                    param.trainable = trainable
-        return enc_image, enc_outputs, encoder_prog
-
-    def decoder_context(self, trainable=False, pretrained=False):
-        """decoder for transfer learning."""
-        decoder_prog = fluid.Program()
-        startup_prog = fluid.Program()
-        with fluid.program_guard(decoder_prog, startup_prog):
-            with fluid.unique_name.guard():
-                dec_image, dec_outputs = decoder_net()
-                place = fluid.CPUPlace()
-                exe = fluid.Executor(place)
-                # pretrained
-                if pretrained:
-
-                    def _if_exist(var):
-                        b = os.path.exists(
-                            os.path.join(self.pretrained_decoder_net, var.name))
-                        return b
-
-                    fluid.io.load_vars(
-                        exe,
-                        self.pretrained_decoder_net,
-                        decoder_prog,
-                        predicate=_if_exist)
-                else:
-                    exe.run(startup_prog)
-                # trainable
-                for param in decoder_prog.global_block().iter_parameters():
-                    param.trainable = trainable
-        return dec_image, dec_outputs, decoder_prog
-
     def style_transfer(self,
-                       content_paths,
-                       style_paths,
-                       alpha,
+                       images=None,
+                       paths=None,
+                       alpha=1,
                        use_gpu=False,
-                       output_dir=None):
-        """API for image style transfer.
-
-        :param content_paths: file paths to the content images.
-        :type content_paths: list of str
-        :param style_paths: file paths to the style images.
-        :type style_paths: list of str
-        :param alpha: The weight that controls the degree of stylization. Should be between 0 and 1.
-        :type alpha: float
-        :param use_gpu: whether to use gpu.
-        :type use_gpu: bool
-        :param output_dir: the path to store output images.
-        :type output_dir: str
+                       output_dir=None,
+                       visualization=False):
         """
+        API for image style transfer.
+
+        Args:
+            images (list): list of [content_arr, style_arrs_list, style_interpolation_weights],
+                the first element is a numpy.ndarry with shape [H, W, C], content data.
+                the second element is a list of numpy.ndarray with shape [H, W, C], styles data.
+                the last element is a list (Optional), the interpolation weights correspond to styles.
+            paths (list): list of [content_path, style_paths_list, style_interpolation_weights],
+                the first element is a str, the path to content,
+                the second element is a list, the path to styles,
+                the last element is a list (Optional), the interpolation weights correspond to styles.
+            alpha (float): The weight that controls the degree of stylization. Should be between 0 and 1.
+            use_gpu (bool): whether to use gpu.
+            output_dir (str): the path to store output images.
+            visualization (bool): whether to save image or not.
+
+        Returns:
+            im_output (list of numpy.ndarray): list of output images.
+        """
+        # create output directory
         output_dir = output_dir if output_dir else os.path.join(
             os.getcwd(), 'transfer_result')
-        for content_path in content_paths:
-            for style_path in style_paths:
-                # preprocess to prepare data
-                content = PaddleTensor(reader(content_path).copy())
-                style = PaddleTensor(reader(style_path).copy())
-                # encode
-                if use_gpu:
-                    content_feats = self.gpu_predictor_enc.run([content])
-                    style_feats = self.gpu_predictor_enc.run([style])
+        im_output = list()
+        # images
+        if images:
+            for arr_list in images:
+                if len(arr_list) > 1:
+                    content_arr = arr_list[0]
+                    content = PaddleTensor(reader(im_arr=content_arr).copy())
+                    styles_arr_list = arr_list[1]
+                    if len(arr_list) == 3:
+                        style_interpolation_weights = arr_list[2]
+                    else:
+                        style_interpolation_weights = np.ones(
+                            len(styles_arr_list))
+                    style_interpolation_weights = [
+                        style_interpolation_weights[j] /
+                        sum(style_interpolation_weights)
+                        for j in range(len(style_interpolation_weights))
+                    ]
+                    accumulate = np.zeros((3, 512, 512))
+                    save_im_name = output_dir + '/' + 'time={}'.format(
+                        time.time()) + '_alpha={}_'.format(alpha)
+                    for i, style_arr in enumerate(styles_arr_list):
+                        style = PaddleTensor(reader(im_arr=style_arr).copy())
+                        # encode
+                        if use_gpu:
+                            content_feats = self.gpu_predictor_enc.run(
+                                [content])
+                            style_feats = self.gpu_predictor_enc.run([style])
+                        else:
+                            content_feats = self.cpu_predictor_enc.run(
+                                [content])
+                            style_feats = self.cpu_predictor_enc.run([style])
+                        fr_feats = fr(content_feats[0].as_ndarray(),
+                                      style_feats[0].as_ndarray(), alpha)
+                        fr_feats = PaddleTensor(fr_feats.copy())
+                        # decode
+                        if use_gpu:
+                            predict_outputs = self.gpu_predictor_dec.run(
+                                [fr_feats])
+                        else:
+                            predict_outputs = self.cpu_predictor_dec.run(
+                                [fr_feats])
+                        # interpolation
+                        accumulate += predict_outputs[0].as_ndarray(
+                        )[0] * style_interpolation_weights[i]
+                    # postprocess
+                    save_im_name += '{}_styles'.format(
+                        len(styles_arr_list)) + '.jpg'
+                    path_result = postprocess(accumulate, output_dir,
+                                              save_im_name, visualization)
+                    im_output.append(path_result)
                 else:
-                    content_feats = self.cpu_predictor_enc.run([content])
-                    style_feats = self.cpu_predictor_enc.run([style])
-                fr_feats = fr(content_feats[0].as_ndarray(),
-                              style_feats[0].as_ndarray(), alpha)
-                fr_feats = PaddleTensor(fr_feats.copy())
-                # decode
-                if use_gpu:
-                    outputs = self.gpu_predictor_dec.run([fr_feats])
+                    raise ValueError(
+                        'each element is a list, whose length must be larger than 1.'
+                    )
+        # paths
+        if paths:
+            for path in paths:
+                if len(path) > 1:
+                    content_path = path[0]
+                    content = PaddleTensor(reader(im_path=content_path).copy())
+                    style_paths = path[1]
+                    if len(path) == 3:
+                        style_interpolation_weights = path[2]
+                    else:
+                        style_interpolation_weights = np.ones(len(style_paths))
+                    style_interpolation_weights = [
+                        style_interpolation_weights[j] /
+                        sum(style_interpolation_weights)
+                        for j in range(len(style_interpolation_weights))
+                    ]
+                    accumulate = np.zeros((3, 512, 512))
+                    save_im_name = output_dir + '/' + os.path.splitext(
+                        os.path.basename(
+                            content_path))[0] + '_alpha={}_'.format(alpha)
+                    for i, style_path in enumerate(style_paths):
+                        style = PaddleTensor(reader(im_path=style_path).copy())
+                        # encode
+                        if use_gpu:
+                            content_feats = self.gpu_predictor_enc.run(
+                                [content])
+                            style_feats = self.gpu_predictor_enc.run([style])
+                        else:
+                            content_feats = self.cpu_predictor_enc.run(
+                                [content])
+                            style_feats = self.cpu_predictor_enc.run([style])
+                        fr_feats = fr(content_feats[0].as_ndarray(),
+                                      style_feats[0].as_ndarray(), alpha)
+                        fr_feats = PaddleTensor(fr_feats.copy())
+                        # decode
+                        if use_gpu:
+                            predict_outputs = self.gpu_predictor_dec.run(
+                                [fr_feats])
+                        else:
+                            predict_outputs = self.cpu_predictor_dec.run(
+                                [fr_feats])
+                        # interpolation
+                        accumulate += predict_outputs[0].as_ndarray(
+                        )[0] * style_interpolation_weights[i]
+                        save_im_name = save_im_name + os.path.splitext(
+                            os.path.basename(style_path)
+                        )[0] + '_w=%.2f_&' % style_interpolation_weights[i]
+                    # postprocess
+                    save_im_name += '.jpg'
+                    path_result = postprocess(accumulate, output_dir,
+                                              save_im_name, visualization)
+                    im_output.append(path_result)
                 else:
-                    outputs = self.cpu_predictor_dec.run([fr_feats])
-                output_data = outputs[0].as_ndarray()
-                # postprocess
-                postprocess(output_data[0], content_path, style_path,
-                            output_dir)
+                    raise ValueError(
+                        'path is a list, whose length must be larger than 1.')
+        return im_output
