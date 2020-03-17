@@ -15,6 +15,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from yolov3_resnet34_coco2017.resnet import ResNet
+
 
 @moduleinfo(
     name="yolov3_resnet34_coco2017",
@@ -90,13 +92,14 @@ class YOLOv3ResNet34(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                resnet = hub.Module(name='resnet34_v2_imagenet')
-                _, _outputs, _ = resnet.context(
-                    input_image=image,
-                    variant='b',
-                    norm_type='sync_bn',
+                backbone = ResNet(
+                    norm_type='bn',
+                    freeze_at=0,
+                    freeze_norm=False,
+                    norm_decay=0.,
+                    depth=34,
                     feature_maps=[3, 4, 5])
-                body_feats = _outputs['body_feats']
+                body_feats = backbone(image)
                 inputs, outputs, context_prog = self.yolov3.context(
                     body_feats=body_feats,
                     yolo_head=yolo_head,

@@ -19,6 +19,7 @@ from retinanet_resnet50_fpn_coco2017.fpn import FPN
 from retinanet_resnet50_fpn_coco2017.retina_head import AnchorGenerator, RetinaTargetAssign, RetinaOutputDecoder, RetinaHead
 from retinanet_resnet50_fpn_coco2017.processor import load_label_info, postprocess
 from retinanet_resnet50_fpn_coco2017.data_feed import test_reader, padding_minibatch
+from retinanet_resnet50_fpn_coco2017.resnet import ResNet
 
 
 @moduleinfo(
@@ -98,13 +99,13 @@ class RetinaNetResNet50FPN(hub.Module):
             im_info = fluid.layers.data(
                 name='im_info', shape=[3], dtype='float32', lod_level=0)
             # backbone
-            resnet = hub.Module(name='resnet50_v2_imagenet')
-            _, _outputs, _ = resnet.context(
-                input_image=image,
-                variant='b',
+            backbone = ResNet(
                 norm_type='affine_channel',
+                freeze_at=2,
+                norm_decay=0.,
+                depth=50,
                 feature_maps=[3, 4, 5])
-            body_feats = _outputs['body_feats']
+            body_feats = backbone(image)
             # retina_head
             retina_head = RetinaHead(
                 anchor_generator=AnchorGenerator(

@@ -15,6 +15,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from ssd_vgg16_512_coco2017.vgg import VGG
+
 
 @moduleinfo(
     name="ssd_vgg16_512_coco2017",
@@ -94,17 +96,17 @@ class SSDVGG16(hub.Module):
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 512, 512], dtype='float32')
                 # backbone
-                vgg = hub.Module(name='vgg16_imagenet')
-                _, _outputs, _ = vgg.context(
-                    input_image=image,
-                    pretrained=False,
+                backbone = VGG(
+                    depth=16,
+                    with_extra_blocks=True,
                     normalizations=[20., -1, -1, -1, -1, -1, -1],
                     extra_block_filters=[[256, 512, 1, 2,
                                           3], [128, 256, 1, 2, 3],
                                          [128, 256, 1, 2,
                                           3], [128, 256, 1, 2, 3],
                                          [128, 256, 1, 1, 4]])
-                body_feats = _outputs['body_feats']
+                body_feats = backbone(image)
+
                 # multi_box_head
                 if multi_box_head is None:
                     multi_box_head = self.ssd.MultiBoxHead(

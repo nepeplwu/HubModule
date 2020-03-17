@@ -18,6 +18,7 @@ from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predic
 from paddlehub.io.parser import txt_parser
 
 from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
+from faster_rcnn_resnet50_fpn_coco2017.resnet import ResNet, ResNetC5
 
 
 @moduleinfo(
@@ -97,11 +98,13 @@ class FasterRCNNResNet50RPN(hub.Module):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
-                resnet = hub.Module(name='resnet50_v2_imagenet')
-                _, _outputs, _ = resnet.context(input_image=image, variant='b',\
-                                                 norm_type='affine_channel', feature_maps=[2, 3, 4, 5])
-                body_feats = _outputs['body_feats']
-
+                # backbone
+                backbone = ResNet(
+                    norm_type='affine_channel',
+                    depth=50,
+                    feature_maps=[2, 3, 4, 5],
+                    freeze_at=2)
+                body_feats = backbone(image)
                 # fpn: FPN
                 fpn = FPN(
                     max_level=6,

@@ -17,6 +17,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from faster_rcnn_resnet50_coco2017.resnet import ResNet, ResNetC5
+
 
 @moduleinfo(
     name="faster_rcnn_resnet50_coco2017",
@@ -95,14 +97,13 @@ class FasterRCNNResNet50(hub.Module):
             with fluid.unique_name.guard():
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
-                resnet = hub.Module(name='resnet50_v2_imagenet')
-                _, _outputs, _ = resnet.context(
-                    input_image=image,
-                    variant='b',
+                # backbone
+                backbone = ResNet(
                     norm_type='affine_channel',
-                    feature_maps=4)
-                body_feats = _outputs['body_feats']
-
+                    depth=50,
+                    feature_maps=4,
+                    freeze_at=2)
+                body_feats = backbone(image)
                 # rpn_head: RPNHead
                 if rpn_head is None:
                     rpn_head = self.faster_rcnn.RPNHead(
@@ -132,15 +133,9 @@ class FasterRCNNResNet50(hub.Module):
                     roi_extractor = self.faster_rcnn.RoIAlign(
                         resolution=14, sampling_ratio=0, spatial_scale=0.0625)
                 # bbox_head: BBoxHead
-                ResNetC5 = resnet.context(
-                    input_image=image,
-                    variant='b',
-                    norm_type='affine_channel',
-                    feature_maps=[5],
-                    return_c5=True)
                 if bbox_head is None:
                     bbox_head = self.faster_rcnn.BBoxHead(
-                        head=ResNetC5,
+                        head=ResNetC5(depth=50, norm_type='affine_channel'),
                         nms=self.faster_rcnn.MultiClassNMS(
                             keep_top_k=100,
                             nms_threshold=0.5,

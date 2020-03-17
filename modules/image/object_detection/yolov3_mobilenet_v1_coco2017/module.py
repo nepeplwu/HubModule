@@ -15,6 +15,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from yolov3_mobilenet_v1_coco2017.mobilenet_v1 import MobileNet
+
 
 @moduleinfo(
     name="yolov3_mobilenet_v1_coco2017",
@@ -91,11 +93,12 @@ class YOLOv3MobileNetv1(hub.Module):
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
                 # backbone
-                mobilenet = hub.Module(name='mobilenet_v1_imagenet')
-                _, _outputs, _ = mobilenet.context(
-                    input_image=image, yolo_v3=True)
-                body_feats = _outputs['body_feats']
-
+                backbone = MobileNet(
+                    norm_type='sync_bn',
+                    norm_decay=0.,
+                    conv_group_scale=1,
+                    with_extra_blocks=False)
+                body_feats = backbone(image)
                 inputs, outputs, context_prog = self.yolov3.context(
                     body_feats=body_feats,
                     yolo_head=yolo_head,
