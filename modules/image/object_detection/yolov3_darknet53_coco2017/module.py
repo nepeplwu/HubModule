@@ -15,6 +15,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from yolov3_darknet53_coco2017.darknet import DarkNet
+
 
 @moduleinfo(
     name="yolov3_darknet53_coco2017",
@@ -89,9 +91,8 @@ class YOLOv3DarkNet53(hub.Module):
                 # yolo_head
                 if yolo_head is None:
                     yolo_head = self.yolov3.YOLOv3Head()
-                darknet = hub.Module(name='darknet53_imagenet')
-                _, _outputs, _ = darknet.context(input_image=image)
-                body_feats = _outputs['body_feats']
+                backbone = DarkNet(norm_type='bn', norm_decay=0., depth=53)
+                body_feats = backbone(image)
                 inputs, outputs, context_prog = self.yolov3.context(
                     body_feats=body_feats,
                     yolo_head=yolo_head,

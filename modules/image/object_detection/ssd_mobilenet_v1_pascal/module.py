@@ -15,6 +15,8 @@ from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
 
+from ssd_mobilenet_v1_pascal.mobilenet_v1 import MobileNet
+
 
 @moduleinfo(
     name="ssd_mobilenet_v1_pascal",
@@ -93,9 +95,14 @@ class SSDMobileNetv1(hub.Module):
                 # image
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 300, 300], dtype='float32')
-                mobilenet_v1 = hub.Module(name='mobilenet_v1_imagenet')
-                _, _outputs, _ = mobilenet_v1.context(input_image=image)
-                body_feats = _outputs['body_feats']
+                backbone = MobileNet(
+                    norm_decay=0.,
+                    conv_group_scale=1,
+                    conv_learning_rate=0.1,
+                    extra_block_filters=[[256, 512], [128, 256], [128, 256],
+                                         [64, 128]],
+                    with_extra_blocks=True)
+                body_feats = backbone(image)
                 # multi_box_head
                 if multi_box_head is None:
                     multi_box_head = self.ssd.MultiBoxHead(
