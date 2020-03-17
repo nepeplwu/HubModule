@@ -106,13 +106,6 @@ class RetinaNetResNet50FPN(hub.Module):
                 depth=50,
                 feature_maps=[3, 4, 5])
             body_feats = backbone(image)
-            #            resnet = hub.Module(name='resnet50_v2_imagenet')
-            #            _, _outputs, _ = resnet.context(
-            #                input_image=image,
-            #                variant='b',
-            #                norm_type='affine_channel',
-            #                feature_maps=[3, 4, 5])
-            #            body_feats = _outputs['body_feats']
             # retina_head
             retina_head = RetinaHead(
                 anchor_generator=AnchorGenerator(
