@@ -2,14 +2,16 @@
 from __future__ import absolute_import
 from __future__ import division
 
+import ast
 import time
 import os
 
+import argparse
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable, serving
 
 from .encoder_network import encoder_net
 from .decoder_network import decoder_net
@@ -68,6 +70,7 @@ class StyleProjection(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor_dec = create_paddle_predictor(gpu_config_dec)
 
+    @serving
     def style_transfer(self,
                        images=None,
                        paths=None,
@@ -209,3 +212,78 @@ class StyleProjection(hub.Module):
                     raise ValueError(
                         'path is a list, whose length must be larger than 1.')
         return im_output
+
+    @runnable
+    def run_cmd(self, argvs):
+        """
+        Run as a command.
+        """
+        self.parser = argparse.ArgumentParser(
+            description="Run the style_projection_coco_wikiart module.",
+            prog='hub run style_projection_coco_wikiart',
+            usage='%(prog)s',
+            add_help=True)
+
+        self.arg_input_group = self.parser.add_argument_group(
+            title="Input options", description="Input data. Required")
+        self.arg_config_group = self.parser.add_argument_group(
+            title="Config options",
+            description=
+            "Run configuration for controlling module behavior, not required.")
+        self.add_module_config_arg()
+        self.add_module_input_arg()
+        args = self.parser.parse_args(argvs)
+        if args.style_interpolation_weights is None:
+            paths = [[args.content_path, args.style_paths.split(',')]]
+        else:
+            paths = [[
+                args.content_path,
+                args.style_paths.split(','),
+                list(args.style_interpolation_weights)
+            ]]
+        results = self.style_transfer(
+            paths=paths,
+            alpha=args.alpha,
+            use_gpu=args.use_gpu,
+            output_dir=args.output_dir,
+            visualization=args.visualization)
+        return results
+
+    def add_module_config_arg(self):
+        """
+        Add the command config options.
+        """
+        self.arg_config_group.add_argument(
+            '--use_gpu',
+            type=ast.literal_eval,
+            default=False,
+            help="whether use GPU or not")
+        self.arg_config_group.add_argument(
+            '--output_dir',
+            type=str,
+            default=None,
+            help="The directory to save output images.")
+        self.arg_config_group.add_argument(
+            '--visualization',
+            type=ast.literal_eval,
+            default=False,
+            help="whether to save output as images.")
+
+    def add_module_input_arg(self):
+        """
+        Add the command input options.
+        """
+        self.arg_input_group.add_argument(
+            '--content_path', type=str, help="path to content.")
+        self.arg_input_group.add_argument(
+            '--style_paths', type=str, help="path to styles.")
+        self.arg_input_group.add_argument(
+            '--style_interpolation_weights',
+            type=ast.literal_eval,
+            default=None,
+            help="interpolation weights of styles.")
+        self.arg_config_group.add_argument(
+            '--alpha',
+            type=ast.literal_eval,
+            default=1,
+            help="The parameter to control the tranform degree.")
