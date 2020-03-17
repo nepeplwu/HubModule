@@ -155,7 +155,7 @@ class DarkNet(object):
                     name=self.prefix_name + "stage.{}.downsample".format(i))
         if self.get_prediction:
             pool = fluid.layers.pool2d(
-                input=downsample_, pool_type='avg', global_pooling=True)
+                input=block, pool_type='avg', global_pooling=True)
             stdv = 1.0 / math.sqrt(pool.shape[1] * 1.0)
             out = fluid.layers.fc(
                 input=pool,
@@ -164,6 +164,7 @@ class DarkNet(object):
                     initializer=fluid.initializer.Uniform(-stdv, stdv),
                     name='fc_weights'),
                 bias_attr=ParamAttr(name='fc_offset'))
+            out = fluid.layers.softmax(out)
             return out
         else:
             return blocks
