@@ -23,7 +23,7 @@ from paddlehub.io.parser import txt_parser
     summary="Baidu's YOLOv3 model for object detection, with backbone DarkNet.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class YoloV3DarkNet53(hub.Module):
+class YOLOv3DarkNet53(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
         # default pretrained model of YOLOv3_DarkNet53, the shape of input image tensor is (3, 608, 608)

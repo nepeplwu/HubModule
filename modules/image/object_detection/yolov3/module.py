@@ -21,7 +21,7 @@ from yolov3.yolo_head import YOLOv3Head
     summary="Baidu's YOLOv3 model for object detection.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class YoloV3(hub.Module):
+class YOLOv3(hub.Module):
     def _initialize(self):
         self.reader = reader
         self.load_label_info = load_label_info
