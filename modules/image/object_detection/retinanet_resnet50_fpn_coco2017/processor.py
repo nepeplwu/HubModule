@@ -73,7 +73,7 @@ def load_label_info(file_path):
 
 
 def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
-                handle_id, draw_bbox):
+                handle_id, visualization):
     """postprocess the lod_tensor produced by fluid.Executor.run
 
     :param paths: the path of images.
@@ -90,12 +90,12 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
     :type output_dir: str
     :param handle_id: The number of images that have been handled.
     :type handle_id: int
-    :param draw_bbox: whether to draw bbox.
-    :param draw_bbox: bool
+    :param visualization: whether to draw bbox.
+    :param visualization: bool
     """
     lod_tensor = data_out[0]
-    lod = lod_tensor.lod()[0]
-    results = np.array(lod_tensor)
+    lod = lod_tensor.lod[0]
+    results = lod_tensor.as_ndarray()
 
     if handle_id < len(paths):
         unhandled_paths = paths[handle_id:]
@@ -105,7 +105,7 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
 
     output_dir = output_dir if output_dir else os.path.join(
         os.getcwd(), 'detection_result')
-    if draw_bbox:
+    if visualization:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -121,7 +121,7 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
             org_img_path = get_save_image_name(
                 org_img, output_dir, 'image_numpy_{}.jpg'.format(
                     (handle_id + index)))
-            if draw_bbox:
+            if visualization:
                 org_img.save(org_img_path)
         org_img_height = org_img.height
         org_img_width = org_img.width
@@ -145,7 +145,7 @@ def postprocess(paths, images, data_out, score_thresh, label_names, output_dir,
 
         output.append(output_i)
 
-        if draw_bbox:
+        if visualization:
             draw_bounding_box_on_image(output_i['path'], output_i['data'],
                                        output_dir)
 

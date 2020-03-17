@@ -4,6 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import ast
+import argparse
 from collections import OrderedDict
 from functools import partial
 from math import ceil
@@ -11,7 +13,9 @@ from math import ceil
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from paddlehub.module.module import moduleinfo
+from paddlehub.module.module import moduleinfo, runnable
+from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
+from paddlehub.io.parser import txt_parser
 
 from faster_rcnn_resnet50_fpn_coco2017.fpn import FPN
 
@@ -29,11 +33,33 @@ class FasterRCNNResNet50RPN(hub.Module):
         self.faster_rcnn = hub.Module(name="faster_rcnn")
         # default pretrained model, Faster-RCNN with backbone ResNet50, shape of input tensor is [3, 800, 1333]
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "faster_rcnn_r50_fpn_2x")
+            self.directory, "faster_rcnn_resnet50_fpn_model")
         self.label_names = self.faster_rcnn.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self.infer_prog = None
         self.bbox_out = None
+        self._set_config()
+
+    def _set_config(self):
+        """
+        predictor config setting
+        """
+        cpu_config = AnalysisConfig(self.default_pretrained_model_path)
+        cpu_config.disable_glog_info()
+        cpu_config.disable_gpu()
+        self.cpu_predictor = create_paddle_predictor(cpu_config)
+
+        try:
+            _places = os.environ["CUDA_VISIBLE_DEVICES"]
+            int(_places[0])
+            use_gpu = True
+        except:
+            use_gpu = False
+        if use_gpu:
+            gpu_config = AnalysisConfig(self.default_pretrained_model_path)
+            gpu_config.disable_glog_info()
+            gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
+            self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
                 rpn_head=None,
@@ -72,7 +98,7 @@ class FasterRCNNResNet50RPN(hub.Module):
                 image = input_image if input_image else fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
                 resnet = hub.Module(name='resnet50_v2_imagenet')
-                _, _outputs, _ = resnet.context(input_image=image, depth=50, variant='b',\
+                _, _outputs, _ = resnet.context(input_image=image, variant='b',\
                                                  norm_type='affine_channel', feature_maps=[2, 3, 4, 5])
                 body_feats = _outputs['body_feats']
 
@@ -179,7 +205,8 @@ class FasterRCNNResNet50RPN(hub.Module):
                          use_gpu=False,
                          batch_size=1,
                          output_dir=None,
-                         score_thresh=0.5):
+                         score_thresh=0.5,
+                         visualization=True):
         """API of Object Detection.
 
         :param paths: the path of images.
@@ -194,6 +221,8 @@ class FasterRCNNResNet50RPN(hub.Module):
         :type output_dir: str
         :param score_thresh: the threshold of detection confidence.
         :type score_thresh: float
+        :param visualization: whether to draw box and save images.
+        :type visualization: bool
         """
         if self.infer_prog is None:
             inputs, outputs, self.infer_prog = self.context(
@@ -210,7 +239,6 @@ class FasterRCNNResNet50RPN(hub.Module):
         paths = paths if paths else list()
         for yield_data in self.faster_rcnn.test_reader(paths, images):
             all_images.append(yield_data)
-
         images_num = len(all_images)
         loop_num = ceil(images_num / batch_size)
         res = []
@@ -224,16 +252,17 @@ class FasterRCNNResNet50RPN(hub.Module):
                     pass
             padding_image, padding_info, padding_shape = self.faster_rcnn.padding_minibatch(
                 batch_data, coarsest_stride=32, use_padded_im_info=True)
-            feed = {
-                'image': padding_image,
-                'im_info': padding_info,
-                'im_shape': padding_shape
-            }
-            data_out = exe.run(
-                self.infer_prog,
-                feed=feed,
-                fetch_list=[self.bbox_out],
-                return_numpy=False)
+            padding_image_tensor = PaddleTensor(padding_image.copy())
+            padding_info_tensor = PaddleTensor(padding_info.copy())
+            padding_shape_tensor = PaddleTensor(padding_shape.copy())
+            feed_list = [
+                padding_image_tensor, padding_info_tensor, padding_shape_tensor
+            ]
+            if use_gpu:
+                data_out = self.gpu_predictor.run(feed_list)
+            else:
+                data_out = self.cpu_predictor.run(feed_list)
+
             output = self.faster_rcnn.postprocess(
                 paths=paths,
                 images=images,
@@ -242,6 +271,75 @@ class FasterRCNNResNet50RPN(hub.Module):
                 label_names=self.label_names,
                 output_dir=output_path,
                 handle_id=handle_id,
-                draw_bbox=True)
+                visualization=visualization)
             res.append(output)
         return res
+
+    def add_module_config_arg(self):
+        """
+        Add the command config options
+        """
+        self.arg_config_group.add_argument(
+            '--use_gpu',
+            type=ast.literal_eval,
+            default=False,
+            help="whether use GPU or not")
+
+        self.arg_config_group.add_argument(
+            '--batch_size',
+            type=int,
+            default=1,
+            help="batch size for prediction")
+
+    def add_module_input_arg(self):
+        """
+        Add the command input options
+        """
+        self.arg_input_group.add_argument(
+            '--input_path', type=str, default=None, help="input data")
+
+        self.arg_input_group.add_argument(
+            '--input_path',
+            type=str,
+            default=None,
+            help="file contain input data")
+
+    def check_input_data(self, args):
+        input_data = []
+        if args.input_path:
+            input_data = [args.input_path]
+        elif args.input_file:
+            if not os.path.exists(args.input_file):
+                raise RuntimeError("File %s is not exist." % args.input_file)
+            else:
+                input_data = txt_parser.parse(args.input_file, use_strip=True)
+        return input_data
+
+    @runnable
+    def run_cmd(self, argvs):
+        self.parser = argparse.ArgumentParser(
+            description="Run the {}".format(self.name),
+            prog="hub run {}".format(self.name),
+            usage='%(prog)s',
+            add_help=True)
+        self.arg_input_group = self.parser.add_argument_group(
+            title="Input options", description="Input data. Required")
+        self.arg_config_group = self.parser.add_argument_group(
+            title="Config options",
+            description=
+            "Run configuration for controlling module behavior, not required.")
+        self.add_module_config_arg()
+
+        self.add_module_input_arg()
+        args = self.parser.parse_args(argvs)
+        input_data = self.check_input_data(args)
+        if len(input_data) == 0:
+            self.parser.print_help()
+            exit(1)
+        else:
+            for image_path in input_data:
+                if not os.path.exists(image_path):
+                    raise RuntimeError(
+                        "File %s or %s is not exist." % image_path)
+        return self.object_detection(
+            paths=input_data, use_gpu=args.use_gpu, batch_size=args.batch_size)

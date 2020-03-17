@@ -1,0 +1,11 @@
+name: style_projection_coco_wikiart
+dir: "modules/image/style_transfer/style_projection/"
+resources:
+  -
+    url: https://bj.bcebos.com/paddlehub/style_transfer/style_projection_enc.tar
+    dest: .
+    uncompress: True
+  -
+    url: https://bj.bcebos.com/paddlehub/style_transfer/style_projection_dec.tar
+    dest: .
+    uncompress: True
