@@ -41,7 +41,7 @@ class ResNet(object):
                  norm_type='sync_bn',
                  freeze_norm=False,
                  norm_decay=0.,
-                 variant='d',
+                 variant='b',
                  feature_maps=[3, 4, 5],
                  dcn_v2_stages=[],
                  weight_prefix_name='',
