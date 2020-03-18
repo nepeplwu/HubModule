@@ -20,11 +20,11 @@ from .data_feed import reader
 
 
 @moduleinfo(
-    name="style_projection_coco_wikiart",
+    name="stylepro_artistic_coco_wikiart",
     version="1.0.0",
     type="cv/style_transfer",
     summary=
-    "Style Projection is an algorithm for Arbitrary image style, which is parameter-free, fast yet effective.",
+    "StylePro Artistic is an algorithm for Arbitrary image style, which is parameter-free, fast yet effective.",
     author="paddlepaddle",
     author_email="paddlepaddle@baidu.com")
 class StyleProjection(hub.Module):
@@ -102,115 +102,35 @@ class StyleProjection(hub.Module):
         output_dir = output_dir if output_dir else os.path.join(
             os.getcwd(), 'transfer_result')
         im_output = list()
-        # images
-        if images:
-            for arr_list in images:
-                if len(arr_list) > 1:
-                    content_arr = arr_list[0]
-                    content = PaddleTensor(reader(im_arr=content_arr).copy())
-                    styles_arr_list = arr_list[1]
-                    if len(arr_list) == 3:
-                        style_interpolation_weights = arr_list[2]
-                    else:
-                        style_interpolation_weights = np.ones(
-                            len(styles_arr_list))
-                    style_interpolation_weights = [
-                        style_interpolation_weights[j] /
-                        sum(style_interpolation_weights)
-                        for j in range(len(style_interpolation_weights))
-                    ]
-                    accumulate = np.zeros((3, 512, 512))
-                    save_im_name = output_dir + '/' + 'time={}'.format(
-                        time.time()) + '_alpha={}_'.format(alpha)
-                    for i, style_arr in enumerate(styles_arr_list):
-                        style = PaddleTensor(reader(im_arr=style_arr).copy())
-                        # encode
-                        if use_gpu:
-                            content_feats = self.gpu_predictor_enc.run(
-                                [content])
-                            style_feats = self.gpu_predictor_enc.run([style])
-                        else:
-                            content_feats = self.cpu_predictor_enc.run(
-                                [content])
-                            style_feats = self.cpu_predictor_enc.run([style])
-                        fr_feats = fr(content_feats[0].as_ndarray(),
-                                      style_feats[0].as_ndarray(), alpha)
-                        fr_feats = PaddleTensor(fr_feats.copy())
-                        # decode
-                        if use_gpu:
-                            predict_outputs = self.gpu_predictor_dec.run(
-                                [fr_feats])
-                        else:
-                            predict_outputs = self.cpu_predictor_dec.run(
-                                [fr_feats])
-                        # interpolation
-                        accumulate += predict_outputs[0].as_ndarray(
-                        )[0] * style_interpolation_weights[i]
-                    # postprocess
-                    save_im_name += '{}_styles'.format(
-                        len(styles_arr_list)) + '.jpg'
-                    path_result = postprocess(accumulate, output_dir,
-                                              save_im_name, visualization)
-                    im_output.append(path_result)
+        for component in reader(images, paths):
+            content = PaddleTensor(component['content_arr'].copy())
+            accumulate = np.zeros((3, 512, 512))
+            for i, style_arr in enumerate(component['styles_arr_list']):
+                style = PaddleTensor(style_arr.copy())
+                # encode
+                if use_gpu:
+                    content_feats = self.gpu_predictor_enc.run([content])
+                    style_feats = self.gpu_predictor_enc.run([style])
                 else:
-                    raise ValueError(
-                        'each element is a list, whose length must be larger than 1.'
-                    )
-        # paths
-        if paths:
-            for path in paths:
-                if len(path) > 1:
-                    content_path = path[0]
-                    content = PaddleTensor(reader(im_path=content_path).copy())
-                    style_paths = path[1]
-                    if len(path) == 3:
-                        style_interpolation_weights = path[2]
-                    else:
-                        style_interpolation_weights = np.ones(len(style_paths))
-                    style_interpolation_weights = [
-                        style_interpolation_weights[j] /
-                        sum(style_interpolation_weights)
-                        for j in range(len(style_interpolation_weights))
-                    ]
-                    accumulate = np.zeros((3, 512, 512))
-                    save_im_name = output_dir + '/' + os.path.splitext(
-                        os.path.basename(
-                            content_path))[0] + '_alpha={}_'.format(alpha)
-                    for i, style_path in enumerate(style_paths):
-                        style = PaddleTensor(reader(im_path=style_path).copy())
-                        # encode
-                        if use_gpu:
-                            content_feats = self.gpu_predictor_enc.run(
-                                [content])
-                            style_feats = self.gpu_predictor_enc.run([style])
-                        else:
-                            content_feats = self.cpu_predictor_enc.run(
-                                [content])
-                            style_feats = self.cpu_predictor_enc.run([style])
-                        fr_feats = fr(content_feats[0].as_ndarray(),
-                                      style_feats[0].as_ndarray(), alpha)
-                        fr_feats = PaddleTensor(fr_feats.copy())
-                        # decode
-                        if use_gpu:
-                            predict_outputs = self.gpu_predictor_dec.run(
-                                [fr_feats])
-                        else:
-                            predict_outputs = self.cpu_predictor_dec.run(
-                                [fr_feats])
-                        # interpolation
-                        accumulate += predict_outputs[0].as_ndarray(
-                        )[0] * style_interpolation_weights[i]
-                        save_im_name = save_im_name + os.path.splitext(
-                            os.path.basename(style_path)
-                        )[0] + '_w=%.2f_&' % style_interpolation_weights[i]
-                    # postprocess
-                    save_im_name += '.jpg'
-                    path_result = postprocess(accumulate, output_dir,
-                                              save_im_name, visualization)
-                    im_output.append(path_result)
+                    content_feats = self.cpu_predictor_enc.run([content])
+                    style_feats = self.cpu_predictor_enc.run([style])
+                fr_feats = fr(content_feats[0].as_ndarray(),
+                              style_feats[0].as_ndarray(), alpha)
+                fr_feats = PaddleTensor(fr_feats.copy())
+                # decode
+                if use_gpu:
+                    predict_outputs = self.gpu_predictor_dec.run([fr_feats])
                 else:
-                    raise ValueError(
-                        'path is a list, whose length must be larger than 1.')
+                    predict_outputs = self.cpu_predictor_dec.run([fr_feats])
+                # interpolation
+                accumulate += predict_outputs[0].as_ndarray(
+                )[0] * component['style_interpolation_weights'][i]
+                # postprocess
+                save_im_name = output_dir + '/' + component[
+                    'save_im_name'] + '_alpha={}_'.format(alpha) + '.jpg'
+                path_result = postprocess(accumulate, output_dir, save_im_name,
+                                          visualization)
+                im_output.append(path_result)
         return im_output
 
     @runnable

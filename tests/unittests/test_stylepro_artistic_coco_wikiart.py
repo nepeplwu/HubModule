@@ -12,15 +12,16 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 
-content_dir = '../../image_dataset/style_tranfer/content/'
-style_dir = '../../image_dataset/style_tranfer/style/'
+content_dir = '../image_dataset/style_tranfer/content/'
+style_dir = '../image_dataset/style_tranfer/style/'
 
 
 class TestStyleProjection(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.style_projection = hub.Module(name="style_projection_coco_wikiart")
+        self.style_projection = hub.Module(
+            name="stylepro_artistic_coco_wikiart")
 
     @classmethod
     def tearDownClass(self):
@@ -90,7 +91,7 @@ class TestStyleProjection(unittest.TestCase):
                     ]],
                     alpha=0.8,
                     use_gpu=True,
-                    output_dir='transfer_output_ndarray',
+                    output_dir='transfer_out',
                     visualization=True)
 
 
