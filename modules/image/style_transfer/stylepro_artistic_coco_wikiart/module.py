@@ -104,24 +104,21 @@ class StyleProjection(hub.Module):
         im_output = list()
         for component in reader(images, paths):
             content = PaddleTensor(component['content_arr'].copy())
+            content_feats = self.gpu_predictor_enc.run(
+                [content]) if use_gpu else self.cpu_predictor_enc.run([content])
             accumulate = np.zeros((3, 512, 512))
             for i, style_arr in enumerate(component['styles_arr_list']):
                 style = PaddleTensor(style_arr.copy())
                 # encode
-                if use_gpu:
-                    content_feats = self.gpu_predictor_enc.run([content])
-                    style_feats = self.gpu_predictor_enc.run([style])
-                else:
-                    content_feats = self.cpu_predictor_enc.run([content])
-                    style_feats = self.cpu_predictor_enc.run([style])
+                style_feats = self.gpu_predictor_enc.run(
+                    [style]) if use_gpu else self.cpu_predictor_enc.run([style])
                 fr_feats = fr(content_feats[0].as_ndarray(),
                               style_feats[0].as_ndarray(), alpha)
                 fr_feats = PaddleTensor(fr_feats.copy())
                 # decode
-                if use_gpu:
-                    predict_outputs = self.gpu_predictor_dec.run([fr_feats])
-                else:
-                    predict_outputs = self.cpu_predictor_dec.run([fr_feats])
+                predict_outputs = self.gpu_predictor_dec.run([
+                    fr_feats
+                ]) if use_gpu else self.cpu_predictor_dec.run([fr_feats])
                 # interpolation
                 accumulate += predict_outputs[0].as_ndarray(
                 )[0] * component['style_interpolation_weights'][i]
