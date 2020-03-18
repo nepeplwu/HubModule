@@ -28,8 +28,6 @@ def reader(paths=[], images=None):
             img = cv2.imread(img_path).astype('float32')
             img_list.append(img)
     if images is not None:
-        assert type(images) is np.ndarray, 'type(images) is not numpy.ndarray'
-        assert images.ndim == 4, 'images.ndim is not equal to 4'
         for img in images:
             img_list.append(img)
 

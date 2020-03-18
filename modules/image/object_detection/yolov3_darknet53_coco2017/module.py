@@ -127,9 +127,10 @@ class YOLOv3DarkNet53(hub.Module):
     def object_detection(self,
                          paths=None,
                          images=None,
+                         data=None,
                          use_gpu=False,
                          batch_size=1,
-                         output_dir=None,
+                         output_dir='detection_result',
                          score_thresh=0.5,
                          visualization=True):
         """API of Object Detection.
@@ -149,31 +150,16 @@ class YOLOv3DarkNet53(hub.Module):
         :param visualization: whether to draw bounding box and save images.
         :type visualization: bool
         """
-        if self.infer_prog is None:
-            inputs, outputs, self.infer_prog = self.context(
-                trainable=False, pretrained=True)
-
-            self.infer_prog = self.infer_prog.clone(for_test=True)
-            self.image = inputs['image']
-            self.im_size = inputs['im_size']
-            self.bbox_out = outputs['bbox_out']
-
-        place = fluid.CUDAPlace(0) if use_gpu else fluid.CPUPlace()
-        exe = fluid.Executor(place)
-
-        paths = paths if paths else list()
-        output_path = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'detection_result')
-        feeder = fluid.DataFeeder([self.image, self.im_size], place)
+        if data and 'image' in data:
+            paths = data['image'] if not paths else paths + data['image']
+        paths = paths if paths else []
         data_reader = partial(self.yolov3.reader, paths, images)
         batch_reader = fluid.io.batch(data_reader, batch_size=batch_size)
         res = []
         for iter_id, feed_data in enumerate(batch_reader()):
             feed_data = np.array(feed_data)
-            image_ = np.array(feeder.feed(feed_data)['image'])
-            im_size = np.array(feeder.feed(feed_data)['im_size'])
-            image_tensor = PaddleTensor(image_.copy())
-            im_size_tensor = PaddleTensor(im_size.copy())
+            image_tensor = PaddleTensor(np.array(list(feed_data[:, 0])))
+            im_size_tensor = PaddleTensor(np.array(list(feed_data[:, 1])))
             if use_gpu:
                 data_out = self.gpu_predictor.run(
                     [image_tensor, im_size_tensor])
@@ -186,10 +172,10 @@ class YOLOv3DarkNet53(hub.Module):
                 data_out=data_out,
                 score_thresh=score_thresh,
                 label_names=self.label_names,
-                output_dir=output_path,
+                output_dir=output_dir,
                 handle_id=iter_id * batch_size,
                 visualization=visualization)
-            res.append(output)
+            res += output
         return res
 
     def add_module_config_arg(self):

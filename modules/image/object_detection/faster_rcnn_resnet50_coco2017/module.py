@@ -192,9 +192,10 @@ class FasterRCNNResNet50(hub.Module):
     def object_detection(self,
                          paths=None,
                          images=None,
+                         data=None,
                          use_gpu=False,
                          batch_size=1,
-                         output_dir=None,
+                         output_dir='detection_result',
                          score_thresh=0.5,
                          visualization=True):
         """API of Object Detection.
@@ -214,18 +215,10 @@ class FasterRCNNResNet50(hub.Module):
         :param visualization: whether to draw box and save images.
         :type visualization: bool
         """
-        if self.infer_prog is None:
-            inputs, outputs, self.infer_prog = self.context(
-                trainable=False, pretrained=True, phase='predict')
-            self.infer_prog = self.infer_prog.clone(for_test=True)
-            self.bbox_out = outputs['bbox_out']
-
-        place = fluid.CUDAPlace(0) if use_gpu else fluid.CPUPlace()
-        exe = fluid.Executor(place)
-        output_path = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'detection_result')
-
+        if data and 'image' in data:
+            paths = data['image'] if not paths else paths + data['image']
         all_images = []
+        paths = paths if paths else []
         for yield_return in self.faster_rcnn.test_reader(paths, images):
             all_images.append(yield_return)
 
@@ -258,10 +251,10 @@ class FasterRCNNResNet50(hub.Module):
                 data_out=data_out,
                 score_thresh=score_thresh,
                 label_names=self.label_names,
-                output_dir=output_path,
+                output_dir=output_dir,
                 handle_id=handle_id,
                 visualization=visualization)
-            res.append(output)
+            res += output
         return res
 
     def add_module_config_arg(self):

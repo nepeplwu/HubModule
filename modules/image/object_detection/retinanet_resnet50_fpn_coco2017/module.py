@@ -169,7 +169,7 @@ class RetinaNetResNet50FPN(hub.Module):
                          images=None,
                          use_gpu=False,
                          batch_size=1,
-                         output_dir=None,
+                         output_dir='detection_result',
                          score_thresh=0.5,
                          visualization=True):
         """API of Object Detection.
@@ -188,17 +188,6 @@ class RetinaNetResNet50FPN(hub.Module):
         :param visualization: whether to draw bounding box and save images.
         :type visualization: bool
         """
-        if self.infer_prog is None:
-            inputs, outputs, self.infer_prog = self.context(
-                trainable=False, pretrained=True, get_prediction=True)
-            self.infer_prog = self.infer_prog.clone(for_test=True)
-            self.image = inputs['image']
-            self.im_info = inputs['im_info']
-            self.bbox_out = outputs['bbox_out']
-
-        place = fluid.CUDAPlace(0) if use_gpu else fluid.CPUPlace()
-        exe = fluid.Executor(place)
-
         all_images = []
         paths = paths if paths else []
         for yield_data in test_reader(paths, images):
@@ -233,7 +222,7 @@ class RetinaNetResNet50FPN(hub.Module):
                 output_dir=output_dir,
                 handle_id=handle_id,
                 visualization=visualization)
-            res.append(output)
+            res += output
         return res
 
     def add_module_config_arg(self):

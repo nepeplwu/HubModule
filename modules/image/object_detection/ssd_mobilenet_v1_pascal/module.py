@@ -161,9 +161,10 @@ class SSDMobileNetv1(hub.Module):
     def object_detection(self,
                          paths=None,
                          images=None,
+                         data=None,
                          use_gpu=False,
                          batch_size=1,
-                         output_dir=None,
+                         output_dir='detection_result',
                          score_thresh=0.5,
                          visualization=True):
         """API of Object Detection.
@@ -183,17 +184,8 @@ class SSDMobileNetv1(hub.Module):
         :param visualization: whether to draw bounding box and save images.
         :type visualization: bool
         """
-        if self.infer_prog is None:
-            inputs, outputs, self.infer_prog = self.context(
-                trainable=False, pretrained=True, get_prediction=True)
-            self.infer_prog = self.infer_prog.clone(for_test=True)
-            self.image = inputs['image']
-            self.bbox_out = outputs['bbox_out']
-
-        place = fluid.CUDAPlace(0) if use_gpu else fluid.CPUPlace()
-        exe = fluid.Executor(place)
-        # create reader
-        feeder = fluid.DataFeeder([self.image], place)
+        if data and 'image' in data:
+            paths = data['image'] if not paths else paths + data['image']
         decode_image = self.ssd.DecodeImage(to_rgb=True, with_mixup=False)
         resize_image = self.ssd.ResizeImage(
             target_size=300, interp=1, max_size=0, use_cv2=False)
@@ -211,10 +203,7 @@ class SSDMobileNetv1(hub.Module):
             permute_image=permute_image,
             normalize_image=normalize_image)
         batch_reader = fluid.io.batch(data_reader, batch_size=batch_size)
-        # execute program
-        output_path = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'detection_result')
-        paths = paths if paths else list()
+        paths = paths if paths else []
         res = []
         for iter_id, feed_data in enumerate(batch_reader()):
             np_data = np.array(feed_data).astype('float32')
@@ -233,10 +222,10 @@ class SSDMobileNetv1(hub.Module):
                 data_out=data_out,
                 score_thresh=score_thresh,
                 label_names=self.label_names,
-                output_dir=output_path,
+                output_dir=output_dir,
                 handle_id=iter_id * batch_size,
                 visualization=visualization)
-            res.append(output)
+            res += output
 
         return res
 

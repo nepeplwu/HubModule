@@ -25,6 +25,11 @@ def get_save_image_name(img, output_dir, image_path):
             ext = '.jpg'
         elif img.format == 'BMP':
             ext = '.bmp'
+        else:
+            if img.mode == "RGB" or img.mode == "L":
+                ext = ".jpg"
+            elif img.mode == "RGBA" or img.mode == "P":
+                ext = '.png'
 
     return os.path.join(output_dir, "{}".format(name)) + ext
 
@@ -53,12 +58,12 @@ def draw_bounding_box_on_image(image_path, data_list, save_dir):
             draw.text(xy=(left, top - 15), text=text, fill=(0, 0, 0))
 
     save_name = get_save_image_name(image, save_dir, image_path)
-    print("image with bbox drawed saved as {}".format(
-        os.path.abspath(save_name)))
     if os.path.exists(save_name):
         os.remove(save_name)
 
     image.save(save_name)
+
+    return save_name
 
 
 def clip_bbox(bbox, img_width, img_height):
@@ -116,22 +121,23 @@ def postprocess(paths,
 
     output = []
     for index in range(len(lod) - 1):
+        output_i = {'data': []}
         if index < unhandled_paths_num:
             org_img_path = unhandled_paths[index]
             org_img = Image.open(org_img_path)
+            output_i['path'] = org_img_path
         else:
             org_img = images[index - unhandled_paths_num]
             org_img = org_img.astype(np.uint8)
-            org_img = Image.fromarray(org_img)
-            org_img_path = get_save_image_name(
-                org_img, output_dir, 'image_numpy_{}.jpg'.format(
-                    (handle_id + index)))
+            org_img = Image.fromarray(org_img[:, :, ::-1])
             if visualization:
+                org_img_path = get_save_image_name(
+                    org_img, output_dir, 'image_numpy_{}'.format(
+                        (handle_id + index)))
                 org_img.save(org_img_path)
         org_img_height = org_img.height
         org_img_width = org_img.width
         result_i = results[lod[index]:lod[index + 1]]
-        output_i = {'path': org_img_path, 'data': []}
         for row in result_i:
             if len(row) != 6:
                 continue
@@ -153,7 +159,7 @@ def postprocess(paths,
 
         output.append(output_i)
         if visualization:
-            draw_bounding_box_on_image(output_i['path'], output_i['data'],
-                                       output_dir)
+            output_i['save_path'] = draw_bounding_box_on_image(
+                org_img_path, output_i['data'], output_dir)
 
     return output
