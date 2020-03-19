@@ -8,6 +8,7 @@ from collections import OrderedDict
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddlehub.common.paddle_helper import add_vars_prefix
 
 from yolov3.data_feed import reader
 from yolov3.processor import load_label_info, postprocess
@@ -33,7 +34,7 @@ class YOLOv3(hub.Module):
                 yolo_head,
                 image,
                 trainable=True,
-                param_prefix=''):
+                var_prefix=''):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param body_feats: feature maps of backbone
@@ -44,8 +45,8 @@ class YOLOv3(hub.Module):
         :type image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
-        :param param_prefix: the prefix of parameters in yolo_head and backbone
-        :type param_prefix: str
+        :param var_prefix: the prefix of variables in yolo_head and backbone
+        :type var_prefix: str
         """
         context_prog = image.block.program
         with fluid.program_guard(context_prog, fluid.Program()):
@@ -53,16 +54,32 @@ class YOLOv3(hub.Module):
                 name='im_size', shape=[2], dtype='int32')
             head_features = yolo_head._get_outputs(
                 body_feats, is_train=trainable)
-            inputs = {'image': image, 'im_size': im_size}
-            bbox_out = yolo_head.get_prediction(head_features, im_size)
-            outputs = {'bbox_out': bbox_out}
+            inputs = {
+                'image': var_prefix + image.name,
+                'im_size': var_prefix + im_size.name
+            }
+            #             bbox_out = yolo_head.get_prediction(head_features, im_size)
+            outputs = {
+                'head_features':
+                [var_prefix + var.name for var in head_features]
+            }
 
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)
             exe.run(fluid.default_startup_program())
 
-            if param_prefix:
-                yolo_head.prefix_name = param_prefix
+            add_vars_prefix(context_prog, var_prefix)
+            inputs = {
+                key: context_prog.global_block().vars[value]
+                for key, value in inputs.items()
+            }
+            outputs = {
+                key: [
+                    context_prog.global_block().vars[varname]
+                    for varname in value
+                ]
+                for key, value in outputs.items()
+            }
 
             for param in context_prog.global_block().iter_parameters():
                 param.trainable = trainable

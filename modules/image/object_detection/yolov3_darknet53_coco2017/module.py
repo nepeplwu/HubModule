@@ -65,8 +65,7 @@ class YOLOv3DarkNet53(hub.Module):
                 yolo_head=None,
                 input_image=None,
                 trainable=True,
-                pretrained=True,
-                param_prefix=''):
+                pretrained=True):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param yolo_head: Head of YOLOv3.
@@ -77,8 +76,6 @@ class YOLOv3DarkNet53(hub.Module):
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
-        :param param_prefix: the prefix of parameters in yolo_head and backbone
-        :type param_prefix: str
         """
         wrapped_prog = input_image.block.program if input_image else fluid.Program(
         )
@@ -98,7 +95,7 @@ class YOLOv3DarkNet53(hub.Module):
                     yolo_head=yolo_head,
                     image=image,
                     trainable=trainable,
-                    param_prefix=param_prefix)
+                    var_prefix='@HUB_{}@'.format(self.name))
 
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
@@ -109,17 +106,10 @@ class YOLOv3DarkNet53(hub.Module):
                             os.path.join(self.default_pretrained_model_path,
                                          var.name))
 
-                    load_default_pretrained_model = True
-                    if param_prefix:
-                        load_default_pretrained_model = False
-                    elif input_image:
-                        if input_image.shape != (-1, 3, 608, 608):
-                            load_default_pretrained_model = False
-                    if load_default_pretrained_model:
-                        fluid.io.load_vars(
-                            exe,
-                            self.default_pretrained_model_path,
-                            predicate=_if_exist)
+                    fluid.io.load_vars(
+                        exe,
+                        self.default_pretrained_model_path,
+                        predicate=_if_exist)
                 else:
                     exe.run(startup_program)
                 return inputs, outputs, context_prog
