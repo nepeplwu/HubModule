@@ -15,7 +15,7 @@ import paddlehub as hub
 pic_dir = '../image_dataset/face_detection'
 
 
-class TestHumanPoseEstimation(unittest.TestCase):
+class TestFaceDetector320(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
@@ -35,9 +35,6 @@ class TestHumanPoseEstimation(unittest.TestCase):
     def tearDown(self):
         "Call tearDown to restore environment.\n"
         self.test_prog = None
-
-    def test_context(self):
-        self.face_detector.context()
 
     def test_single_pic(self):
         with fluid.program_guard(self.test_prog):
@@ -84,8 +81,8 @@ class TestHumanPoseEstimation(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestHumanPoseEstimation('test_single_pic'))
-    suite.addTest(TestHumanPoseEstimation('test_batch'))
-    suite.addTest(TestHumanPoseEstimation('test_ndarray'))
+    suite.addTest(TestFaceDetector320('test_single_pic'))
+    suite.addTest(TestFaceDetector320('test_batch'))
+    suite.addTest(TestFaceDetector320('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
