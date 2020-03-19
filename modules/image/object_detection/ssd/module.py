@@ -8,6 +8,7 @@ from collections import OrderedDict
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddlehub.common.paddle_helper import add_vars_prefix
 
 from ssd.data_feed import reader, DecodeImage, ResizeImage, NormalizeImage, Permute
 from ssd.processor import load_label_info, postprocess
@@ -41,7 +42,7 @@ class SSD(hub.Module):
                 ssd_output_decoder,
                 image,
                 trainable=True,
-                param_prefix='',
+                var_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
 
@@ -55,8 +56,6 @@ class SSD(hub.Module):
         :type image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
-        :param param_prefix: the prefix of parameters in program.
-        :type param_prefix: str
         :param get_prediction: whether to get prediction,
             if True, outputs is bbox_out,
             if False, outputs is head_features.
@@ -64,9 +63,17 @@ class SSD(hub.Module):
         """
         context_prog = image.block.program
         with fluid.program_guard(context_prog):
-            inputs = {'image': image}
+            im_size = fluid.layers.data(
+                name='im_size', shape=[2], dtype='int32')
+            inputs = {
+                'image': var_prefix + image.name,
+                'im_size': var_prefix + im_size.name
+            }
             if not get_prediction:
-                outputs = {'body_feats': body_feats}
+                outputs = {
+                    'body_features':
+                    [var_prefix + var.name for var in body_feats]
+                }
             else:
                 locs, confs, box, box_var = fluid.layers.multi_box_head(
                     inputs=body_feats,
@@ -96,11 +103,20 @@ class SSD(hub.Module):
                     score_threshold=ssd_output_decoder.score_threshold,
                     nms_eta=ssd_output_decoder.nms_eta,
                     background_label=ssd_output_decoder.background_label)
-                outputs = {'bbox_out': pred}
+                outputs = {'bbox_out': var_prefix + pred.name}
 
-            place = fluid.CPUPlace()
-            exe = fluid.Executor(place)
-            exe.run(fluid.default_startup_program())
+            add_vars_prefix(context_prog, var_prefix)
+            inputs = {
+                key: context_prog.global_block().vars[value]
+                for key, value in inputs.items()
+            }
+            outputs = {
+                key: [
+                    context_prog.global_block().vars[varname]
+                    for varname in value
+                ]
+                for key, value in outputs.items()
+            }
 
             for param in context_prog.global_block().iter_parameters():
                 param.trainable = trainable

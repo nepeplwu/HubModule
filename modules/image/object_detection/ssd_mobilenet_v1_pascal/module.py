@@ -66,7 +66,6 @@ class SSDMobileNetv1(hub.Module):
                 input_image=None,
                 trainable=True,
                 pretrained=True,
-                param_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
 
@@ -132,7 +131,7 @@ class SSDMobileNetv1(hub.Module):
                     ssd_output_decoder=ssd_output_decoder,
                     image=image,
                     trainable=trainable,
-                    param_prefix=param_prefix,
+                    var_prefix='@HUB_{}@'.format(self.name),
                     get_prediction=get_prediction)
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
@@ -143,17 +142,10 @@ class SSDMobileNetv1(hub.Module):
                             os.path.join(self.default_pretrained_model_path,
                                          var.name))
 
-                    load_default_pretrained_model = True
-                    if param_prefix:
-                        load_default_pretrained_model = False
-                    elif input_image:
-                        if input_image.shape != (-1, 3, 300, 300):
-                            load_default_pretrained_model = False
-                    if load_default_pretrained_model:
-                        fluid.io.load_vars(
-                            exe,
-                            self.default_pretrained_model_path,
-                            predicate=_if_exist)
+                    fluid.io.load_vars(
+                        exe,
+                        self.default_pretrained_model_path,
+                        predicate=_if_exist)
                 else:
                     exe.run(startup_program)
                 return inputs, outputs, context_prog
