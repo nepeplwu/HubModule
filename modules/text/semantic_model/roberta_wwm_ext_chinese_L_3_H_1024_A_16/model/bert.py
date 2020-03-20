@@ -22,7 +22,7 @@ import json
 
 import paddle.fluid as fluid
 
-from roberta_wwm_ext_chinese_L_24_H_1024_A_16_distillation.model.transformer_encoder import encoder, pre_process_layer
+from roberta_wwm_ext_chinese_L_3_H_1024_A_16.model.transformer_encoder import encoder, pre_process_layer
 
 
 class BertConfig(object):

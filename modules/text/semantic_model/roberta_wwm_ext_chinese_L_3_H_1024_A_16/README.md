@@ -1,5 +1,5 @@
 ```shell
-$ hub install roberta_wwm_ext_chinese_L-24_H-1024_A-16_distillation==1.1.0
+$ hub install roberta_wwm_ext_chinese_L-3_H-1024_A-16==1.0.0
 ```
 <p align="center">
 <img src="https://bj.bcebos.com/paddlehub/paddlehub-img/bert_network.png"  hspace='10'/> <br />
@@ -34,27 +34,7 @@ def context(
 >
 > program：包含该Module计算图的Program。  
 
-**代码示例**
 
-```python
-import paddlehub as hub
-
-# Load $ hub install roberta_wwm_ext_chinese_L-24_H-1024_A-16_distillation pretrained model
-module = hub.Module(name="roberta_wwm_ext_chinese_L-24_H-1024_A-16_distillation")
-inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
-
-# Must feed all the tensor of roberta_wwm_ext_chinese_L-24_H-1024_A-16_distillation's module need
-input_ids = inputs["input_ids"]
-position_ids = inputs["position_ids"]
-segment_ids = inputs["segment_ids"]
-input_mask = inputs["input_mask"]
-
-# Use "pooled_output" for sentence-level output.
-pooled_output = outputs["pooled_output"]
-
-# Use "sequence_output" for token-level output.
-sequence_output = outputs["sequence_output"]
-```
 
 ```python
 def get_embedding(
@@ -68,12 +48,12 @@ def get_embedding(
 
 **参数**
 
-> texts：输入文本列表，格式为[[sample_a_text_a, sample_a_text_b], [sample_b_text_a, sample_b_text_b],…,]，其中每个元素都是一个样例，每个样例可以包含text_a与text_b。  
-> use_gpu：是否使用gpu，默认为False。对于GPU用户，建议开启use_gpu。  
+> texts：输入文本列表，格式为\[\[sample\_a\_text\_a, sample\_a\_text\_b\], \[sample\_b\_text\_a, sample\_b\_text\_b\],…,\]，其中每个元素都是一个样例，每个样例可以包含text\_a与text\_b。
+> use_gpu：是否使用gpu，默认为False。对于GPU用户，建议开启use_gpu。
 
-**返回**  
+**返回**
 
-> results：list类型，格式为[[sample_a_pooled_feature, sample_a_seq_feature], [sample_b_pooled_feature, sample_b_seq_feature],…,]，其中每个元素都是对应样例的特征输出，每个样例都有句子粒度特征pooled_feature与字粒度特征seq_feature。
+> results：list类型，格式为\[\[sample\_a\_pooled\_feature, sample\_a\_seq\_feature\], \[sample\_b\_pooled\_feature, sample\_b\_seq\_feature\],…,\]，其中每个元素都是对应样例的特征输出，每个样例都有句子粒度特征pooled\_feature与字粒度特征seq\_feature。
 >
 
 ```python
@@ -90,11 +70,38 @@ def get_params_layer()
 
 > params_layer：dict类型，key为参数名，值为参数所在层数
 
+**代码示例**
 
+```python
+import paddlehub as hub
+
+# Load $ hub install roberta_wwm_ext_chinese_L-3_H-1024_A-16 pretrained model
+module = hub.Module(name="roberta_wwm_ext_chinese_L-3_H-1024_A-16")
+inputs, outputs, program = module.context(trainable=True, max_seq_len=128)
+
+# Must feed all the tensor of roberta_wwm_ext_chinese_L-3_H-1024_A-16's module need
+input_ids = inputs["input_ids"]
+position_ids = inputs["position_ids"]
+segment_ids = inputs["segment_ids"]
+input_mask = inputs["input_mask"]
+
+# Use "pooled_output" for sentence-level output.
+pooled_output = outputs["pooled_output"]
+
+# Use "sequence_output" for token-level output.
+sequence_output = outputs["sequence_output"]
+
+# Use "get_embedding" to get embedding result.
+embedding_result = module.get_embedding(texts=[["Sample1_text_a"],["Sample2_text_a","Sample2_text_b"]], use_gpu=True)
+
+# Use "get_params_layer" to get params layer and used to ULMFiTStrategy.
+params_layer = module.get_params_layer()
+strategy = hub.finetune.strategy.ULMFiTStrategy(params_layer=params_layer)
+```
 
 ##   查看代码
 
-https://github.com/PaddlePaddle/ERNIE/tree/develop/BERT
+https://github.com/PaddlePaddle/models/tree/develop/PaddleNLP/pretrain_langauge_models/BERT
 
 ## 参数来源
 
@@ -106,7 +113,7 @@ https://github.com/PaddlePaddle/ERNIE/tree/develop/BERT
 
 ## 依赖
 
-paddlepaddle >= 1.6.3
+paddlepaddle >= 1.6.2
 
 paddlehub >= 1.6.0
 
@@ -115,7 +122,3 @@ paddlehub >= 1.6.0
 * 1.0.0
 
   初始发布
-
-* 1.1.0
-
-  支持get_embedding与get_params_layer
