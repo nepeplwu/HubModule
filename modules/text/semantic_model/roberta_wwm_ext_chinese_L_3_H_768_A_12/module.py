@@ -24,14 +24,14 @@ import os
 from paddlehub import TransformerModule
 from paddlehub.module.module import moduleinfo
 
-from roberta_wwm_ext_chinese_L_12_H_768_A_12_distillation.model.bert import BertConfig, BertModel
+from roberta_wwm_ext_chinese_L_3_H_768_A_12.model.bert import BertConfig, BertModel
 
 
 @moduleinfo(
-    name="roberta_wwm_ext_chinese_L-12_H-768_A-12_distillation",
-    version="1.1.0",
+    name="roberta_wwm_ext_chinese_L-3_H-768_A-12",
+    version="1.0.0",
     summary=
-    "roberta_wwm_ext_chinese_L-12_H-768_A-12_distillation, 3-layer, 768-hidden, 12-heads, 38M parameters ",
+    "roberta_wwm_ext_chinese_L-3_H-768_A-12, 3-layer, 768-hidden, 12-heads, 38M parameters ",
     author="kinghuin",
     author_email="kinghuin_chull@163.com",
     type="nlp/semantic_model",

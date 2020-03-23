@@ -15,6 +15,6 @@
 
 import paddlehub as hub
 
-module = hub.Module(name="roberta_wwm_ext_chinese_L-12_H-768_A-12_distillation")
+module = hub.Module(name="roberta_wwm_ext_chinese_L-3_H-768_A-12")
 
 print(module.get_embedding(texts=[["床前明月光", "疑是地上霜"], ["举头望明月"]]))
