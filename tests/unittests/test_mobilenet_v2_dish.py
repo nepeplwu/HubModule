@@ -19,7 +19,7 @@ class TestMobileNetV2Dish(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.dish_classify = hub.Module(directory="code")
+        self.dish_classify = hub.Module(name="mobilenet_v2_dish")
 
     @classmethod
     def tearDownClass(self):
