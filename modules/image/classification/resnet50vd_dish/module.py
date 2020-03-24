@@ -116,7 +116,7 @@ class ResNet50vdDish(hub.Module):
             use_gpu (bool): Whether to use gpu.
 
         Returns:
-            res (list[collections.OrderedDict]): The classfication results.
+            res (list[list[dict]]): The classfication results.
         """
         all_data = list()
         for yield_data in reader(images, paths):
