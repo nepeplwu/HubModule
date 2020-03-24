@@ -25,7 +25,7 @@ def reader(images=None, paths=None):
     Preprocess to yield image.
 
     Args:
-        images (numpy.ndarray): images data, with shape [N, H, W, C]
+        images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
         paths (list[str]): paths to images.
 
     Yield:
@@ -51,7 +51,7 @@ def reader(images=None, paths=None):
             each['org_im_path'] = org_im_name + im_ext
             component.append(each)
     if images is not None:
-        assert len(images.shape) == 4, "The dimension of images must be 4."
+        assert type(images) is list, "images should be a list."
         for im in images:
             each = OrderedDict()
             each['org_im'] = im

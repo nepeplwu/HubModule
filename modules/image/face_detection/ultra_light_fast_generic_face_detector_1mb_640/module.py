@@ -24,7 +24,7 @@ from .data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Ultra-Light-Fast-Generic-Face-Detector-1MB is a high-performance object detection model release on https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB.",
-    version="2.0.0")
+    version="1.1.0")
 class FaceDetector640(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
@@ -60,18 +60,21 @@ class FaceDetector640(hub.Module):
                        batch_size=1,
                        use_gpu=False,
                        output_dir=None,
-                       visualization=False):
+                       visualization=False,
+                       confs_threshold=0.5,
+                       iou_threshold=0.5):
         """
         API for human pose estimation and tracking.
 
         Args:
-            images (numpy.ndarray): data of images, with shape [N, H, W, C].
+            images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
-
+            confs_threshold (float): threshold for confidence coefficient.
+            iou_threshold (float): threshold for iou.
         Returns:
             res (list[collections.OrderedDict]): The result of face detection.
         """
@@ -113,7 +116,9 @@ class FaceDetector640(hub.Module):
                     org_im_shape=batch_data[i]['org_im_shape'],
                     org_im_path=batch_data[i]['org_im_path'],
                     output_dir=output_dir,
-                    visualization=visualization)
+                    visualization=visualization,
+                    confs_threshold=confs_threshold,
+                    iou_threshold=iou_threshold)
                 res.append(out)
         return res
 
