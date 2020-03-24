@@ -14,21 +14,21 @@ from paddlehub.module.module import moduleinfo, runnable, serving
 
 from .processor import postprocess
 from .data_feed import reader
-from .mobilenet_v2 import MobileNetV2
+from .resnet_vd import ResNet50_vd
 
 
 @moduleinfo(
-    name="mobilenet_v2_dish",
+    name="resnet50vd_animal",
     type="CV/image_classification",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.comi",
     summary=
-    "MobileNet V2 is a image classfication model trained with dish dataset.",
+    "ResNet50vd is a image classfication model trained with animals dataset.",
     version="1.0.0")
-class MobileNetV2Dish(hub.Module):
+class ResNet50vdAnimal(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "mobilenet_v2_dish")
+            self.directory, "resnet50vd_animal")
         with open(
                 os.path.join(self.directory, "label_list.txt"),
                 "r",
@@ -67,8 +67,8 @@ class MobileNetV2Dish(hub.Module):
             with fluid.unique_name.guard():
                 image = fluid.layers.data(
                     name="image", shape=[3, 224, 224], dtype="float32")
-                mobile_net = MobileNetV2()
-                ouput = mobile_net.net(input=image, class_dim=8416, scale=1.0)
+                resnet_vd = ResNet50_vd()
+                ouput = resnet_vd.net(input=image, class_dim=7979)
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
                 # pretrained
@@ -87,11 +87,11 @@ class MobileNetV2Dish(hub.Module):
                         predicate=_if_exist)
                     """
                     fluid.io.save_inference_model(
-                        dirname='_mobilenet_v2_dish_',
+                        dirname='_resnet50vd_animal_',
                         feeded_var_names=['image'],
                         target_vars=[ouput],
                         executor=exe,
-                        main_program=None)
+                        main_program=context_prog)
                     """
                 else:
                     exe.run(startup_prog)
@@ -152,8 +152,8 @@ class MobileNetV2Dish(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the mobilenet_v2_dish.",
-            prog='hub run mobilenet_v2_dish',
+            description="Run the resnet50vd_animal module.",
+            prog='hub run resnet50vd_animal',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

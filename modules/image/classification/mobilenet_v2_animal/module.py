@@ -144,8 +144,8 @@ class MobileNetV2Animal(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the human_pose_estimation_resnet50_mpii module.",
-            prog='hub run human_pose_estimation_resnet50_mpii',
+            description="Run the mobilenet_v2_animal.",
+            prog='hub run mobilenet_v2_animal',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(
