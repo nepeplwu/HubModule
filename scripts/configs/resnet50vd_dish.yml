@@ -1,0 +1,7 @@
+name: resnet50vd_dish
+dir: "modules/image/classification/resnet50vd_dish"
+resources:
+  -
+    url: https://bj.bcebos.com/paddlehub/hub_dev/resnet50vd_dish.tar.gz
+    dest: .
+    uncompress: True
