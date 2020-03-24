@@ -4,17 +4,17 @@ from __future__ import division
 
 import ast
 import os
-
 import argparse
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .processor import postprocess
-from .data_feed import reader
-from .pose_resnet import ResNet
+from human_pose_estimation_resnet50_mpii.processor import postprocess
+from human_pose_estimation_resnet50_mpii.data_feed import reader
+from human_pose_estimation_resnet50_mpii.pose_resnet import ResNet
 
 
 @moduleinfo(
@@ -24,7 +24,7 @@ from .pose_resnet import ResNet
     author_email="paddle-dev@baidu.comi",
     summary=
     "Paddle implementation for the paper `Simple baselines for human pose estimation and tracking`, trained with the MPII dataset.",
-    version="2.0.0")
+    version="1.1.0")
 class HumanPoseEstimation(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
