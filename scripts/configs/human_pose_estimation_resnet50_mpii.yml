@@ -1,0 +1,7 @@
+name: human_pose_estimation_resnet50_mpii
+dir: "modules/image/keypoint_detection/human_pose_estimation_resnet50_mpii"
+resources:
+  -
+    url: https://bj.bcebos.com/paddlehub/hub_dev/pose-resnet50-mpii-384x384.tar.gz
+    dest: .
+    uncompress: True
