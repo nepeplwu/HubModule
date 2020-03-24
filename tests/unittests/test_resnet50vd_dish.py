@@ -19,7 +19,7 @@ class TestResNet50vdDish(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.dish_classify = hub.Module(directory="code")
+        self.dish_classify = hub.Module(name="resnet50vd_dish")
 
     @classmethod
     def tearDownClass(self):

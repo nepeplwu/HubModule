@@ -19,7 +19,7 @@ class TestResNet50vdAnimal(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.animal_classify = hub.Module(directory="code")
+        self.animal_classify = hub.Module(name="resnet50vd_animal")
 
     @classmethod
     def tearDownClass(self):
