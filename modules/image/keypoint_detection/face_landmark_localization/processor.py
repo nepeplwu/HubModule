@@ -32,5 +32,6 @@ def postprocess(points, face_x1, face_y1, face_x2, face_y2, im_path,
         y = points[2 * i + 1] * (face_y2 - face_y1) + face_y1
         cv2.circle(im, (int(x), int(y)), 1, (0, 0, 255), 2)
         org_points.append([x, y])
-    cv2.imwrite(im_path, im)
+    if visualization:
+        cv2.imwrite(im_path, im)
     return org_points

@@ -3,20 +3,20 @@ from __future__ import absolute_import
 from __future__ import division
 
 import ast
+import argparse
 import time
 import os
+from collections import OrderedDict
 
-import argparse
 import cv2
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
-from collections import OrderedDict
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .processor import check_dir, postprocess
-from .data_feed import reader
+from face_landmark_localization.processor import check_dir, postprocess
+from face_landmark_localization.data_feed import reader
 
 
 @moduleinfo(
@@ -26,7 +26,7 @@ from .data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Face_Landmark_Localization can be used to locate face landmark. This Module is trained through the MPII Human Pose dataset.",
-    version="2.0.0")
+    version="1.1.0")
 class FaceLandmarkLocalization(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
@@ -63,7 +63,8 @@ class FaceLandmarkLocalization(hub.Module):
                            paths=None,
                            use_gpu=False,
                            output_dir=None,
-                           visualization=False):
+                           visualization=False,
+                           face_detector_module=None):
         """
         API for human pose estimation and tracking.
 
@@ -73,6 +74,7 @@ class FaceLandmarkLocalization(hub.Module):
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
+            face_detector_module (class): module to detect face.
 
         Returns:
             res (list[collections.OrderedDict]): The key points of human pose.
@@ -83,7 +85,8 @@ class FaceLandmarkLocalization(hub.Module):
         check_dir(output_dir)
 
         res = list()
-        for element in reader(self.face_detector, images, paths, use_gpu):
+        face_detector_module = face_detector_module if face_detector_module else self.face_detector
+        for element in reader(face_detector_module, images, paths, use_gpu):
             each_one = OrderedDict()
             each_one['im_path'] = element['org_im_path']
             im_save_path = os.path.join(output_dir, element['org_im_path'])
