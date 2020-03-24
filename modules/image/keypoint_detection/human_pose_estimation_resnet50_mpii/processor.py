@@ -4,10 +4,10 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from collections import OrderedDict
 
 import cv2
 import numpy as np
-from collections import OrderedDict
 
 __all__ = ['postprocess']
 
