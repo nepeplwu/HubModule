@@ -3,30 +3,31 @@ from __future__ import absolute_import
 from __future__ import division
 
 import ast
+import copy
 import time
 import os
-
 import argparse
+
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .encoder_network import encoder_net
-from .decoder_network import decoder_net
-from .processor import postprocess, fr
-from .data_feed import reader
+from stylepro_artistic.encoder_network import encoder_net
+from stylepro_artistic.decoder_network import decoder_net
+from stylepro_artistic.processor import postprocess, fr, cv2_to_base64, base64_to_cv2
+from stylepro_artistic.data_feed import reader
 
 
 @moduleinfo(
-    name="stylepro_artistic_coco_wikiart",
+    name="stylepro_artistic",
     version="1.0.0",
     type="cv/style_transfer",
     summary=
     "StylePro Artistic is an algorithm for Arbitrary image style, which is parameter-free, fast yet effective.",
-    author="paddlepaddle",
-    author_email="paddlepaddle@baidu.com")
+    author="baidu-bdl",
+    author_email="")
 class StyleProjection(hub.Module):
     def _initialize(self):
         self.pretrained_encoder_net = os.path.join(self.directory,
@@ -70,7 +71,6 @@ class StyleProjection(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor_dec = create_paddle_predictor(gpu_config_dec)
 
-    @serving
     def style_transfer(self,
                        images=None,
                        paths=None,
@@ -82,14 +82,14 @@ class StyleProjection(hub.Module):
         API for image style transfer.
 
         Args:
-            images (list): list of [content_arr, style_arrs_list, style_interpolation_weights],
-                the first element is a numpy.ndarry with shape [H, W, C], content data.
-                the second element is a list of numpy.ndarray with shape [H, W, C], styles data.
-                the last element is a list (Optional), the interpolation weights correspond to styles.
-            paths (list): list of [content_path, style_paths_list, style_interpolation_weights],
-                the first element is a str, the path to content,
-                the second element is a list, the path to styles,
-                the last element is a list (Optional), the interpolation weights correspond to styles.
+            images (list): list of dict objects, each dict contains key:
+                content(str): value is a numpy.ndarry with shape [H, W, C], content data.
+                styles(str): value is a list of numpy.ndarray with shape [H, W, C], styles data.
+                weights(str, optional): value is the interpolation weights correspond to styles.
+            paths (list): list of dict objects, each dict contains key:
+                content(str): value is the path to content.
+                styles(str): value is the paths to styles.
+                weights(str, optional): value is the interpolation weights correspond to styles.
             alpha (float): The weight that controls the degree of stylization. Should be between 0 and 1.
             use_gpu (bool): whether to use gpu.
             output_dir (str): the path to store output images.
@@ -98,16 +98,24 @@ class StyleProjection(hub.Module):
         Returns:
             im_output (list of numpy.ndarray): list of output images.
         """
+        if use_gpu:
+            try:
+                _places = os.environ["CUDA_VISIBLE_DEVICES"]
+                int(_places[0])
+            except:
+                raise RuntimeError(
+                    "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
+                )
         # create output directory
         output_dir = output_dir if output_dir else os.path.join(
             os.getcwd(), 'transfer_result')
         im_output = list()
-        for component in reader(images, paths):
+        for component, w, h in reader(images, paths):
             content = PaddleTensor(component['content_arr'].copy())
             content_feats = self.gpu_predictor_enc.run(
                 [content]) if use_gpu else self.cpu_predictor_enc.run([content])
             accumulate = np.zeros((3, 512, 512))
-            for i, style_arr in enumerate(component['styles_arr_list']):
+            for idx, style_arr in enumerate(component['styles_arr_list']):
                 style = PaddleTensor(style_arr.copy())
                 # encode
                 style_feats = self.gpu_predictor_enc.run(
@@ -121,14 +129,34 @@ class StyleProjection(hub.Module):
                 ]) if use_gpu else self.cpu_predictor_dec.run([fr_feats])
                 # interpolation
                 accumulate += predict_outputs[0].as_ndarray(
-                )[0] * component['style_interpolation_weights'][i]
-                # postprocess
-                save_im_name = output_dir + '/' + component[
-                    'save_im_name'] + '_alpha={}_'.format(alpha) + '.jpg'
-                path_result = postprocess(accumulate, output_dir, save_im_name,
-                                          visualization)
-                im_output.append(path_result)
+                )[0] * component['style_interpolation_weights'][idx]
+            # postprocess
+            save_im_name = 'ndarray_{}.jpg'.format(time.time())
+            result = postprocess(
+                accumulate,
+                output_dir,
+                save_im_name,
+                visualization,
+                size=(w, h))
+            im_output.append(result)
         return im_output
+
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = copy.deepcopy(images)
+        for image in images_decode:
+            image['content'] = base64_to_cv2(image['content'])
+            image['styles'] = [
+                base64_to_cv2(style) for style in image['styles']
+            ]
+        results = self.style_transfer(images_decode, **kwargs)
+        results = [{
+            'data': cv2_to_base64(result['data'])
+        } for result in results]
+        return results
 
     @runnable
     def run_cmd(self, argvs):

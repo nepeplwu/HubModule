@@ -1,5 +1,5 @@
-name: style_projection_coco_wikiart
-dir: "modules/image/style_transfer/style_projection/"
+name: stylepro_artistic
+dir: "modules/image/style_transfer/stylepro_artistic/"
 resources:
   -
     url: https://bj.bcebos.com/paddlehub/style_transfer/style_projection_enc.tar

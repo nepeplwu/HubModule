@@ -5,29 +5,44 @@ from __future__ import print_function
 
 import os
 
+import base64
+import cv2
 import numpy as np
-from PIL import Image
 
 __all__ = ['postprocess', 'fr']
 
 
-def postprocess(im, output_dir, save_im_name, visualization):
+def cv2_to_base64(image):
+    data = cv2.imencode('.jpg', image)[1]
+    return base64.b64encode(data.tostring()).decode('utf8')
+
+
+def base64_to_cv2(b64str):
+    data = base64.b64decode(b64str.encode('utf8'))
+    data = np.fromstring(data, np.uint8)
+    data = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    return data
+
+
+def postprocess(im, output_dir, save_im_name, visualization, size):
     im = np.multiply(im, 255.0) + 0.5
     im = np.clip(im, 0, 255)
     im = im.astype(np.uint8)
     im = im.transpose((1, 2, 0))
+    im = im[:, :, ::-1]
+    im = cv2.resize(im, (size[0], size[1]), interpolation=cv2.INTER_LINEAR)
+    result = {'data': im}
     if visualization:
-        # create output directory
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         elif os.path.isfile(output_dir):
             os.remove(output_dir)
             os.makedirs(output_dir)
         # save image
-        img = Image.fromarray(im)
-        img.save(save_im_name)
-        print('image saved in {}'.format(save_im_name))
-    return im
+        save_path = os.path.join(output_dir, save_im_name)
+        cv2.imwrite(save_path, im)
+        result['save_path'] = save_path
+    return result
 
 
 def fr(content_feat, style_feat, alpha):
