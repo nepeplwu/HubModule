@@ -84,7 +84,8 @@ class Downloader(object):
         dirname = os.path.dirname(file) if dirname is None else dirname
         if print_progress:
             print("Uncompress %s" % file)
-        with tarfile.open(file, "r:gz") as tar:
+        flag = "r:gz" if file.endswith("tar.gz") else "r:"
+        with tarfile.open(file, flag) as tar:
             file_names = tar.getnames()
             size = len(file_names) - 1
             module_dir = os.path.join(dirname, file_names[0])
