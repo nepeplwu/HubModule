@@ -40,7 +40,6 @@ class FaceLandmarkLocalization(hub.Module):
                 name="ultra_light_fast_generic_face_detector_1mb_640")
         else:
             self.face_detector = face_detector_module
-
         self._set_config()
 
     def _set_config(self):
