@@ -28,11 +28,19 @@ from face_landmark_localization.data_feed import reader
     "Face_Landmark_Localization can be used to locate face landmark. This Module is trained through the MPII Human Pose dataset.",
     version="1.1.0")
 class FaceLandmarkLocalization(hub.Module):
-    def _initialize(self):
+    def _initialize(self, face_detector_module=None):
+        """
+        Args:
+            face_detector_module (class): module to detect face.
+        """
         self.default_pretrained_model_path = os.path.join(
             self.directory, "face_landmark_localization")
-        self.face_detector = hub.Module(
-            name="ultra_light_fast_generic_face_detector_1mb_640")
+        if face_detector_module is None:
+            self.face_detector = hub.Module(
+                name="ultra_light_fast_generic_face_detector_1mb_640")
+        else:
+            self.face_detector = face_detector_module
+
         self._set_config()
 
     def _set_config(self):
@@ -57,14 +65,25 @@ class FaceLandmarkLocalization(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
+    def set_face_detector_module(self, face_detector_module):
+        """
+        Set face detector.
+
+        Args:
+            face_detector_module (class): module to detect face.
+        """
+        self.face_detector = face_detector_module
+
+    def get_face_detector_module(self):
+        return self.face_detector
+
     @serving
     def keypoint_detection(self,
                            images=None,
                            paths=None,
                            use_gpu=False,
                            output_dir=None,
-                           visualization=False,
-                           face_detector_module=None):
+                           visualization=False):
         """
         API for human pose estimation and tracking.
 
@@ -74,7 +93,6 @@ class FaceLandmarkLocalization(hub.Module):
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
-            face_detector_module (class): module to detect face.
 
         Returns:
             res (list[collections.OrderedDict]): The key points of human pose.
@@ -85,8 +103,7 @@ class FaceLandmarkLocalization(hub.Module):
         check_dir(output_dir)
 
         res = list()
-        face_detector_module = face_detector_module if face_detector_module else self.face_detector
-        for element in reader(face_detector_module, images, paths, use_gpu):
+        for element in reader(self.face_detector, images, paths, use_gpu):
             each_one = OrderedDict()
             each_one['im_path'] = element['org_im_path']
             im_save_path = os.path.join(output_dir, element['org_im_path'])
