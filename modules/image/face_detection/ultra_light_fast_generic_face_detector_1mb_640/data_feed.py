@@ -1,22 +1,19 @@
 # coding=utf-8
 import os
-import time
+from collections import OrderedDict
 
 import cv2
 import numpy as np
-from PIL import Image
-from collections import OrderedDict
 
 __all__ = ['reader']
 
 
-def preprocess(orig_image):
-    image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
+def preprocess(org_image):
+    image = cv2.cvtColor(org_image, cv2.COLOR_BGR2RGB)
     image = cv2.resize(image, (640, 480))
     image_mean = np.array([127, 127, 127])
-    image = (image - image_mean) / 128
+    image = (image - image_mean) / 128.0
     image = np.transpose(image, [2, 0, 1])
-    image = image.astype(np.float32)
     return image
 
 
@@ -40,23 +37,14 @@ def reader(images=None, paths=None):
             im = cv2.imread(im_path).astype('float32')
             each['org_im'] = im
             each['org_im_shape'] = im.shape  # height, width, channel
-            org_im_name, _ = os.path.splitext(im_path.split('/')[-1])
-            PIL_img = Image.open(im_path)
-            if PIL_img.format == 'PNG':
-                im_ext = '.png'
-            elif PIL_img.format == 'JPEG':
-                im_ext = '.jpg'
-            elif PIL_img.format == 'BMP':
-                im_ext = '.bmp'
-            each['org_im_path'] = org_im_name + im_ext
+            each['org_im_path'] = im_path
             component.append(each)
     if images is not None:
         assert type(images) is list, "images should be a list."
         for im in images:
             each = OrderedDict()
             each['org_im'] = im
-            each['org_im_path'] = 'ndarray_time={}.jpg'.format(
-                int(round(time.time(), 6) * 1e6))
+            each['org_im_path'] = None
             each['org_im_shape'] = im.shape  # height, width, channel
             component.append(each)
 

@@ -3,18 +3,17 @@ from __future__ import absolute_import
 from __future__ import division
 
 import ast
-import time
+import argparse
 import os
 
-import argparse
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .processor import postprocess
-from .data_feed import reader
+from ultra_light_fast_generic_face_detector_1mb_640.processor import postprocess, base64_to_cv2
+from ultra_light_fast_generic_face_detector_1mb_640.data_feed import reader
 
 
 @moduleinfo(
@@ -53,18 +52,18 @@ class FaceDetector640(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    @serving
     def face_detection(self,
                        images=None,
                        paths=None,
+                       data=None,
                        batch_size=1,
                        use_gpu=False,
-                       output_dir=None,
+                       output_dir='face_detector_640_predict_output',
                        visualization=False,
                        confs_threshold=0.5,
                        iou_threshold=0.5):
         """
-        API for human pose estimation and tracking.
+        API for face detection.
 
         Args:
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
@@ -78,18 +77,30 @@ class FaceDetector640(hub.Module):
         Returns:
             res (list[collections.OrderedDict]): The result of face detection.
         """
-        # create output directory
-        output_dir = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'face_detection_result')
+        if use_gpu:
+            try:
+                _places = os.environ["CUDA_VISIBLE_DEVICES"]
+                int(_places[0])
+            except:
+                raise RuntimeError(
+                    "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
+                )
 
-        all_data = list()
+        # compatibility with older versions
+        if data and 'image' in data:
+            if paths is None:
+                paths = []
+            paths += data['image']
+
+        # get all data
+        all_data = []
         for yield_data in reader(images, paths):
             all_data.append(yield_data)
 
         total_num = len(all_data)
         loop_num = int(np.ceil(total_num / batch_size))
 
-        res = list()
+        res = []
         for iter_id in range(loop_num):
             batch_data = list()
             handle_id = iter_id * batch_size
@@ -100,7 +111,7 @@ class FaceDetector640(hub.Module):
                     pass
             # feed batch image
             batch_image = np.array([data['image'] for data in batch_data])
-            batch_image = PaddleTensor(batch_image.copy())
+            batch_image = PaddleTensor(batch_image.astype('float32'))
             data_out = self.gpu_predictor.run([
                 batch_image
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
@@ -122,15 +133,23 @@ class FaceDetector640(hub.Module):
                 res.append(out)
         return res
 
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = [base64_to_cv2(image) for image in images]
+        results = self.face_detection(images_decode, **kwargs)
+        return results
+
     @runnable
     def run_cmd(self, argvs):
         """
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description=
-            "Run the ultra_light_fast_generic_face_detector_1mb_640 module.",
-            prog='hub run ultra_light_fast_generic_face_detector_1mb_640',
+            description="Run the {} module.".format(self.name),
+            prog='hub run {}'.format(self.name),
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

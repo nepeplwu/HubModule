@@ -4,12 +4,20 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import time
 
+import base64
 import cv2
 import numpy as np
-from collections import OrderedDict
 
 __all__ = ['postprocess']
+
+
+def base64_to_cv2(b64str):
+    data = base64.b64decode(b64str.encode('utf8'))
+    data = np.fromstring(data, np.uint8)
+    data = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    return data
 
 
 def area_of(left_top, right_bottom):
@@ -57,6 +65,12 @@ def check_dir(dir_path):
         os.makedirs(dir_path)
 
 
+def get_image_ext(image):
+    if image.shape[2] == 4:
+        return ".png"
+    return ".jpg"
+
+
 def postprocess(confidences,
                 boxes,
                 org_im,
@@ -78,11 +92,12 @@ def postprocess(confidences,
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
     """
-    output = OrderedDict()
-    output['data'] = list()
-    output['path'] = org_im_path
-    picked_box_probs = list()
-    picked_labels = list()
+    output = {}
+    output['data'] = []
+    if org_im_path:
+        output['path'] = org_im_path
+    picked_box_probs = []
+    picked_labels = []
     for class_index in range(1, confidences.shape[1]):
         probs = confidences[:, class_index]
         mask = probs > confs_threshold
@@ -106,11 +121,11 @@ def postprocess(confidences,
 
     for data in picked_box_probs:
         output['data'].append({
-            'left': data[0],
-            'right': data[2],
-            'top': data[1],
-            'bottom': data[3],
-            'confidence': data[4]
+            'left': float(data[0]),
+            'right': float(data[2]),
+            'top': float(data[1]),
+            'bottom': float(data[3]),
+            'confidence': float(data[4])
         })
 
     picked_box_probs = picked_box_probs[:, :4].astype(np.int32)
@@ -120,7 +135,12 @@ def postprocess(confidences,
             cv2.rectangle(org_im, (box[0], box[1]), (box[2], box[3]),
                           (255, 255, 0), 2)
         check_dir(output_dir)
-        im_save_path = os.path.join(output_dir, org_im_path)
+        ext = os.path.splitext(org_im_path) if org_im_path else ''
+        ext = ext if ext else get_image_ext(org_im)
+        org_im_path = org_im_path if org_im_path else 'ndarray_{}{}'.format(
+            time.time(), ext)
+        im_name = os.path.basename(org_im_path)
+        im_save_path = os.path.join(output_dir, im_name)
+        output['save_path'] = im_save_path
         cv2.imwrite(im_save_path, org_im)
-        print("The image with bbox is saved as {}".format(im_save_path))
     return output
