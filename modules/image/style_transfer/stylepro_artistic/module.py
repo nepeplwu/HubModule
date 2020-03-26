@@ -76,7 +76,7 @@ class StyleProjection(hub.Module):
                        paths=None,
                        alpha=1,
                        use_gpu=False,
-                       output_dir=None,
+                       output_dir='transfer_result',
                        visualization=False):
         """
         API for image style transfer.
@@ -96,7 +96,7 @@ class StyleProjection(hub.Module):
             visualization (bool): whether to save image or not.
 
         Returns:
-            im_output (list of numpy.ndarray): list of output images.
+            im_output (list of dict): list of output images and save path of images.
         """
         if use_gpu:
             try:
@@ -106,10 +106,8 @@ class StyleProjection(hub.Module):
                 raise RuntimeError(
                     "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
                 )
-        # create output directory
-        output_dir = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'transfer_result')
-        im_output = list()
+
+        im_output = []
         for component, w, h in reader(images, paths):
             content = PaddleTensor(component['content_arr'].copy())
             content_feats = self.gpu_predictor_enc.run(
@@ -164,8 +162,8 @@ class StyleProjection(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the style_projection_coco_wikiart module.",
-            prog='hub run style_projection_coco_wikiart',
+            description="Run the {} module.".format(self.name),
+            prog='hub run {}'.format(self.name),
             usage='%(prog)s',
             add_help=True)
 
