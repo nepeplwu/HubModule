@@ -87,7 +87,7 @@ class FaceLandmarkLocalization(hub.Module):
         API for human pose estimation and tracking.
 
         Args:
-            images (numpy.ndarray): data of images, with shape [N, H, W, C].
+            images (list(numpy.ndarray)): images data, shape of each is [H, W, C].
             paths (list[str]): The paths of images.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.

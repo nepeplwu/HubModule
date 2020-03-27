@@ -8,6 +8,8 @@ hub run ultra_light_fast_generic_face_detector_1mb_640 --input_path "/PATH/TO/IM
 
 ### face_detection
 
+预测API，用于人脸检测。
+
 **API 定义**
 
 ```python
