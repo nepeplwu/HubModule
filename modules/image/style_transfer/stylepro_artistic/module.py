@@ -190,7 +190,7 @@ class StyleProjection(hub.Module):
             paths=paths,
             alpha=args.alpha,
             use_gpu=args.use_gpu,
-            output_dir='transfer_result',
+            output_dir=args.output_dir,
             visualization=True)
         return results
 
@@ -206,12 +206,12 @@ class StyleProjection(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='transfer_result',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
             type=ast.literal_eval,
-            default=False,
+            default=True,
             help="whether to save output as images.")
 
     def add_module_input_arg(self):
