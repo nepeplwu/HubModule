@@ -87,7 +87,7 @@ class FaceLandmarkLocalization(hub.Module):
         API for face landmark.
 
         Args:
-            images (numpy.ndarray): data of images, with shape [N, H, W, C].
+            images (list(numpy.ndarray)): images data, shape of each is [H, W, C].
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.

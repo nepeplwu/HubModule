@@ -176,20 +176,22 @@ class StyleProjection(hub.Module):
         self.add_module_config_arg()
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        if args.style_interpolation_weights is None:
-            paths = [[args.content_path, args.style_paths.split(',')]]
+        if args.weights is None:
+            paths = [{
+                'content': args.content,
+                'styles': args.styles.split(',')}]
         else:
-            paths = [[
-                args.content_path,
-                args.style_paths.split(','),
-                list(args.style_interpolation_weights)
-            ]]
+            paths = [{
+                'content': args.content,
+                'styles': args.styles.split(','),
+                'weights': list(args.weights)
+            }]
         results = self.style_transfer(
             paths=paths,
             alpha=args.alpha,
             use_gpu=args.use_gpu,
             output_dir=args.output_dir,
-            visualization=args.visualization)
+            visualization=True)
         return results
 
     def add_module_config_arg(self):
@@ -204,12 +206,12 @@ class StyleProjection(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='transfer_result',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
             type=ast.literal_eval,
-            default=False,
+            default=True,
             help="whether to save output as images.")
 
     def add_module_input_arg(self):
@@ -217,11 +219,11 @@ class StyleProjection(hub.Module):
         Add the command input options.
         """
         self.arg_input_group.add_argument(
-            '--content_path', type=str, help="path to content.")
+            '--content', type=str, help="path to content.")
         self.arg_input_group.add_argument(
-            '--style_paths', type=str, help="path to styles.")
+            '--styles', type=str, help="path to styles.")
         self.arg_input_group.add_argument(
-            '--style_interpolation_weights',
+            '--weights',
             type=ast.literal_eval,
             default=None,
             help="interpolation weights of styles.")

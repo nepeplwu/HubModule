@@ -15,7 +15,7 @@ def reader(face_detector, images=None, paths=None, use_gpu=False):
     Preprocess to yield image.
 
     Args:
-        images (numpy.ndarray): images data, with shape [N, H, W, C]
+        images (list(numpy.ndarray)): images data, shape of each is [H, W, C].
         paths (list[str]): paths to images.
 
     Yield:
@@ -33,6 +33,7 @@ def reader(face_detector, images=None, paths=None, use_gpu=False):
             each['orig_im_path'] = im_path
             components.append(each)
     if images is not None:
+        assert type(images) is list, "images should be a list."
         for im in images:
             each = OrderedDict()
             each['orig_im'] = im

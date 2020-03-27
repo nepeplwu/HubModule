@@ -21,7 +21,7 @@ class TestStyleProjection(unittest.TestCase):
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
         self.style_projection = hub.Module(
-            name="stylepro_artistic_coco_wikiart")
+            name="stylepro_artistic")
 
     @classmethod
     def tearDownClass(self):
@@ -47,7 +47,9 @@ class TestStyleProjection(unittest.TestCase):
             for style_path in style_paths:
                 t1 = time.time()
                 self.style_projection.style_transfer(
-                    paths=[[content_paths[0], [style_path]]],
+                    paths=[{
+                        'content': content_paths[0], 
+                        'styles': [style_path]}],
                     alpha=0.8,
                     use_gpu=True)
                 t2 = time.time()
@@ -61,10 +63,11 @@ class TestStyleProjection(unittest.TestCase):
             ]
             for j in range(len(style_paths) - 1):
                 res = self.style_projection.style_transfer(
-                    paths=[[
-                        content_path, [style_paths[j], style_paths[j + 1]],
-                        [1, 2]
-                    ]],
+                    paths=[{
+                        'content': content_path,
+                        'styles': [style_paths[j], style_paths[j + 1]],
+                        'weights': [1, 2]
+                    }],
                     alpha=0.8,
                     use_gpu=True,
                     visualization=True)
@@ -85,10 +88,10 @@ class TestStyleProjection(unittest.TestCase):
             ]
             for j in range(len(style_arrs_list) - 1):
                 self.style_projection.style_transfer(
-                    images=[[
-                        content_arr,
-                        [style_arrs_list[j], style_arrs_list[j + 1]]
-                    ]],
+                    images=[{
+                        'content': content_arr,
+                        'styles': [style_arrs_list[j], style_arrs_list[j + 1]]
+                    }],
                     alpha=0.8,
                     use_gpu=True,
                     output_dir='transfer_out',
