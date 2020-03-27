@@ -1,7 +1,7 @@
 ## 命令行预测
 
 ```
-hub run stylepro_artistic --<选项> 选项值 
+hub run stylepro_artistic --选项 选项值 
 ```
 
 **选项说明：**
