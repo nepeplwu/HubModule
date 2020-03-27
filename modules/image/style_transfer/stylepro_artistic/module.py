@@ -104,7 +104,7 @@ class StyleProjection(hub.Module):
                 int(_places[0])
             except:
                 raise RuntimeError(
-                    "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
+                    "Attempt to use GPU for prediction, but environment variable CUDA_VISIBLE_DEVICES was not set correctly."
                 )
 
         im_output = []
@@ -179,7 +179,8 @@ class StyleProjection(hub.Module):
         if args.weights is None:
             paths = [{
                 'content': args.content,
-                'styles': args.styles.split(',')}]
+                'styles': args.styles.split(',')
+            }]
         else:
             paths = [{
                 'content': args.content,
