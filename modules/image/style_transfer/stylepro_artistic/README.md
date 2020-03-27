@@ -41,7 +41,7 @@ def style_transfer(self,
 * paths (list[str]): 图片的路径。每一个元素都为一个 dict，有关键字 content, styles, weights(可选)，相应取值为：
     * content (str): 待转换的图片的路径；
     * styles (list[str]) : 作为底色的风格图片的路径；
-    * weights (list[float], optioal) : 各个 style 对应的权重。当不设置 weights 时，默认各个 style 有着相同的权重；
+    * weights (list[float], optioal) : 各个 style 对应的权重。当不设置 weights 时，各个 style 的权重相同；
 * alpha (float) : 转换的强度，[0, 1] 之间，默认值为1；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将结果保存为图片，默认为 False;
