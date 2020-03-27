@@ -21,68 +21,53 @@ def reader(face_detector, images=None, paths=None, use_gpu=False):
     Yield:
         each (collections.OrderedDict): info of original image, preprocessed image.
     """
-    component = list()
+    components = []
     if paths:
         for im_path in paths:
             each = OrderedDict()
             assert os.path.isfile(
                 im_path), "The {} isn't a valid file path.".format(im_path)
             im = cv2.imread(im_path).astype('float32')
-            each['org_im'] = im
-            each['org_im_shape'] = im.shape
-            # get im_path
-            org_im_name, _ = os.path.splitext(im_path.split('/')[-1])
-            PIL_img = Image.open(im_path)
-            if PIL_img.format == 'PNG':
-                im_ext = '.png'
-            elif PIL_img.format == 'JPEG':
-                im_ext = '.jpg'
-            elif PIL_img.format == 'BMP':
-                im_ext = '.bmp'
-            each['org_im_path'] = org_im_name + im_ext
-            component.append(each)
+            each['orig_im'] = im
+            each['orig_im_shape'] = im.shape
+            each['orig_im_path'] = im_path
+            components.append(each)
     if images is not None:
         assert type(images) is list, "images should be a list."
         for im in images:
             each = OrderedDict()
-            each['org_im'] = im
-            each['org_im_path'] = 'ndarray_time={}.jpg'.format(
-                round(time.time(), 6) * 1e6)
-            each['org_im_shape'] = im.shape
-            component.append(each)
+            each['orig_im'] = im
+            each['orig_im_path'] = None
+            each['orig_im_shape'] = im.shape
+            components.append(each)
 
-    for element in component:
-        im = element['org_im'].astype('float32').copy()
-        face_detection_output = face_detector.face_detection(
-            images=np.expand_dims(im, axis=0), use_gpu=use_gpu)
-
-        element['image'] = list()
-        for index, det in enumerate(face_detection_output[0]['data']):
-            x1 = int(det['left'])
-            x2 = int(det['right'])
-            y1 = int(det['top'])
-            y2 = int(det['bottom'])
-            if x1 < 0:
-                x1 = 0
-            if y1 < 0:
-                y1 = 0
-            if x2 > element['org_im_shape'][1]:
-                x2 = element['org_im_shape'][1]
-            if y2 > element['org_im_shape'][0]:
-                y2 = element['org_im_shape'][0]
-
-            roi = im[y1:y2 + 1, x1:x2 + 1, ]
+    for idx, item in enumerate(
+            face_detector.face_detection(
+                images=[component['orig_im'] for component in components],
+                use_gpu=use_gpu,
+                visualization=False)):
+        for face in item['data']:
+            width = int(components[idx]['orig_im_shape'][1])
+            height = int(components[idx]['orig_im_shape'][0])
+            x1 = 0 if int(face['left']) < 0 else int(face['left'])
+            x2 = width if int(face['right']) > width else int(face['right'])
+            y1 = 0 if int(face['top']) < 0 else int(face['top'])
+            y2 = height if int(face['bottom']) > height else int(face['bottom'])
+            roi = components[idx]['orig_im'][y1:y2 + 1, x1:x2 + 1, :]
             gray_img = cv2.cvtColor(roi, cv2.COLOR_RGB2GRAY)
             gray_img = cv2.resize(
                 gray_img, (60, 60), interpolation=cv2.INTER_CUBIC)
             mean, std_dev = cv2.meanStdDev(gray_img)
             gray_img = (gray_img - mean[0][0]) / (0.000001 + std_dev[0][0])
             gray_img = np.expand_dims(gray_img, axis=0)
-            element['image'].append({
+            yield {
                 'face': gray_img,
                 'x1': x1,
                 'y1': y1,
                 'x2': x2,
-                'y2': y2
-            })
-        yield element
+                'y2': y2,
+                'orig_im': components[idx]['orig_im'],
+                'orig_im_path': components[idx]['orig_im_path'],
+                'orig_im_shape': components[idx]['orig_im_shape'],
+                'id': idx
+            }

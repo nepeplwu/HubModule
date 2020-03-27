@@ -15,7 +15,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from face_landmark_localization.processor import check_dir, postprocess
+from face_landmark_localization.processor import postprocess, base64_to_cv2
 from face_landmark_localization.data_feed import reader
 
 
@@ -26,7 +26,7 @@ from face_landmark_localization.data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Face_Landmark_Localization can be used to locate face landmark. This Module is trained through the MPII Human Pose dataset.",
-    version="1.1.0")
+    version="1.0.0")
 class FaceLandmarkLocalization(hub.Module):
     def _initialize(self, face_detector_module=None):
         """
@@ -76,57 +76,75 @@ class FaceLandmarkLocalization(hub.Module):
     def get_face_detector_module(self):
         return self.face_detector
 
-    @serving
     def keypoint_detection(self,
                            images=None,
                            paths=None,
+                           batch_size=1,
                            use_gpu=False,
-                           output_dir=None,
+                           output_dir='face_landmark_output',
                            visualization=False):
         """
-        API for human pose estimation and tracking.
+        API for face landmark.
 
         Args:
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C].
             paths (list[str]): The paths of images.
+            batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
 
         Returns:
-            res (list[collections.OrderedDict]): The key points of human pose.
+            res (list[dict()]): The key points of face landmark and save path of images.
         """
-        # create output directory
-        output_dir = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'keypoint_detection_result')
-        check_dir(output_dir)
+        if use_gpu:
+            try:
+                _places = os.environ["CUDA_VISIBLE_DEVICES"]
+                int(_places[0])
+            except:
+                raise RuntimeError(
+                    "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
+                )
 
-        res = list()
-        for element in reader(self.face_detector, images, paths, use_gpu):
-            each_one = OrderedDict()
-            each_one['im_path'] = element['org_im_path']
-            im_save_path = os.path.join(output_dir, element['org_im_path'])
-            cv2.imwrite(im_save_path, element['org_im'])
-            each_one['points'] = list()
-            for data_dict in element['image']:
-                # postprocess face one by one
-                face = np.expand_dims(data_dict['face'], axis=0)
-                face_tensor = PaddleTensor(face.copy())
-                pred_out = self.gpu_predictor.run([
-                    face_tensor
-                ]) if use_gpu else self.cpu_predictor.run([face_tensor])
-                points = pred_out[0].as_ndarray().flatten()
-                points_fixed = postprocess(
-                    points=points,
-                    face_x1=data_dict['x1'],
-                    face_y1=data_dict['y1'],
-                    face_x2=data_dict['x2'],
-                    face_y2=data_dict['y2'],
-                    im_path=im_save_path,
-                    visualization=visualization)
-                each_one['points'].append(points_fixed)
-            res.append(each_one)
+        # get all data
+        all_data = []
+        for yield_data in reader(self.face_detector, images, paths, use_gpu):
+            all_data.append(yield_data)
+
+        total_num = len(all_data)
+        loop_num = int(np.ceil(total_num / batch_size))
+
+        res = []
+        for iter_id in range(loop_num):
+            batch_data = []
+            handle_id = iter_id * batch_size
+            for image_id in range(batch_size):
+                try:
+                    batch_data.append(all_data[handle_id + image_id])
+                except:
+                    pass
+                # feed batch image
+            batch_image = np.array([data['face'] for data in batch_data])
+            face_tensor = PaddleTensor(batch_image.astype('float32'))
+            pred_out = self.gpu_predictor.run([
+                face_tensor
+            ]) if use_gpu else self.cpu_predictor.run([face_tensor])
+            points = pred_out[0].as_ndarray()
+            for idx, sample in enumerate(batch_data):
+                sample['points'] = points[idx].reshape(68, -1).tolist()
+            res += batch_data
+
+        res = postprocess(res, output_dir, visualization)
         return res
+
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = [base64_to_cv2(image) for image in images]
+        results = self.keypoint_detection(images_decode, **kwargs)
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -134,8 +152,8 @@ class FaceLandmarkLocalization(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the human_pose_estimation_resnet50_mpii module.",
-            prog='hub run human_pose_estimation_resnet50_mpii',
+            description="Run the {} module.".format(self.name),
+            prog='hub run {}'.format(self.name),
             usage='%(prog)s',
             add_help=True)
 
