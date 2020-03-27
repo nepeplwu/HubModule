@@ -70,4 +70,5 @@ https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
 ### 依赖
 
 paddlepaddle >= 1.6.0
+
 paddlehub >= 1.6.0
