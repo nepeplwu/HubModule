@@ -96,7 +96,7 @@ class StyleProjection(hub.Module):
             visualization (bool): whether to save image or not.
 
         Returns:
-            im_output (list of dict): list of output images and save path of images.
+            im_output (list[dict()]): list of output images and save path of images.
         """
         if use_gpu:
             try:

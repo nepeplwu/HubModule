@@ -73,9 +73,9 @@ def get_image_ext(image):
 
 def postprocess(confidences,
                 boxes,
-                org_im,
-                org_im_shape,
-                org_im_path,
+                orig_im,
+                orig_im_shape,
+                orig_im_path,
                 output_dir,
                 visualization,
                 confs_threshold=0.5,
@@ -86,16 +86,16 @@ def postprocess(confidences,
     Args:
         confidences (numpy.ndarray): confidences, with shape [num, 2]
         boxes (numpy.ndaray): boxes coordinate,  with shape [num, 4]
-        org_im (numpy.ndarray): original image.
-        org_im_shape (list): shape pf original image.
-        org_im_path (list): path of riginal image.
+        orig_im (numpy.ndarray): original image.
+        orig_im_shape (list): shape pf original image.
+        orig_im_path (list): path of riginal image.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
     """
     output = {}
     output['data'] = []
-    if org_im_path:
-        output['path'] = org_im_path
+    if orig_im_path:
+        output['path'] = orig_im_path
     picked_box_probs = []
     picked_labels = []
     for class_index in range(1, confidences.shape[1]):
@@ -114,10 +114,10 @@ def postprocess(confidences,
         return output
 
     picked_box_probs = np.concatenate(picked_box_probs)
-    picked_box_probs[:, 0] *= org_im_shape[1]
-    picked_box_probs[:, 1] *= org_im_shape[0]
-    picked_box_probs[:, 2] *= org_im_shape[1]
-    picked_box_probs[:, 3] *= org_im_shape[0]
+    picked_box_probs[:, 0] *= orig_im_shape[1]
+    picked_box_probs[:, 1] *= orig_im_shape[0]
+    picked_box_probs[:, 2] *= orig_im_shape[1]
+    picked_box_probs[:, 3] *= orig_im_shape[0]
 
     for data in picked_box_probs:
         output['data'].append({
@@ -132,15 +132,15 @@ def postprocess(confidences,
     if visualization:
         for i in range(picked_box_probs.shape[0]):
             box = picked_box_probs[i]
-            cv2.rectangle(org_im, (box[0], box[1]), (box[2], box[3]),
+            cv2.rectangle(orig_im, (box[0], box[1]), (box[2], box[3]),
                           (255, 255, 0), 2)
         check_dir(output_dir)
-        ext = os.path.splitext(org_im_path) if org_im_path else ''
-        ext = ext if ext else get_image_ext(org_im)
-        org_im_path = org_im_path if org_im_path else 'ndarray_{}{}'.format(
+        ext = os.path.splitext(orig_im_path) if orig_im_path else ''
+        ext = ext if ext else get_image_ext(orig_im)
+        orig_im_path = orig_im_path if orig_im_path else 'ndarray_{}{}'.format(
             time.time(), ext)
-        im_name = os.path.basename(org_im_path)
+        im_name = os.path.basename(orig_im_path)
         im_save_path = os.path.join(output_dir, im_name)
         output['save_path'] = im_save_path
-        cv2.imwrite(im_save_path, org_im)
+        cv2.imwrite(im_save_path, orig_im)
     return output
