@@ -75,7 +75,7 @@ class FaceDetector640(hub.Module):
             confs_threshold (float): threshold for confidence coefficient.
             iou_threshold (float): threshold for iou.
         Returns:
-            res (list[collections.OrderedDict]): The result of face detection.
+            res (list[dict()]): The result of face detection and save path of images.
         """
         if use_gpu:
             try:
@@ -123,9 +123,9 @@ class FaceDetector640(hub.Module):
                 out = postprocess(
                     confidences=confidences[i],
                     boxes=boxes[i],
-                    org_im=batch_data[i]['org_im'],
-                    org_im_shape=batch_data[i]['org_im_shape'],
-                    org_im_path=batch_data[i]['org_im_path'],
+                    orig_im=batch_data[i]['orig_im'],
+                    orig_im_shape=batch_data[i]['orig_im_shape'],
+                    orig_im_path=batch_data[i]['orig_im_path'],
                     output_dir=output_dir,
                     visualization=visualization,
                     confs_threshold=confs_threshold,
