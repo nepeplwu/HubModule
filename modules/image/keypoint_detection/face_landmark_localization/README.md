@@ -6,7 +6,19 @@ hub run face_landmark_localization --input_path "/PATH/TO/IMAGE"
 
 ## API 说明
 
-### `keypoint_detection`
+### (1) `__init__`
+
+**API 定义**
+
+```
+def __init__(self, face_detector_module=None)
+```
+
+**参数**
+
+* face\_detector\_module (class): 人脸定位模型，默认为 ultra\_light\_fast\_generic\_face\_detector\_1mb\_640.
+
+### (2) `keypoint_detection`
 
 预测API，识别出人脸关键点。
 
@@ -38,19 +50,8 @@ def keypoint_detection(self,
     * im\_path : 输入图片的路径；
     * points: 识别关键点的坐标。
 
-### `__init__`
 
-**API 定义**
-
-```
-def __init__(self, face_detector_module=None)
-```
-
-**参数**
-
-* face\_detector\_module (class): 人脸定位模型，默认为 ultra\_light\_fast\_generic\_face\_detector\_1mb\_640.
-
-### `set_face_detector_module`
+### (3) `set_face_detector_module`
 
 **API 定义**
 
@@ -62,7 +63,7 @@ def set_face_detector_module(self, face_detector_module=None)
 
 * face\_detector\_module (class): 人脸定位模型。
 
-### `get_face_detector_module`
+### (4) `get_face_detector_module`
 
 **API 定义**
 
