@@ -27,7 +27,7 @@ def reader(face_detector, images=None, paths=None, use_gpu=False):
             each = OrderedDict()
             assert os.path.isfile(
                 im_path), "The {} isn't a valid file path.".format(im_path)
-            im = cv2.imread(im_path).astype('float32')
+            im = cv2.imread(im_path)
             each['orig_im'] = im
             each['orig_im_shape'] = im.shape
             each['orig_im_path'] = im_path

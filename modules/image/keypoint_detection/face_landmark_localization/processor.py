@@ -45,22 +45,18 @@ def postprocess(res, output_dir, visualization):
         if _result['id'] != _cur_id:
             _cur_id = _result['id']
             output.append({'data': []})
-        output[-1]['data'].append(_result['points'])
+        _result['points'][:, 0] *= (_result['x2'] - _result['x1'])
+        _result['points'][:, 0] += _result['x1']
+        _result['points'][:, 1] *= (_result['y2'] - _result['y1'])
+        _result['points'][:, 1] += _result['y1']
+        output[-1]['data'].append(_result['points'].tolist())
 
-    idx = -1
     if visualization:
         check_dir(output_dir)
-        for sample in output:
-            orig_im = res[idx + 1]['orig_im']
+        for idx, sample in enumerate(output):
+            orig_im = res[idx]['orig_im']
             for points in sample['data']:
-                idx += 1
-                coord_left = res[idx]['x1']
-                coord_right = res[idx]['x2']
-                coord_top = res[idx]['y1']
-                coord_bottom = res[idx]['y2']
                 for x, y in points:
-                    x = x * (coord_right - coord_left) + coord_left
-                    y = y * (coord_bottom - coord_top) + coord_top
                     cv2.circle(orig_im, (int(x), int(y)), 1, (0, 0, 255), 2)
             orig_im_path = res[idx]['orig_im_path']
             ext = os.path.splitext(orig_im_path) if orig_im_path else ''

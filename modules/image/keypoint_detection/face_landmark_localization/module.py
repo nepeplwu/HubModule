@@ -103,7 +103,7 @@ class FaceLandmarkLocalization(hub.Module):
                 int(_places[0])
             except:
                 raise RuntimeError(
-                    "Attempt to use GPU for prediction, but no valid environment variable value CUDA_VISIBLE_DEVICES is set"
+                    "Attempt to use GPU for prediction, but environment variable CUDA_VISIBLE_DEVICES was not set correctly."
                 )
 
         # get all data
@@ -131,7 +131,7 @@ class FaceLandmarkLocalization(hub.Module):
             ]) if use_gpu else self.cpu_predictor.run([face_tensor])
             points = pred_out[0].as_ndarray()
             for idx, sample in enumerate(batch_data):
-                sample['points'] = points[idx].reshape(68, -1).tolist()
+                sample['points'] = points[idx].reshape(68, -1)
             res += batch_data
 
         res = postprocess(res, output_dir, visualization)
