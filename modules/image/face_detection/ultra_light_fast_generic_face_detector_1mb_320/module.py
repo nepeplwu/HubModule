@@ -59,8 +59,8 @@ class FaceDetector320(hub.Module):
                        paths=None,
                        batch_size=1,
                        use_gpu=False,
-                       output_dir=None,
                        visualization=False,
+                       output_dir=None,
                        confs_threshold=0.5,
                        iou_threshold=0.5):
         """
@@ -71,8 +71,8 @@ class FaceDetector320(hub.Module):
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
-            output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
+            output_dir (str): The path to store output images.
             confs_threshold (float): threshold for confidence coefficient.
             iou_threshold (float): threshold for iou.
 
