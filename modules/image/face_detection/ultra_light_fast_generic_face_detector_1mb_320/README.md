@@ -46,7 +46,7 @@ import paddlehub as hub
 
 face_detector = hub.Module(name="ultra_light_fast_generic_face_detector_1mb_320")
 
-# 设带处理的图片数据 ndarray 保存在列表 ndarray_list
+# 设待处理的图片数据 ndarray 保存在列表 ndarray_list
 # 设待处理的图片的路径保存在列表 path_list
 result = face_detector.face_detection(
     images=ndarray_list,
