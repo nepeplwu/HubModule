@@ -38,7 +38,7 @@ def keypoint_detection(self,
     * im\_path : 输入图片的路径；
     * points: 识别关键点的坐标。
 
-### __init__
+### `__init__`
 
 **API 定义**
 
