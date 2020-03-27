@@ -6,7 +6,7 @@ hub run human_pose_estimation_resnet50_mpii --input_path "/PATH/TO/IMAGE"
 
 ## API 说明
 
-### keypoint_detection
+### (1) `keypoint_detection`
 
 预测API，识别出人体骨骼关键点。
 
