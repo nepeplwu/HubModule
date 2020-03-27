@@ -8,9 +8,10 @@ hub run face_landmark_localization --input_path "/PATH/TO/IMAGE"
 
 ### keypoint_detection
 
+预测API，识别出人脸关键点。
+
 **API 定义**
 
-预测API，识别出人脸关键点。
 
 ```python
 def keypoint_detection(self,
