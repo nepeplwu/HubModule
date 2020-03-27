@@ -18,7 +18,7 @@ hub run stylepro_artistic --选项 选项值
 
 ### (1) `style_transfer`
 
-预测API，用于风格。
+预测API，用于风格转换。
 
 **API 定义**
 
