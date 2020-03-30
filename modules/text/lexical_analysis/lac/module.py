@@ -21,8 +21,6 @@ from paddlehub.common.utils import sys_stdin_encoding
 from paddlehub.io.parser import txt_parser
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-import sys
-sys.path.append("..")
 from lac.network import lex_net
 from lac.processor import Interventer, load_kv_dict, word_to_ids, parse_result
 
