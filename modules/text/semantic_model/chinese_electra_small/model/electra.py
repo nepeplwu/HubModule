@@ -119,6 +119,7 @@ class ElectraModel(object):
                 param_attr=fluid.ParamAttr(
                     name="embeddings_project.w_0",
                     initializer=self._param_initializer),
+                num_flatten_dims=2,
                 bias_attr="embeddings_project.b_0")
 
         if self._dtype == "float16":
