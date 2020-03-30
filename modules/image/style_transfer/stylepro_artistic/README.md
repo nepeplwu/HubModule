@@ -1,3 +1,7 @@
+<p align="center">
+<img src="https://paddlehub.bj.bcebos.com/resources/style.png"  hspace='10'/> <br />
+</p>
+
 ## 命令行预测
 
 ```
