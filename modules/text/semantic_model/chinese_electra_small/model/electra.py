@@ -58,7 +58,8 @@ class ElectraModel(object):
                  weight_sharing=True,
                  use_fp16=False):
 
-        self._emb_size = config['hidden_size']
+        self._emb_size = 128
+        self._hidden_size = config['hidden_size']
         self._n_layer = config['num_hidden_layers']
         self._n_head = config['num_attention_heads']
         self._voc_size = config['vocab_size']
@@ -110,6 +111,16 @@ class ElectraModel(object):
         emb_out = pre_process_layer(
             emb_out, 'nd', self._prepostprocess_dropout, name='pre_encoder')
 
+        if self._emb_size != self._hidden_size:
+            emb_out = fluid.layers.fc(
+                input=emb_out,
+                size=self._hidden_size,
+                act=None,
+                param_attr=fluid.ParamAttr(
+                    name="embeddings_project.w_0",
+                    initializer=self._param_initializer),
+                bias_attr="embeddings_project.b_0")
+
         if self._dtype == "float16":
             input_mask = fluid.layers.cast(x=input_mask, dtype=self._dtype)
 
@@ -126,10 +137,10 @@ class ElectraModel(object):
             attn_bias=n_head_self_attn_mask,
             n_layer=self._n_layer,
             n_head=self._n_head,
-            d_key=self._emb_size // self._n_head,
-            d_value=self._emb_size // self._n_head,
-            d_model=self._emb_size,
-            d_inner_hid=self._emb_size * 4,
+            d_key=self._hidden_size // self._n_head,
+            d_value=self._hidden_size // self._n_head,
+            d_model=self._hidden_size,
+            d_inner_hid=self._hidden_size * 4,
             prepostprocess_dropout=self._prepostprocess_dropout,
             attention_dropout=self._attention_dropout,
             relu_dropout=0,
@@ -156,14 +167,14 @@ class ElectraModel(object):
         # extract the first token feature in each sentence
         next_sent_feat = self.get_pooled_output()
         reshaped_emb_out = fluid.layers.reshape(
-            x=self._enc_out, shape=[-1, self._emb_size])
+            x=self._enc_out, shape=[-1, self._hidden_size])
         # extract masked tokens' feature
         mask_feat = fluid.layers.gather(input=reshaped_emb_out, index=mask_pos)
 
         # transform: fc
         mask_trans_feat = fluid.layers.fc(
             input=mask_feat,
-            size=self._emb_size,
+            size=self._hidden_size,
             act=self._hidden_act,
             param_attr=fluid.ParamAttr(
                 name='mask_lm_trans_fc.w_0',
