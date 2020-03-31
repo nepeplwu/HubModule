@@ -1,4 +1,4 @@
-name: chinese_electra_small
+name: chinese-electra-small
 dir: "modules/text/semantic_model/chinese_electra_small"
 exclude:
   - README.md

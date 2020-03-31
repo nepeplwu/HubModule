@@ -1,4 +1,4 @@
-name: chinese_electra_base
+name: chinese-electra-base
 dir: "modules/text/semantic_model/chinese_electra_base"
 exclude:
   - README.md
