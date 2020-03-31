@@ -288,11 +288,7 @@ class LAC(hub.Module):
             results += batch_result
 
         for index in empty_str_indexes:
-            results.insert(
-                index, {
-                    "word": [""],
-                    "tag": [""]
-                })
+            results.insert(index, {"word": [""], "tag": [""]})
 
         if not return_tag:
             for result in results:
