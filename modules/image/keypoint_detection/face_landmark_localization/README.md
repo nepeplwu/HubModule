@@ -1,3 +1,7 @@
+```shell
+$ hub install face_landmark_localization==1.0.0
+```
+
 ## 命令行预测
 
 ```
@@ -25,12 +29,16 @@ def keypoint_detection(self,
                        visualization=False)
 ```
 
-识别输入图片中的所有人脸关键点，每张人脸检测出68个关键点
+识别输入图片中的所有人脸关键点，每张人脸检测出68个关键点（人脸轮廓17个点，左右眉毛各5个点，左右眼睛各6个点，鼻子9个点，嘴巴20个点）
+
+<p align="center">
+<img src="https://paddlehub.bj.bcebos.com/resources/face_landmark.jpg"  hspace='5' width=500/> <br />
+</p>
 
 **参数**
 
-* images (list[numpy.ndarray]): 图片数据，ndarray.shape 为 [H, W, C]，GBR格式；
-* paths (list[str]): 图片的路径；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
@@ -38,9 +46,9 @@ def keypoint_detection(self,
 
 **返回**
 
-* res (list[dict]): 识别结果的列表，列表元素为 dict, 有以下两个字段：
+* res (list\[dict\]): 识别结果的列表，列表元素为 dict, 有以下两个字段：
     * save\_path : 可视化图片的保存路径（仅当visualization=True时存在）；
-    * data: 识别关键点的坐标。
+    * data: 图片中每张人脸的关键点坐标
 
 
 ```python
@@ -73,7 +81,7 @@ import cv2
 
 face_landmark = hub.Module(name="face_landmark_localization")
 
-# Replacing the replacement face detection module gradually restores the prediction speed, but will reduce the effect
+# Replace face detection module to speed up predictions but reduce performance
 # face_landmark.set_face_detector_module(hub.Module(name="ultra_light_fast_generic_face_detector_1mb_320"))
 
 result = face_landmark.keypoint_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
@@ -124,6 +132,10 @@ print(r.json()["results"])
 ### 查看代码
 
 https://github.com/lsy17096535/face-landmark
+
+## Module贡献者
+
+[Jason](https://github.com/jiangjiajun)
 
 ### 依赖
 
