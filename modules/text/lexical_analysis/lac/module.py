@@ -291,9 +291,7 @@ class LAC(hub.Module):
             results.insert(
                 index, {
                     "word": [""],
-                    "tag": [
-                        "The predicted text is empty string \"\"! Please Check the data!"
-                    ]
+                    "tag": [""]
                 })
 
         if not return_tag:
