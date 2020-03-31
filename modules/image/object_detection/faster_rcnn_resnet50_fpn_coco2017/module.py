@@ -63,40 +63,24 @@ class FasterRCNNResNet50RPN(hub.Module):
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
-                rpn_head=None,
-                roi_extractor=None,
-                bbox_head=None,
-                bbox_assigner=None,
-                input_image=None,
+                class_nums=81,
                 trainable=True,
                 pretrained=True,
-                param_prefix='',
                 phase='train'):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param rpn_head: Head of Region Proposal Network
-        :type rpn_head: <class 'RPNHead' object>
-        :param bbox_head: Head of Bounding Box.
-        :type bbox_head: <class 'BBoxHead' object>
-        :param bbox_assigner: Parameters of fluid.layers.generate_proposal_labels.
-        :type bbox_assigner: <class 'BBoxAssigner' object>
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
-        :param param_prefix: the prefix of parameters in neural network.
-        :type param_prefix: str
         :param phase: Optional Choice: 'predict', 'train'
         :type phase: str
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
+        wrapped_prog = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
-                image = input_image if input_image else fluid.layers.data(
+                image = fluid.layers.data(
                     name='image', shape=[3, 800, 1333], dtype='float32')
                 # backbone
                 backbone = ResNet(
@@ -111,71 +95,18 @@ class FasterRCNNResNet50RPN(hub.Module):
                     min_level=2,
                     num_chan=256,
                     spatial_scale=[0.03125, 0.0625, 0.125, 0.25])
-                # rpn_head: FPNRPNHead
-                if rpn_head is None:
-                    rpn_head = self.faster_rcnn.FPNRPNHead(
-                        anchor_generator=self.faster_rcnn.AnchorGenerator(
-                            anchor_sizes=[32, 64, 128, 256, 512],
-                            aspect_ratios=[0.5, 1.0, 2.0],
-                            stride=[16.0, 16.0],
-                            variance=[1.0, 1.0, 1.0, 1.0]),
-                        rpn_target_assign=self.faster_rcnn.RPNTargetAssign(
-                            rpn_batch_size_per_im=256,
-                            rpn_fg_fraction=0.5,
-                            rpn_negative_overlap=0.3,
-                            rpn_positive_overlap=0.7,
-                            rpn_straddle_thresh=0.0),
-                        train_proposal=self.faster_rcnn.GenerateProposals(
-                            min_size=0.0,
-                            nms_thresh=0.7,
-                            post_nms_top_n=2000,
-                            pre_nms_top_n=2000),
-                        test_proposal=self.faster_rcnn.GenerateProposals(
-                            min_size=0.0,
-                            nms_thresh=0.7,
-                            post_nms_top_n=1000,
-                            pre_nms_top_n=1000),
-                        anchor_start_size=32,
-                        num_chan=256,
-                        min_level=2,
-                        max_level=6)
-                # roi_extractor: FPNRoIAlign
-                if roi_extractor is None:
-                    roi_extractor = self.faster_rcnn.FPNRoIAlign(
-                        canconical_level=4,
-                        canonical_size=224,
-                        max_level=5,
-                        min_level=2,
-                        box_resolution=7,
-                        sampling_ratio=2)
-                # bbox_head: BBoxHead
-                if bbox_head is None:
-                    bbox_head = self.faster_rcnn.BBoxHead(
-                        head=self.faster_rcnn.TwoFCHead(mlp_dim=1024),
-                        nms=self.faster_rcnn.MultiClassNMS(
-                            keep_top_k=100,
-                            nms_threshold=0.5,
-                            score_threshold=0.05))
-                # bbox_assigner: BBoxAssigner
-                if bbox_assigner is None:
-                    bbox_assigner = self.faster_rcnn.BBoxAssigner(
-                        batch_size_per_im=512,
-                        bbox_reg_weights=[0.1, 0.1, 0.2, 0.2],
-                        bg_thresh_hi=0.5,
-                        bg_thresh_lo=0.0,
-                        fg_fraction=0.25,
-                        fg_thresh=0.5)
+
                 # Base Class
                 inputs, outputs, context_prog = self.faster_rcnn.context(
                     body_feats=body_feats,
                     fpn=fpn,
-                    rpn_head=rpn_head,
-                    roi_extractor=roi_extractor,
-                    bbox_head=bbox_head,
-                    bbox_assigner=bbox_assigner,
+                    rpn_head=self.rpn_head(),
+                    roi_extractor=self.roi_extractor(),
+                    bbox_head=self.bbox_head(class_nums),
+                    bbox_assigner=self.bbox_assigner(class_nums),
                     image=image,
                     trainable=trainable,
-                    param_prefix=param_prefix,
+                    var_prefix='@HUB_{}@'.format(self.name),
                     phase=phase)
 
                 place = fluid.CPUPlace()
@@ -187,20 +118,67 @@ class FasterRCNNResNet50RPN(hub.Module):
                             os.path.join(self.default_pretrained_model_path,
                                          var.name))
 
-                    load_default_pretrained_model = True
-                    if param_prefix:
-                        load_default_pretrained_model = False
-                    elif input_image:
-                        if input_image.shape != (-1, 3, 800, 1333):
-                            load_default_pretrained_model = False
-                    if load_default_pretrained_model:
-                        fluid.io.load_vars(
-                            exe,
-                            self.default_pretrained_model_path,
-                            predicate=_if_exist)
+                    fluid.io.load_vars(
+                        exe,
+                        self.default_pretrained_model_path,
+                        predicate=_if_exist)
                 else:
                     exe.run(startup_program)
                 return inputs, outputs, context_prog
+
+    def rpn_head(self):
+        return self.faster_rcnn.FPNRPNHead(
+            anchor_generator=self.faster_rcnn.AnchorGenerator(
+                anchor_sizes=[32, 64, 128, 256, 512],
+                aspect_ratios=[0.5, 1.0, 2.0],
+                stride=[16.0, 16.0],
+                variance=[1.0, 1.0, 1.0, 1.0]),
+            rpn_target_assign=self.faster_rcnn.RPNTargetAssign(
+                rpn_batch_size_per_im=256,
+                rpn_fg_fraction=0.5,
+                rpn_negative_overlap=0.3,
+                rpn_positive_overlap=0.7,
+                rpn_straddle_thresh=0.0),
+            train_proposal=self.faster_rcnn.GenerateProposals(
+                min_size=0.0,
+                nms_thresh=0.7,
+                post_nms_top_n=2000,
+                pre_nms_top_n=2000),
+            test_proposal=self.faster_rcnn.GenerateProposals(
+                min_size=0.0,
+                nms_thresh=0.7,
+                post_nms_top_n=1000,
+                pre_nms_top_n=1000),
+            anchor_start_size=32,
+            num_chan=256,
+            min_level=2,
+            max_level=6)
+
+    def roi_extractor(self):
+        return self.faster_rcnn.FPNRoIAlign(
+            canconical_level=4,
+            canonical_size=224,
+            max_level=5,
+            min_level=2,
+            box_resolution=7,
+            sampling_ratio=2)
+
+    def bbox_head(self, class_nums):
+        return self.faster_rcnn.BBoxHead(
+            head=self.faster_rcnn.TwoFCHead(mlp_dim=1024),
+            nms=self.faster_rcnn.MultiClassNMS(
+                keep_top_k=100, nms_threshold=0.5, score_threshold=0.05),
+            num_classes=class_nums)
+
+    def bbox_assigner(self, class_nums):
+        return self.faster_rcnn.BBoxAssigner(
+            batch_size_per_im=512,
+            bbox_reg_weights=[0.1, 0.1, 0.2, 0.2],
+            bg_thresh_hi=0.5,
+            bg_thresh_lo=0.0,
+            fg_fraction=0.25,
+            fg_thresh=0.5,
+            class_nums=class_nums)
 
     def object_detection(self,
                          paths=None,
