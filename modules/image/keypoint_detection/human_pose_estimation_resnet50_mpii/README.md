@@ -65,4 +65,3 @@ https://github.com/PaddlePaddle/models/tree/develop/PaddleCV/human_pose_estimati
 paddlepaddle >= 1.6.0
 
 paddlehub >= 1.6.0
-

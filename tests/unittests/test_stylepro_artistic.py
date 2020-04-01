@@ -20,8 +20,7 @@ class TestStyleProjection(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.style_projection = hub.Module(
-            name="stylepro_artistic")
+        self.style_projection = hub.Module(name="stylepro_artistic")
 
     @classmethod
     def tearDownClass(self):
@@ -48,8 +47,9 @@ class TestStyleProjection(unittest.TestCase):
                 t1 = time.time()
                 self.style_projection.style_transfer(
                     paths=[{
-                        'content': content_paths[0], 
-                        'styles': [style_path]}],
+                        'content': content_paths[0],
+                        'styles': [style_path]
+                    }],
                     alpha=0.8,
                     use_gpu=True)
                 t2 = time.time()
@@ -89,7 +89,8 @@ class TestStyleProjection(unittest.TestCase):
             for j in range(len(style_arrs_list) - 1):
                 self.style_projection.style_transfer(
                     images=[{
-                        'content': content_arr,
+                        'content':
+                        content_arr,
                         'styles': [style_arrs_list[j], style_arrs_list[j + 1]]
                     }],
                     alpha=0.8,

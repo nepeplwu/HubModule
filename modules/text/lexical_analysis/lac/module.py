@@ -208,6 +208,16 @@ class LAC(hub.Module):
         tensor.shape = [lod[-1], 1]
         return tensor
 
+    def _get_index(self, data_list, item=""):
+        """
+        find all indexes of item in data_list
+        """
+        res = []
+        for index, data in enumerate(data_list):
+            if data == item:
+                res.append(index)
+        return res
+
     @serving
     def lexical_analysis(self,
                          texts=[],
@@ -246,10 +256,14 @@ class LAC(hub.Module):
                 data.get('text', None), list) and data['text']:
             predicted_data = data["text"]
         else:
-            raise ValueError(
-                "The input data is inconsistent with expectations.")
+            raise TypeError("The input data is inconsistent with expectations.")
 
         predicted_data = self.to_unicode(predicted_data)
+
+        # drop the empty string like "" in predicted_data
+        empty_str_indexes = self._get_index(predicted_data)
+        predicted_data = [data for data in predicted_data if data != ""]
+
         start_idx = 0
         iteration = int(math.ceil(len(predicted_data) / batch_size))
         results = []
@@ -272,6 +286,9 @@ class LAC(hub.Module):
                 self.id2label_dict,
                 interventer=self.interventer)
             results += batch_result
+
+        for index in empty_str_indexes:
+            results.insert(index, {"word": [""], "tag": [""]})
 
         if not return_tag:
             for result in results:
@@ -404,11 +421,14 @@ if __name__ == '__main__':
     # or use the fuction user_dict to set
     # lac.set_user_dict("user.dict")
 
-    test_text = ["今天是个好日子", "天气预报说今天要下雨", "下一班地铁马上就要到了", "调料份量不能多，也不能少，味道才能正好"]
+    test_text = [
+        "今天是个好日子", "天气预报说今天要下雨", "", "下一班地铁马上就要到了", "", "调料份量不能多，也不能少，味道才能正好",
+        "", ""
+    ]
 
     # execute predict and print the result
     results = lac.lexical_analysis(
-        data={'text': test_text}, use_gpu=True, batch_size=1, return_tag=True)
+        data={'text': test_text}, use_gpu=True, batch_size=7, return_tag=True)
     for result in results:
         if six.PY2:
             print(
