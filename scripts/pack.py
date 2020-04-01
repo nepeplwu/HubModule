@@ -47,9 +47,11 @@ def package_module(config):
                 if os.path.realpath(dest_path) != os.path.realpath(file):
                     shutil.move(file, dest_path)
 
-        tar_filter = lambda tarinfo: None if tarinfo.name.replace(
-            config['name'] + os.sep, "") in config.get("exclude", []
-                                                       ) else tarinfo
+        tar_filter = lambda tarinfo: None if any([
+            exclude_file_name in tarinfo.name.replace(config[
+                'name'] + os.sep, "") for exclude_file_name in config.get(
+                    "exclude", [])
+        ]) else tarinfo
 
         module = hub.Module(directory=dest)
         package = "{}_{}.tar.gz".format(module.name, module.version)
