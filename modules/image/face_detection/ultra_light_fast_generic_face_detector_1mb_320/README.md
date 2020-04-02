@@ -20,8 +20,8 @@ def face_detection(images=None,
 
 **参数**
 
-* images (list[numpy.ndarray]): 图片数据，ndarray.shape 为 [H, W, C]，GBR格式；
-* paths (list[str]): 图片的路径；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
@@ -30,9 +30,9 @@ def face_detection(images=None,
 
 **返回**
 
-* res (list[dict]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, save_path, data，其中：
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, save\_path, data，其中：
   * path 字段为原输入图片的路径（仅当使用paths输入时存在）；
-  * save_path 字段为可视化图片的保存路径（仅当visualization=True时存在）；
+  * save\_path 字段为可视化图片的保存路径（仅当visualization=True时存在）；
   * data 字段为检测结果，类型为list，list的每一个元素为dict，其中'left', 'right', 'top', 'bottom' 为人脸识别框，'confidence' 为此识别框置信度。
 
 ## 代码示例
@@ -60,7 +60,7 @@ $ hub serving start -m ultra_light_fast_generic_face_detector_1mb_320
 
 这样就完成了一个人脸检测服务化API的部署，默认端口号为8866。
 
-**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置。
+**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA\_VISIBLE\_DEVICES环境变量，否则不用设置。
 
 ## 第二步：发送预测请求
 
