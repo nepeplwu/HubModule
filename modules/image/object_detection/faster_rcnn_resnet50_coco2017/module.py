@@ -62,7 +62,7 @@ class FasterRCNNResNet50(hub.Module):
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
-                class_nums=81,
+                num_classes=81,
                 trainable=True,
                 pretrained=True,
                 phase='train'):
@@ -97,8 +97,8 @@ class FasterRCNNResNet50(hub.Module):
                     fpn=None,
                     rpn_head=self.rpn_head(),
                     roi_extractor=self.roi_extractor(),
-                    bbox_head=self.bbox_head(class_nums),
-                    bbox_assigner=self.bbox_assigner(class_nums),
+                    bbox_head=self.bbox_head(num_classes),
+                    bbox_assigner=self.bbox_assigner(num_classes),
                     image=image,
                     trainable=trainable,
                     var_prefix='@HUB_{}@'.format(self.name),
@@ -149,15 +149,15 @@ class FasterRCNNResNet50(hub.Module):
         return self.faster_rcnn.RoIAlign(
             resolution=14, sampling_ratio=0, spatial_scale=0.0625)
 
-    def bbox_head(self, class_nums):
+    def bbox_head(self, num_classes):
         return self.faster_rcnn.BBoxHead(
             head=ResNetC5(depth=50, norm_type='affine_channel'),
             nms=self.faster_rcnn.MultiClassNMS(
                 keep_top_k=100, nms_threshold=0.5, score_threshold=0.05),
             bbox_loss=self.faster_rcnn.SmoothL1Loss(),
-            num_classes=class_nums)
+            num_classes=num_classes)
 
-    def bbox_assigner(self, class_nums):
+    def bbox_assigner(self, num_classes):
         return self.faster_rcnn.BBoxAssigner(
             batch_size_per_im=512,
             bbox_reg_weights=[0.1, 0.1, 0.2, 0.2],
@@ -165,7 +165,7 @@ class FasterRCNNResNet50(hub.Module):
             bg_thresh_lo=0.0,
             fg_fraction=0.25,
             fg_thresh=0.5,
-            class_nums=class_nums)
+            class_nums=num_classes)
 
     def object_detection(self,
                          paths=None,

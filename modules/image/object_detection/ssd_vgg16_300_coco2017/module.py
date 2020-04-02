@@ -62,15 +62,12 @@ class SSDVGG16(hub.Module):
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
-                input_image=None,
+                num_classes=81,
                 trainable=True,
                 pretrained=True,
-                num_classes=81,
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
@@ -80,13 +77,12 @@ class SSDVGG16(hub.Module):
             if False, outputs is {'head_features': head_features}.
         :type get_prediction: bool
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
+        wrapped_prog = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 # image
-                image = input_image if input_image else fluid.layers.data(
+                image = fluid.layers.data(
                     name='image', shape=[3, 300, 300], dtype='float32')
                 # backbone
                 backbone = VGG(
@@ -98,9 +94,9 @@ class SSDVGG16(hub.Module):
                 inputs, outputs, context_prog = self.ssd.context(
                     body_feats=body_feats,
                     multi_box_head=self.ssd.MultiBoxHead(
-                        num_classes=num_classes, **self.multi_box_head),
+                        num_classes=num_classes, **self.multi_box_head_config),
                     ssd_output_decoder=self.ssd.SSDOutputDecoder(
-                        **self.output_decoder),
+                        **self.output_decoder_config),
                     image=image,
                     trainable=trainable,
                     var_prefix='@HUB_{}@'.format(self.name),
@@ -131,11 +127,11 @@ class SSDVGG16(hub.Module):
         return self._config
 
     @property
-    def multi_box_head(self):
+    def multi_box_head_config(self):
         return self.config['MultiBoxHead']
 
     @property
-    def output_decoder(self):
+    def output_decoder_config(self):
         return self.config['SSDOutputDecoder']
 
     def object_detection(self,

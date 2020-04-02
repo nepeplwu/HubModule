@@ -108,6 +108,7 @@ class SSD(hub.Module):
                 outputs = {'bbox_out': var_prefix + pred.name}
 
             add_vars_prefix(context_prog, var_prefix)
+            add_vars_prefix(fluid.default_startup_program(), var_prefix)
             inputs = {
                 key: context_prog.global_block().vars[value]
                 for key, value in inputs.items()

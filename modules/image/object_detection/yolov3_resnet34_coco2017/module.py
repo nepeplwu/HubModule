@@ -62,35 +62,23 @@ class YOLOv3ResNet34(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(self,
-                yolo_head=None,
-                input_image=None,
-                trainable=True,
-                pretrained=True,
-                param_prefix=''):
+    def context(self, num_classes=80, trainable=True, pretrained=True):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param yolo_head: Head of YOLOv3.
-        :type yolo_head: <class 'YOLOv3Head' object>
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
-        :param param_prefix: the prefix of parameters in yolo_head and backbone
-        :type param_prefix: str
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
-        with fluid.program_guard(wrapped_prog):
+        wrapped_prog = fluid.Program()
+        startup_program = fluid.Program()
+        with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 # image
-                image = input_image if input_image else fluid.layers.data(
+                image = fluid.layers.data(
                     name='image', shape=[3, 608, 608], dtype='float32')
                 # yolo_head
-                if yolo_head is None:
-                    yolo_head = self.yolov3.YOLOv3Head()
+                yolo_head = self.yolov3.YOLOv3Head(num_classes=num_classes)
                 # backbone
                 backbone = ResNet(
                     norm_type='bn',
@@ -105,30 +93,24 @@ class YOLOv3ResNet34(hub.Module):
                     yolo_head=yolo_head,
                     image=image,
                     trainable=trainable,
-                    param_prefix=param_prefix)
+                    var_prefix='@HUB_{}@'.format(self.name))
 
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)
-            with fluid.program_guard(context_prog):
-                if pretrained:
+            if pretrained:
 
-                    def _if_exist(var):
-                        return os.path.exists(
-                            os.path.join(self.default_pretrained_model_path,
-                                         var.name))
+                def _if_exist(var):
+                    return os.path.exists(
+                        os.path.join(self.default_pretrained_model_path,
+                                     var.name))
 
-                    load_default_pretrained_model = True
-                    if param_prefix:
-                        load_default_pretrained_model = False
-                    elif input_image:
-                        if input_image.shape != (-1, 3, 608, 608):
-                            load_default_pretrained_model = False
-                    if load_default_pretrained_model:
-                        fluid.io.load_vars(
-                            exe,
-                            self.default_pretrained_model_path,
-                            predicate=_if_exist)
-                return inputs, outputs, context_prog
+                fluid.io.load_vars(
+                    exe,
+                    self.default_pretrained_model_path,
+                    predicate=_if_exist)
+            else:
+                exe.run(startup_program)
+            return inputs, outputs, context_prog
 
     def object_detection(self,
                          paths=[],
