@@ -59,13 +59,15 @@ def package_module(config):
             file_content = file_content.replace('\n',
                                                 '').replace(' ', '').replace(
                                                     '"', '').replace("'", '')
-            module_info = re.findall('@moduleinfo\(.*?\)', file_content)[0]
-            module_name = re.findall('name=.*?,',
-                                     module_info)[0].split('=')[1].replace(
-                                         ',', '')
-            module_version = re.findall('version=.*?,',
-                                        module_info)[0].split('=')[1].replace(
-                                            ',', '')
+            module_info = re.findall('@moduleinfo\(.*?\)',
+                                     file_content)[0].replace(
+                                         '@moduleinfo(', '').replace(')', '')
+            module_info = module_info.split(',')
+            for item in module_info:
+                if item.startswith('version'):
+                    module_version = item.split('=')[1].replace(',', '')
+                if item.startswith('name'):
+                    module_name = item.split('=')[1].replace(',', '')
         package = "{}_{}.tar.gz".format(module_name, module_version)
         with tarfile.open(package, "w:gz") as tar:
             tar.add(
