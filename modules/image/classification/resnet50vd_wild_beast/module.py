@@ -23,7 +23,7 @@ from resnet50vd_wild_beast.resnet_vd import ResNet50_vd
     author="paddlepaddle",
     author_email="paddle-dev@baidu.comi",
     summary=
-    "ResNet50vd is a image classfication model, this module is trained with wild beast dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with Baidu self-build wild beasts dataset.",
     version="1.0.0")
 class ResNet50vdWildBeast(hub.Module):
     def _initialize(self):
@@ -59,7 +59,7 @@ class ResNet50vdWildBeast(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(self, trainable=False, pretrained=False):
+    def context(self, trainable=True, pretrained=True):
         """context for transfer learning.
 
         Args:

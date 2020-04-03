@@ -3,18 +3,18 @@ from __future__ import absolute_import
 from __future__ import division
 
 import ast
+import argparse
 import os
 
-import argparse
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .processor import postprocess
-from .data_feed import reader
-from .resnet_vd import ResNet50_vd
+from resnet50vd_animal.processor import postprocess
+from resnet50vd_animal.data_feed import reader
+from resnet50vd_animal.resnet_vd import ResNet50_vd
 
 
 @moduleinfo(
@@ -23,7 +23,7 @@ from .resnet_vd import ResNet50_vd
     author="paddlepaddle",
     author_email="paddle-dev@baidu.comi",
     summary=
-    "ResNet50vd is a image classfication model trained with animals dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with Baidu self-build animal dataset.",
     version="1.0.0")
 class ResNet50vdAnimal(hub.Module):
     def _initialize(self):
@@ -59,8 +59,18 @@ class ResNet50vdAnimal(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(self, trainable=False, pretrained=False):
-        """encoder for transfer learning."""
+    def context(self, trainable=True, pretrained=True):
+        """context for transfer learning.
+
+        Args:
+            trainable (bool): Set parameters in program to be trainable.
+            pretrained (bool) : Whether to load pretrained model.
+
+        Returns:
+            inputs (dict): key is 'image', corresponding vaule is image tensor.
+            ouputs (dict): key is 'classification', corresponding value is the result of classification.
+            context_prog (fluid.Program): program for transfer learning.
+        """
         context_prog = fluid.Program()
         startup_prog = fluid.Program()
         with fluid.program_guard(context_prog, startup_prog):
@@ -69,6 +79,9 @@ class ResNet50vdAnimal(hub.Module):
                     name="image", shape=[3, 224, 224], dtype="float32")
                 resnet_vd = ResNet50_vd()
                 ouput = resnet_vd.net(input=image, class_dim=7979)
+                inputs = {'image': image}
+                ouputs = {'classification': ouput}
+
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
                 # pretrained
@@ -85,20 +98,12 @@ class ResNet50vdAnimal(hub.Module):
                         self.default_pretrained_model_path,
                         context_prog,
                         predicate=_if_exist)
-                    """
-                    fluid.io.save_inference_model(
-                        dirname='_resnet50vd_animal_',
-                        feeded_var_names=['image'],
-                        target_vars=[ouput],
-                        executor=exe,
-                        main_program=context_prog)
-                    """
                 else:
                     exe.run(startup_prog)
                 # trainable
                 for param in context_prog.global_block().iter_parameters():
                     param.trainable = trainable
-        return context_prog
+        return inputs, ouputs, context_prog
 
     @serving
     def classification(self,
