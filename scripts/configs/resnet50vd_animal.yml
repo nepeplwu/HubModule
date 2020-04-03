@@ -1,0 +1,7 @@
+name: resnet50vd_animal
+dir: "modules/image/classification/resnet50vd_animal"
+resources:
+  -
+    url: https://bj.bcebos.com/paddlehub/hub_dev/resnet50vd_animal.tar.gz
+    dest: .
+    uncompress: True

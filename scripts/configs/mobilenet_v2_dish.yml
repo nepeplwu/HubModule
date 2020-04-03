@@ -1,0 +1,7 @@
+name: mobilenet_v2_animal
+dir: "modules/image/classification/mobilenet_v2_dish"
+resources:
+  -
+    url: https://bj.bcebos.com/paddlehub/hub_dev/mobilenet_v2_dish.tar.gz
+    dest: .
+    uncompress: True
