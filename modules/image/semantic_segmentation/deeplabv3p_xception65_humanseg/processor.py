@@ -50,7 +50,7 @@ def postprocess(data_out,
             save_path = os.path.join(output_dir, save_name)
             save_path = _check_duplicate_name(save_path)
             cv2.imwrite(save_path, rgba)
-            result.append({'path': save_path, 'data': rgba})
+            result.append({'save_path': save_path, 'data': rgba})
         else:
             result.append({'data': rgba})
     return result

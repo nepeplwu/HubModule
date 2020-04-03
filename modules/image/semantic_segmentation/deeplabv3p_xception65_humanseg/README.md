@@ -1,39 +1,37 @@
 ## 命令行预测
 
 ```
-hub run ultra_light_fast_generic_face_detector_1mb_320 --input_path "/PATH/TO/IMAGE"
+hub run deeplabv3p_xception65_humanseg --input_path "/PATH/TO/IMAGE"
 ```
 
 ## API
 
 ```python
-def face_detection(images=None,
-                   paths=None,
-                   batch_size=1,
-                   use_gpu=False,
-                   visualization=False,
-                   output_dir=None,
-                   confs_threshold=0.5):
+def segmentation(self,
+                 images=None,
+                 paths=None,
+                 batch_size=1,
+                 use_gpu=False,
+                 visualization=False,
+                 output_dir=None)
 ```
 
-检测输入图片中的所有人脸位置
+预测API，用于人像分割。
 
 **参数**
 
-* images (list[numpy.ndarray]): 图片数据，ndarray.shape 为 [H, W, C]，GBR格式；
-* paths (list[str]): 图片的路径；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为face\_detector\_320\_predict\_output；
-* confs\_threshold (float): 置信度的阈值。
+* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 segmentation\_result；
 
 **返回**
 
-* res (list[dict]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, save_path, data，其中：
-  * path 字段为原输入图片的路径（仅当使用paths输入时存在）；
-  * save_path 字段为可视化图片的保存路径（仅当visualization=True时存在）；
-  * data 字段为检测结果，类型为list，list的每一个元素为dict，其中'left', 'right', 'top', 'bottom' 为人脸识别框，'confidence' 为此识别框置信度。
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 save\_path, data，对应的取值为：
+  * save\_path (str, optional): 可视化图片的保存路径（仅当visualization=True时存在）；
+  * data (numpy.ndarray): 人像分割处理后得到的图片数据。
 
 ## 代码示例
 
@@ -41,10 +39,10 @@ def face_detection(images=None,
 import paddlehub as hub
 import cv2
 
-face_detector = hub.Module(name="ultra_light_fast_generic_face_detector_1mb_320")
-result = face_detector.face_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
+human_seg = hub.Module(name="deeplabv3p_xception65_humanseg")
+result = human_seg.segmentation(images=[cv2.imread('/PATH/TO/IMAGE')])
 # or
-# result = face_detector.face_detection((paths=['/PATH/TO/IMAGE'])
+# result = human_seg.segmentation(paths=['/PATH/TO/IMAGE'])
 ```
 
 ## 服务部署
@@ -55,12 +53,12 @@ PaddleHub Serving可以部署一个在线人脸检测服务。
 
 运行启动命令：
 ```shell
-$ hub serving start -m ultra_light_fast_generic_face_detector_1mb_320
+$ hub serving start -m deeplabv3p_xception65_humanseg
 ```
 
 这样就完成了一个人脸检测服务化API的部署，默认端口号为8866。
 
-**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置。
+**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA\_VISIBLE\_DEVICES环境变量，否则不用设置。
 
 ## 第二步：发送预测请求
 
@@ -80,7 +78,7 @@ def cv2_to_base64(image):
 # 发送HTTP请求
 data = {'images':[cv2_to_base64(cv2.imread("/PATH/TO/IMAGE"))]}
 headers = {"Content-type": "application/json"}
-url = "http://127.0.0.1:8866/predict/ultra_light_fast_generic_face_detector_1mb_320"
+url = "http://127.0.0.1:8866/predict/deeplabv3p_xception65_humanseg"
 r = requests.post(url=url, headers=headers, data=json.dumps(data))
 
 # 打印预测结果
@@ -89,11 +87,7 @@ print(r.json()["results"])
 
 ### 查看代码
 
-https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
-
-### 贡献者
-
-[Jason](https://github.com/jiangjiajun)、[Channingss](https://github.com/Channingss)
+[PaddleSeg 特色垂类模型 - 人像分割](https://github.com/PaddlePaddle/PaddleSeg/tree/release/v0.4.0/contrib)
 
 ### 依赖
 

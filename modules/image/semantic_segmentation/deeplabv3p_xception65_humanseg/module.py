@@ -12,8 +12,8 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from .processor import postprocess
-from .data_feed import reader
+from deeplabv3p_xception65_humanseg.processor import postprocess
+from deeplabv3p_xception65_humanseg.data_feed import reader
 
 
 @moduleinfo(
@@ -71,7 +71,9 @@ class HumanSegmentation(hub.Module):
             visualization (bool): Whether to save image or not.
 
         Returns:
-            res (list[collections.OrderedDict]): list of output images and save path of images.
+            res (list[dict]): each element in the list is a dict, the keys and values are:
+                save_path (str, optional): the path to save images. (Exists only if visualization is True)
+                data (numpy.ndarray): data of post processed image.
         """
         # create output directory
         output_dir = output_dir if output_dir else os.path.join(
