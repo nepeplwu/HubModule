@@ -56,9 +56,11 @@ class SSD(hub.Module):
         :type image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
+        :param var_prefix: the prefix of variables in ssd
+        :type var_prefix: str
         :param get_prediction: whether to get prediction,
             if True, outputs is bbox_out,
-            if False, outputs is head_features.
+            if False, outputs is body_features.
         :type get_prediction: bool
         """
         context_prog = image.block.program
@@ -106,6 +108,7 @@ class SSD(hub.Module):
                 outputs = {'bbox_out': var_prefix + pred.name}
 
             add_vars_prefix(context_prog, var_prefix)
+            add_vars_prefix(fluid.default_startup_program(), var_prefix)
             inputs = {
                 key: context_prog.global_block().vars[value]
                 for key, value in inputs.items()

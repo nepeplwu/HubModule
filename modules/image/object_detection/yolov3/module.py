@@ -49,7 +49,7 @@ class YOLOv3(hub.Module):
         :type var_prefix: str
         """
         context_prog = image.block.program
-        with fluid.program_guard(context_prog, fluid.Program()):
+        with fluid.program_guard(context_prog):
             im_size = fluid.layers.data(
                 name='im_size', shape=[2], dtype='int32')
             head_features = yolo_head._get_outputs(
@@ -69,6 +69,7 @@ class YOLOv3(hub.Module):
             exe.run(fluid.default_startup_program())
 
             add_vars_prefix(context_prog, var_prefix)
+            add_vars_prefix(fluid.default_startup_program(), var_prefix)
             inputs = {
                 key: context_prog.global_block().vars[value]
                 for key, value in inputs.items()

@@ -14,6 +14,7 @@ import paddlehub as hub
 from paddlehub.module.module import moduleinfo, runnable
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.io.parser import txt_parser
+import yaml
 
 from ssd_mobilenet_v1_pascal.mobilenet_v1 import MobileNet
 
@@ -37,6 +38,7 @@ class SSDMobileNetv1(hub.Module):
         self.image = None
         self.bbox_out = None
         self._set_config()
+        self._config = None
 
     def _set_config(self):
         """
@@ -61,38 +63,27 @@ class SSDMobileNetv1(hub.Module):
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
-                multi_box_head=None,
-                ssd_output_decoder=None,
-                input_image=None,
+                num_classes=21,
                 trainable=True,
                 pretrained=True,
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param multi_box_head: SSD head of MultiBoxHead.
-        :type multi_box_head: <class 'MultiBoxHead' object>
-        :param ssd_output_decoder: SSD output decoder
-        :type ssd_output_decoder: <class 'SSDOutputDecoder' object>
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
-        :param param_prefix: the prefix of parameters in multi_box_head and backbone
-        :type param_prefix: str
         :param get_prediction: whether to get prediction,
             if True, outputs is {'bbox_out': bbox_out},
-            if False, outputs is {'head_features': head_features}.
+            if False, outputs is {'body_features': body_features}.
         :type get_prediction: bool
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
+        wrapped_prog = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 # image
-                image = input_image if input_image else fluid.layers.data(
+                image = fluid.layers.data(
                     name='image', shape=[3, 300, 300], dtype='float32')
                 backbone = MobileNet(
                     norm_decay=0.,
@@ -102,37 +93,18 @@ class SSDMobileNetv1(hub.Module):
                                          [64, 128]],
                     with_extra_blocks=True)
                 body_feats = backbone(image)
-                # multi_box_head
-                if multi_box_head is None:
-                    multi_box_head = self.ssd.MultiBoxHead(
-                        base_size=300,
-                        num_classes=21,
-                        aspect_ratios=[[2.], [2., 3.], [2., 3.], [2., 3.],
-                                       [2., 3.], [2., 3.]],
-                        min_ratio=20,
-                        max_ratio=90,
-                        min_sizes=[60.0, 105.0, 150.0, 195.0, 240.0, 285.0],
-                        max_sizes=[[], 150.0, 195.0, 240.0, 285.0, 300.0],
-                        offset=0.5,
-                        flip=True)
-                # ssd_output_decoder
-                if ssd_output_decoder is None:
-                    ssd_output_decoder = self.ssd.SSDOutputDecoder(
-                        nms_threshold=0.45,
-                        nms_top_k=400,
-                        keep_top_k=200,
-                        score_threshold=0.01,
-                        nms_eta=1.0,
-                        background_label=0)
                 # call ssd.context
                 inputs, outputs, context_prog = self.ssd.context(
                     body_feats=body_feats,
-                    multi_box_head=multi_box_head,
-                    ssd_output_decoder=ssd_output_decoder,
+                    multi_box_head=self.ssd.MultiBoxHead(
+                        num_classes=num_classes, **self.multi_box_head_config),
+                    ssd_output_decoder=self.ssd.SSDOutputDecoder(
+                        **self.output_decoder_config),
                     image=image,
                     trainable=trainable,
                     var_prefix='@HUB_{}@'.format(self.name),
                     get_prediction=get_prediction)
+
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
                 if pretrained:
@@ -149,6 +121,21 @@ class SSDMobileNetv1(hub.Module):
                 else:
                     exe.run(startup_program)
                 return inputs, outputs, context_prog
+
+    @property
+    def config(self):
+        if not self._config:
+            with open(os.path.join(self.directory, 'config.yml')) as file:
+                self._config = yaml.load(file.read(), Loader=yaml.FullLoader)
+        return self._config
+
+    @property
+    def multi_box_head_config(self):
+        return self.config['MultiBoxHead']
+
+    @property
+    def output_decoder_config(self):
+        return self.config['SSDOutputDecoder']
 
     def object_detection(self,
                          paths=None,

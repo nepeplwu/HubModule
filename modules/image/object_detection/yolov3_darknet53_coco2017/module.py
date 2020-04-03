@@ -61,33 +61,23 @@ class YOLOv3DarkNet53(hub.Module):
             gpu_config.enable_use_gpu(memory_pool_init_size_mb=500, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(self,
-                yolo_head=None,
-                input_image=None,
-                trainable=True,
-                pretrained=True):
+    def context(self, num_classes=80, trainable=True, pretrained=True):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param yolo_head: Head of YOLOv3.
-        :type yolo_head: <class 'YOLOv3Head' object>
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
         """
-        wrapped_prog = input_image.block.program if input_image else fluid.Program(
-        )
+        wrapped_prog = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(wrapped_prog, startup_program):
             with fluid.unique_name.guard():
                 # image
-                image = input_image if input_image else fluid.layers.data(
+                image = fluid.layers.data(
                     name='image', shape=[3, 608, 608], dtype='float32')
                 # yolo_head
-                if yolo_head is None:
-                    yolo_head = self.yolov3.YOLOv3Head()
+                yolo_head = self.yolov3.YOLOv3Head(num_classes=num_classes)
                 backbone = DarkNet(norm_type='bn', norm_decay=0., depth=53)
                 body_feats = backbone(image)
                 inputs, outputs, context_prog = self.yolov3.context(

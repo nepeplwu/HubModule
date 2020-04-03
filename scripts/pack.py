@@ -9,6 +9,7 @@ import tempfile
 import tarfile
 import shutil
 import yaml
+import re
 
 import paddlehub as hub
 
@@ -32,7 +33,8 @@ def parse_args():
 def package_module(config):
     with tempfile.TemporaryDirectory(dir=".") as _dir:
         directory = os.path.join(MODULE_BASE_PATH, config["dir"])
-        dest = os.path.join(_dir, config['name'])
+        name = config['name'].replace('-', '_')
+        dest = os.path.join(_dir, name)
         shutil.copytree(directory, dest)
         for resource in config.get("resources", {}):
             if resource.get("uncompress", False):
@@ -47,15 +49,29 @@ def package_module(config):
                 if os.path.realpath(dest_path) != os.path.realpath(file):
                     shutil.move(file, dest_path)
 
-        tar_filter = lambda tarinfo: None if tarinfo.name.replace(
-            config['name'] + os.sep, "") in config.get("exclude", []
-                                                       ) else tarinfo
+        tar_filter = lambda tarinfo: None if any([
+            exclude_file_name in tarinfo.name.replace(name + os.sep, "")
+            for exclude_file_name in config.get("exclude", [])
+        ]) else tarinfo
 
-        module = hub.Module(directory=dest)
-        package = "{}_{}.tar.gz".format(module.name, module.version)
+        with open(os.path.join(directory, "module.py")) as file:
+            file_content = file.read()
+            file_content = file_content.replace('\n',
+                                                '').replace(' ', '').replace(
+                                                    '"', '').replace("'", '')
+            module_info = re.findall('@moduleinfo\(.*?\)',
+                                     file_content)[0].replace(
+                                         '@moduleinfo(', '').replace(')', '')
+            module_info = module_info.split(',')
+            for item in module_info:
+                if item.startswith('version'):
+                    module_version = item.split('=')[1].replace(',', '')
+                if item.startswith('name'):
+                    module_name = item.split('=')[1].replace(',', '')
+        package = "{}_{}.tar.gz".format(module_name, module_version)
         with tarfile.open(package, "w:gz") as tar:
             tar.add(
-                dest, arcname=os.path.basename(module.name), filter=tar_filter)
+                dest, arcname=os.path.basename(module_name), filter=tar_filter)
 
 
 def main(args):

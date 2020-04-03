@@ -8,6 +8,7 @@ from collections import OrderedDict
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddlehub.module.module import moduleinfo
+from paddlehub.common.paddle_helper import add_vars_prefix
 
 from faster_rcnn.data_feed import test_reader, padding_minibatch
 from faster_rcnn.processor import load_label_info, postprocess
@@ -50,7 +51,7 @@ class FasterRCNNBase(hub.Module):
         self.FPNRoIAlign = FPNRoIAlign
 
     def context(self, body_feats, fpn, rpn_head, roi_extractor, bbox_head,
-                bbox_assigner, image, trainable, param_prefix, phase):
+                bbox_assigner, image, trainable, var_prefix, phase):
         """Distill the Head Features, so as to perform transfer learning.
 
         :param body_feats: feature map of image classification to distill feature map.
@@ -69,8 +70,8 @@ class FasterRCNNBase(hub.Module):
         :type image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
-        :param param_prefix: the prefix of parameters in yolo_head and backbone
-        :type param_prefix: str
+        :param var_prefix: the prefix of variables in faster_rcnn
+        :type var_prefix: str
         :param phase: Optional Choice: 'predict', 'train'
         :type phase: str
         """
@@ -134,35 +135,48 @@ class FasterRCNNBase(hub.Module):
                 head_feat = list(head_feat.values())[0]
             if phase == 'train':
                 inputs = {
-                    'image': image,
-                    'im_info': im_info,
-                    'im_shape': im_shape,
-                    'gt_class': gt_class,
-                    'gt_bbox': gt_bbox,
-                    'is_crowd': is_crowd
+                    'image': var_prefix + image.name,
+                    'im_info': var_prefix + im_info.name,
+                    'im_shape': var_prefix + im_shape.name,
+                    'gt_class': var_prefix + gt_class.name,
+                    'gt_bbox': var_prefix + gt_bbox.name,
+                    'is_crowd': var_prefix + is_crowd.name
                 }
                 outputs = {
-                    'head_feat': head_feat,
-                    'rpn_cls_loss': rpn_loss['rpn_cls_loss'],
-                    'rpn_reg_loss': rpn_loss['rpn_reg_loss'],
-                    'generate_proposal_labels': outs
+                    'head_feat':
+                    var_prefix + head_feat.name,
+                    'rpn_cls_loss':
+                    var_prefix + rpn_loss['rpn_cls_loss'].name,
+                    'rpn_reg_loss':
+                    var_prefix + rpn_loss['rpn_reg_loss'].name,
+                    'generate_proposal_labels':
+                    [var_prefix + var.name for var in outs]
                 }
             elif phase == 'predict':
                 pred = bbox_head.get_prediction(roi_feat, rois, im_info,
                                                 im_shape)
                 inputs = {
-                    'image': image,
-                    'im_info': im_info,
-                    'im_shape': im_shape
+                    'image': var_prefix + image.name,
+                    'im_info': var_prefix + im_info.name,
+                    'im_shape': var_prefix + im_shape.name
                 }
                 outputs = {
-                    'head_feat': head_feat,
-                    'rois': rois,
-                    'bbox_out': pred
+                    'head_feat': var_prefix + head_feat.name,
+                    'rois': var_prefix + rois.name,
+                    'bbox_out': var_prefix + pred.name
                 }
+            add_vars_prefix(context_prog, var_prefix)
+            add_vars_prefix(fluid.default_startup_program(), var_prefix)
+
+            global_vars = context_prog.global_block().vars
+            inputs = {key: global_vars[value] for key, value in inputs.items()}
+            outputs = {
+                key: global_vars[value] if not isinstance(value, list) else
+                [global_vars[var] for var in value]
+                for key, value in outputs.items()
+            }
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)
-            exe.run(fluid.default_startup_program())
             for param in context_prog.global_block().iter_parameters():
                 param.trainable = trainable
             return inputs, outputs, context_prog
