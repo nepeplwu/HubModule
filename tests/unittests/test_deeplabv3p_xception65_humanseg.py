@@ -12,15 +12,14 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 
-pic_dir = 'friends'
+pic_dir = '../image_dataset/keypoint_detection/'
 
 
 class TestHumanSeg(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        # self.human_seg = hub.Module(name="deeplabv3p_xception65_humanseg")
-        self.human_seg = hub.Module(directory="code")
+        self.human_seg = hub.Module(name="deeplabv3p_xception65_humanseg")
 
     @classmethod
     def tearDownClass(self):
