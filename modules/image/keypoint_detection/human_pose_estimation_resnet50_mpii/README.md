@@ -24,8 +24,8 @@ def keypoint_detection(self,
 
 **参数**
 
-* images (list[numpy.ndarray]): 图片数据，ndarray.shape 为 [H, W, C]；
-* paths (list[str]): 图片的路径；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]；
+* paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
@@ -33,7 +33,7 @@ def keypoint_detection(self,
 
 **返回**
 
-* res (list[collections.OrderedDict]): 识别结果的列表，列表元素为 OrderedDict, 为各个关节点的坐标。
+* res (list\[collections.OrderedDict\]): 识别结果的列表，列表元素为 OrderedDict, 为各个关节点的坐标。
 
 ## 预测代码示例
 
@@ -42,7 +42,7 @@ import paddlehub as hub
 
 pose = hub.Module(name="human_pose_estimation_resnet50_mpii")
 
-# 设待处理的图片数据 ndarray 保存在列表 ndarray_list
+# 设待处理的图片数据 ndarray 保存在列表 ndarray_lis
 # 设待处理的图片的路径保存在列表 path_list
 result = pose.keypoint_detection(
     images=ndarray_list,

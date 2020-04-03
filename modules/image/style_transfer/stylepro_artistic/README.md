@@ -2,6 +2,8 @@
 <img src="https://paddlehub.bj.bcebos.com/resources/style.png"  hspace='10'/> <br />
 </p>
 
+更多详情请参考StyleProNet论文[https://arxiv.org/abs/2003.07694](https://arxiv.org/abs/2003.07694)
+
 ## 命令行预测
 
 ```
@@ -13,7 +15,7 @@ hub run stylepro_artistic --选项 选项值
 * content (str): 待转换风格的图片的存放路径；
 * styles (str): 作为底色的风格图片的存放路径，不同图片用英文逗号 `,` 间隔；
 * weights (float, optional) : styles 的权重，用英文逗号 `,` 间隔；
-* alpha (float, optioal)：转换的强度，[0, 1] 之间，默认值为1；
+* alpha (float, optioal)：转换的强度，\[0, 1\] 之间，默认值为1；
 * use\_gpu (bool, optional): 是否使用 gpu，默认为 False；
 * output\_dir (str, optional): 输出目录，默认为 transfer\_result；
 * visualization (bool, optioanl): 是否将结果保存为图片，默认为 True。
@@ -34,22 +36,22 @@ def style_transfer(self,
 
 **参数**
 
-* images (list[dict]): ndarray 格式的图片数据。每一个元素都为一个 dict，有关键字 content, styles, weights(可选)，相应取值为：
-    * content (numpy.ndarray): 待转换的图片，shape 为 [H, W, C]，BGR格式；
-    * styles (list[numpy.ndarray]) : 作为底色的风格图片组成的列表，各个图片数组的shape 都是 [H, W, C]，BGR格式；
-    * weights (list[float], optioal) : 各个 style 对应的权重。当不设置 weights 时，默认各个 style 有着相同的权重；
-* paths (list[str]): 图片的路径。每一个元素都为一个 dict，有关键字 content, styles, weights(可选)，相应取值为：
+* images (list\[dict\]): ndarray 格式的图片数据。每一个元素都为一个 dict，有关键字 content, styles, weights(可选)，相应取值为：
+    * content (numpy.ndarray): 待转换的图片，shape 为 \[H, W, C\]，BGR格式；
+    * styles (list\[numpy.ndarray\]) : 作为底色的风格图片组成的列表，各个图片数组的shape 都是 \[H, W, C\]，BGR格式；
+    * weights (list\[float\], optioal) : 各个 style 对应的权重。当不设置 weights 时，默认各个 style 有着相同的权重；
+* paths (list\[str\]): 图片的路径。每一个元素都为一个 dict，有关键字 content, styles, weights(可选)，相应取值为：
     * content (str): 待转换的图片的路径；
-    * styles (list[str]) : 作为底色的风格图片的路径；
-    * weights (list[float], optioal) : 各个 style 对应的权重。当不设置 weights 时，各个 style 的权重相同；
-* alpha (float) : 转换的强度，[0, 1] 之间，默认值为1；
+    * styles (list\[str\]) : 作为底色的风格图片的路径；
+    * weights (list\[float\], optioal) : 各个 style 对应的权重。当不设置 weights 时，各个 style 的权重相同；
+* alpha (float) : 转换的强度，\[0, 1\] 之间，默认值为1；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将结果保存为图片，默认为 False;
 * output\_dir (str): 图片的保存路径，默认设为 transfer\_result 。
 
 **返回**
 
-* res (list[dict]): 识别结果的列表，列表中每一个元素为 OrderedDict，关键字有 date, save_path，相应取值为：
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 OrderedDict，关键字有 date, save\_path，相应取值为：
   * save\_path (str): 保存图片的路径；
   * data (numpy.ndarray): 风格转换的图片数据。
 
@@ -87,7 +89,7 @@ $ hub serving start -m stylepro_artistic
 
 这样就完成了一个风格转换服务化API的部署，默认端口号为8866。
 
-**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA_VISIBLE_DEVICES环境变量，否则不用设置。
+**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置环境变量 CUDA\_VISIBLE\_DEVICES ，否则不用设置。
 
 ## 第二步：发送预测请求
 
