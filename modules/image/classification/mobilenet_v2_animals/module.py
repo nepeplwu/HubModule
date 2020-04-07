@@ -12,7 +12,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from mobilenet_v2_animals.processor import postprocess
+from mobilenet_v2_animals.processor import postprocess, base64_to_cv2
 from mobilenet_v2_animals.data_feed import reader
 from mobilenet_v2_animals.mobilenet_v2 import MobileNetV2
 
@@ -105,12 +105,12 @@ class MobileNetV2Animals(hub.Module):
                     param.trainable = trainable
         return inputs, ouputs, context_prog
 
-    @serving
     def classification(self,
                        images=None,
                        paths=None,
                        batch_size=1,
-                       use_gpu=False):
+                       use_gpu=False,
+                       top_k=1):
         """
         API for image classification.
 
@@ -119,6 +119,7 @@ class MobileNetV2Animals(hub.Module):
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
+            top_k (int): Return top k results.
 
         Returns:
             res (list[collections.OrderedDict]): The classfication results.
@@ -147,9 +148,19 @@ class MobileNetV2Animals(hub.Module):
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
             out = postprocess(
                 data_out=predictor_output[0].as_ndarray(),
-                label_list=self.label_list)
-            res.append(out)
+                label_list=self.label_list,
+                top_k=top_k)
+            res += out
         return res
+
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = [base64_to_cv2(image) for image in images]
+        results = self.classification(images=images_decode, **kwargs)
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -190,6 +201,11 @@ class MobileNetV2Animals(hub.Module):
             type=ast.literal_eval,
             default=1,
             help="batch size.")
+        self.arg_config_group.add_argument(
+            '--top_k',
+            type=ast.literal_eval,
+            default=1,
+            help="Return top k results.")
 
     def add_module_input_arg(self):
         """

@@ -3,11 +3,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import base64
+import cv2
 import os
 
 import numpy as np
 
-__all__ = ['postprocess']
+
+def base64_to_cv2(b64str):
+    data = base64.b64decode(b64str.encode('utf8'))
+    data = np.fromstring(data, np.uint8)
+    data = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    return data
 
 
 def softmax(x):
@@ -27,20 +34,22 @@ def softmax(x):
     return x
 
 
-def postprocess(data_out, label_list, top=1):
+def postprocess(data_out, label_list, top_k):
     """
     Postprocess output of network, one image at a time.
 
     Args:
         data_out (numpy.ndarray): output data of network.
         label_list (list): list of label.
-        top (int): top of results.
+        top_k (int): Return top k results.
     """
-    output = list()
+    output = []
     for result in data_out:
         result_i = softmax(result)
-        indexs = np.argsort(result_i)[::-1][0:top]
+        output_i = {}
+        indexs = np.argsort(result_i)[::-1][0:top_k]
         for index in indexs:
             label = label_list[index]
-            output.append({label: float(result_i[index])})
+            output_i[label] = float(result_i[index])
+        output.append(output_i)
     return output
