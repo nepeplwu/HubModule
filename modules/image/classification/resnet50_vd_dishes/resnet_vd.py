@@ -124,7 +124,7 @@ class ResNet():
             param_attr=fluid.param_attr.ParamAttr(
                 initializer=fluid.initializer.Uniform(-stdv, stdv)))
 
-        return out
+        return out, pool
 
     def conv_bn_layer(self,
                       input,

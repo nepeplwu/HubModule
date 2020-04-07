@@ -11,6 +11,7 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
+from paddlehub.common.paddle_helper import add_vars_prefix
 
 from mobilenet_v2_dishes.processor import postprocess, base64_to_cv2
 from mobilenet_v2_dishes.data_feed import reader
@@ -29,13 +30,24 @@ class MobileNetV2Dishes(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "model")
-        with open(
-                os.path.join(self.directory, "label_list.txt"),
-                "r",
-                encoding='utf-8') as file:
-            content = file.read()
-        self.label_list = content.split("\n")
+        label_file = os.path.join(self.directory, "label_list.txt")
+        with open(label_file, 'r', encoding='utf-8') as file:
+            self.label_list = file.read().split("\n")[:-1]
         self._set_config()
+
+    def get_expected_image_width(self):
+        return 224
+
+    def get_expected_image_height(self):
+        return 224
+
+    def get_pretrained_images_mean(self):
+        im_mean = np.array([0.485, 0.456, 0.406]).reshape(1, 3)
+        return im_mean
+
+    def get_pretrained_images_std(self):
+        im_std = np.array([0.229, 0.224, 0.225]).reshape(1, 3)
+        return im_std
 
     def _set_config(self):
         """
@@ -68,7 +80,9 @@ class MobileNetV2Dishes(hub.Module):
 
         Returns:
             inputs (dict): key is 'image', corresponding vaule is image tensor.
-            ouputs (dict): key is 'classification', corresponding value is the result of classification.
+            outputs (dict): key is :
+                'classification', corresponding value is the result of classification.
+                'feature_map', corresponding value is the result of the layer before the fully connected layer.
             context_prog (fluid.Program): program for transfer learning.
         """
         context_prog = fluid.Program()
@@ -78,9 +92,26 @@ class MobileNetV2Dishes(hub.Module):
                 image = fluid.layers.data(
                     name="image", shape=[3, 224, 224], dtype="float32")
                 mobile_net = MobileNetV2()
-                ouput = mobile_net.net(input=image, class_dim=8416, scale=1.0)
-                inputs = {'image': image}
-                ouputs = {'classification': ouput}
+                output, feature_map = mobile_net.net(
+                    input=image, class_dim=len(self.label_list), scale=1.0)
+
+                name_prefix = '@HUB_{}@'.format(self.name)
+                inputs = {'image': name_prefix + image.name}
+                outputs = {
+                    'classification': name_prefix + output.name,
+                    'feature_map': name_prefix + feature_map.name
+                }
+                add_vars_prefix(context_prog, name_prefix)
+                add_vars_prefix(startup_prog, name_prefix)
+                global_vars = context_prog.global_block().vars
+                inputs = {
+                    key: global_vars[value]
+                    for key, value in inputs.items()
+                }
+                outputs = {
+                    key: global_vars[value]
+                    for key, value in outputs.items()
+                }
 
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
@@ -103,7 +134,7 @@ class MobileNetV2Dishes(hub.Module):
                 # trainable
                 for param in context_prog.global_block().iter_parameters():
                     param.trainable = trainable
-        return inputs, ouputs, context_prog
+        return inputs, outputs, context_prog
 
     def classification(self,
                        images=None,

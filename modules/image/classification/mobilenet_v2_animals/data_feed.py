@@ -73,7 +73,7 @@ def reader(images=None, paths=None):
         assert type(images), "images is a list."
         for im in images:
             each = OrderedDict()
-            each['org_im'] = Image.fromarray(im)
+            each['org_im'] = Image.fromarray(im[:, :, ::-1])
             each['org_im_path'] = 'ndarray_time={}'.format(
                 round(time.time(), 6) * 1e6)
             each['org_im_width'], each['org_im_height'] = each['org_im'].size

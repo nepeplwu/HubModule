@@ -84,7 +84,7 @@ class MobileNetV2():
             size=class_dim,
             param_attr=ParamAttr(name='fc10_weights'),
             bias_attr=ParamAttr(name='fc10_offset'))
-        return output
+        return output, input
 
     def conv_bn_layer(self,
                       input,
