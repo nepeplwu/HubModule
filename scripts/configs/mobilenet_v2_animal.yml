@@ -1,7 +1,0 @@
-name: mobilenet_v2_animal
-dir: "modules/image/classification/mobilenet_v2_animal"
-resources:
-  -
-    url: https://bj.bcebos.com/paddlehub/hub_dev/mobilenet_v2_animal.tar.gz
-    dest: .
-    uncompress: True

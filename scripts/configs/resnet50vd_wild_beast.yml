@@ -1,9 +1,0 @@
-name: resnet50vd_wild_beast
-dir: "modules/image/classification/resnet50vd_wild_beast/"
-exclude:
-    - README.md
-resources:
-  -
-    url: https://bj.bcebos.com/paddlehub/hub_dev/wild_beast_resNet50vd.tar.gz
-    dest: .
-    uncompress: True

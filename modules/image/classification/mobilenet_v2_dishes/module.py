@@ -3,32 +3,32 @@ from __future__ import absolute_import
 from __future__ import division
 
 import ast
+import argparse
 import os
 
-import argparse
 import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from mobilenet_v2_animal.processor import postprocess
-from mobilenet_v2_animal.data_feed import reader
-from mobilenet_v2_animal.mobilenet_v2 import MobileNetV2
+from mobilenet_v2_dishes.processor import postprocess
+from mobilenet_v2_dishes.data_feed import reader
+from mobilenet_v2_dishes.mobilenet_v2 import MobileNetV2
 
 
 @moduleinfo(
-    name="mobilenet_v2_animal",
+    name="mobilenet_v2_dishes",
     type="CV/image_classification",
-    author="paddlepaddle",
-    author_email="paddle-dev@baidu.comi",
+    author="baidu-vis",
+    author_email="",
     summary=
-    "Mobilenet_V2 is a image classfication model, this module is trained with BaiDu self-build animals dataset.",
+    "Mobilenet_V2 is a image classfication model, this module is trained with Baidu self-built dishes dataset.",
     version="1.0.0")
-class MobileNetV2Animal(hub.Module):
+class MobileNetV2Dishes(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "mobilenet_v2_animal")
+            self.directory, "mobilenet_v2_dish")
         with open(
                 os.path.join(self.directory, "label_list.txt"),
                 "r",
@@ -78,7 +78,7 @@ class MobileNetV2Animal(hub.Module):
                 image = fluid.layers.data(
                     name="image", shape=[3, 224, 224], dtype="float32")
                 mobile_net = MobileNetV2()
-                ouput = mobile_net.net(input=image, class_dim=7979, scale=1.0)
+                ouput = mobile_net.net(input=image, class_dim=8416, scale=1.0)
                 inputs = {'image': image}
                 ouputs = {'classification': ouput}
 
@@ -121,7 +121,7 @@ class MobileNetV2Animal(hub.Module):
             use_gpu (bool): Whether to use gpu.
 
         Returns:
-            res (list[collections.OrderedDict]): The classfication results.
+            res (list[list[dict]]): The classfication results.
         """
         all_data = list()
         for yield_data in reader(images, paths):
@@ -157,8 +157,8 @@ class MobileNetV2Animal(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the mobilenet_v2_animal.",
-            prog='hub run mobilenet_v2_animal',
+            description="Run the mobilenet_v2_dish.",
+            prog='hub run mobilenet_v2_dish',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

@@ -12,23 +12,23 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from resnet50vd_dish.processor import postprocess
-from resnet50vd_dish.data_feed import reader
-from resnet50vd_dish.resnet_vd import ResNet50_vd
+from resnet50_vd_wildanimals.processor import postprocess
+from resnet50_vd_wildanimals.data_feed import reader
+from resnet50_vd_wildanimals.resnet_vd import ResNet50_vd
 
 
 @moduleinfo(
-    name="resnet50vd_dish",
+    name="resnet50_vd_wildanimals",
     type="CV/image_classification",
-    author="paddlepaddle",
-    author_email="paddle-dev@baidu.comi",
+    author="baidu-vis",
+    author_email="",
     summary=
-    "ResNet50vd is a image classfication model, this module is trained with BaiDu self-build dish dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with Baidu self-built wild animals dataset.",
     version="1.0.0")
-class ResNet50vdDish(hub.Module):
+class ResNet50vdWildAnimals(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "resnet50vd_dish")
+            self.directory, "model")
         with open(
                 os.path.join(self.directory, "label_list.txt"),
                 "r",
@@ -39,7 +39,7 @@ class ResNet50vdDish(hub.Module):
 
     def _set_config(self):
         """
-        predictor config setting
+        predictor config setting.
         """
         cpu_config = AnalysisConfig(self.default_pretrained_model_path)
         cpu_config.disable_glog_info()
@@ -59,7 +59,7 @@ class ResNet50vdDish(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def context(self, trainable=False, pretrained=False):
+    def context(self, trainable=True, pretrained=True):
         """context for transfer learning.
 
         Args:
@@ -78,10 +78,10 @@ class ResNet50vdDish(hub.Module):
                 image = fluid.layers.data(
                     name="image", shape=[3, 224, 224], dtype="float32")
                 resnet_vd = ResNet50_vd()
-                ouput = resnet_vd.net(input=image, class_dim=8416)
+                ouput = resnet_vd.net(input=image, class_dim=10)
+
                 inputs = {'image': image}
                 ouputs = {'classification': ouput}
-
                 place = fluid.CPUPlace()
                 exe = fluid.Executor(place)
                 # pretrained
@@ -157,8 +157,8 @@ class ResNet50vdDish(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the resnet50vd_dish module.",
-            prog='hub run resnet50vd_dish',
+            description="Run the resnet50vd_wild_beast module.",
+            prog='hub run resnet50vd_wild_beast',
             usage='%(prog)s',
             add_help=True)
         self.arg_input_group = self.parser.add_argument_group(

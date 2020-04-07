@@ -12,23 +12,23 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from resnet50vd_animal.processor import postprocess
-from resnet50vd_animal.data_feed import reader
-from resnet50vd_animal.resnet_vd import ResNet50_vd
+from resnet50_vd_animals.processor import postprocess
+from resnet50_vd_animals.data_feed import reader
+from resnet50_vd_animals.resnet_vd import ResNet50_vd
 
 
 @moduleinfo(
-    name="resnet50vd_animal",
+    name="resnet50_vd_animals",
     type="CV/image_classification",
-    author="paddlepaddle",
-    author_email="paddle-dev@baidu.comi",
+    author="baidu-vis",
+    author_email="",
     summary=
-    "ResNet50vd is a image classfication model, this module is trained with Baidu self-build animal dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with Baidu self-built animals dataset.",
     version="1.0.0")
-class ResNet50vdAnimal(hub.Module):
+class ResNet50vdAnimals(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "resnet50vd_animal")
+            self.directory, "model")
         with open(
                 os.path.join(self.directory, "label_list.txt"),
                 "r",
