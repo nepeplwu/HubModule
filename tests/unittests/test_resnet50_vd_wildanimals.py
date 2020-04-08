@@ -15,16 +15,16 @@ import paddlehub as hub
 pic_dir = '../image_dataset/classification/animals/'
 
 
-class TestMobileNetV2Animal(unittest.TestCase):
+class TestResNet50vdWildBeast(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.animal_classify = hub.Module(name="mobilenet_v2_animal")
+        self.wild_beast_classify = hub.Module(name="resnet50_vd_wildanimals")
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests.\n"""
-        self.animal_classify = None
+        self.wild_beast_classify = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -35,7 +35,7 @@ class TestMobileNetV2Animal(unittest.TestCase):
         self.test_prog = None
 
     def test_context(self):
-        self.animal_classify.context(pretrained=True)
+        self.wild_beast_classify.context(pretrained=True)
 
     def test_single_pic(self):
         with fluid.program_guard(self.test_prog):
@@ -45,7 +45,7 @@ class TestMobileNetV2Animal(unittest.TestCase):
             print('\n')
             for pic_path in pics_path_list:
                 print(pic_path)
-                result = self.animal_classify.classification(
+                result = self.wild_beast_classify.classification(
                     paths=[pic_path], use_gpu=False)
                 print(result)
 
@@ -55,7 +55,7 @@ class TestMobileNetV2Animal(unittest.TestCase):
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
             print('\n')
-            result = self.animal_classify.classification(
+            result = self.wild_beast_classify.classification(
                 paths=pics_path_list, batch_size=3, use_gpu=False)
             print(result)
 
@@ -67,17 +67,17 @@ class TestMobileNetV2Animal(unittest.TestCase):
             pics_ndarray = list()
             print('\n')
             for pic_path in pics_path_list:
-                im = cv2.imread(pic_path)
-                result = self.animal_classify.classification(
-                    images=np.expand_dims(im, axis=0), use_gpu=False)
+                im = cv2.cvtColor(cv2.imread(pic_path), cv2.COLOR_BGR2RGB)
+                result = self.wild_beast_classify.classification(
+                    images=[im], use_gpu=False)
                 print(result)
 
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    # suite.addTest(TestMobileNetV2Animal('test_context'))
-    suite.addTest(TestMobileNetV2Animal('test_single_pic'))
-    suite.addTest(TestMobileNetV2Animal('test_batch'))
-    suite.addTest(TestMobileNetV2Animal('test_ndarray'))
+    suite.addTest(TestResNet50vdWildBeast('test_context'))
+    suite.addTest(TestResNet50vdWildBeast('test_single_pic'))
+    suite.addTest(TestResNet50vdWildBeast('test_batch'))
+    suite.addTest(TestResNet50vdWildBeast('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
