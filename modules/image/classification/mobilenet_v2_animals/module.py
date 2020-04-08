@@ -153,7 +153,7 @@ class MobileNetV2Animals(hub.Module):
             top_k (int): Return top k results.
 
         Returns:
-            res (list[collections.OrderedDict]): The classfication results.
+            res (list[dict]): The classfication results.
         """
         all_data = list()
         for yield_data in reader(images, paths):
