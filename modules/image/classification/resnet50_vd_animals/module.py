@@ -146,14 +146,14 @@ class ResNet50vdAnimals(hub.Module):
         API for image classification.
 
         Args:
-            images (numpy.ndarray): data of images, shape of each is [H, W, C].
+            images (list[numpy.ndarray]): data of images, shape of each is [H, W, C].
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             top_k (int): Return top k results.
 
         Returns:
-            res (list[list[dict]]): The classfication results.
+            res (list[dict]): The classfication results.
         """
         all_data = list()
         for yield_data in reader(images, paths):
