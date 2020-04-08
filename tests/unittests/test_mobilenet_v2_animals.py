@@ -12,19 +12,19 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 
-pic_dir = '../image_dataset/classification/dish/'
+pic_dir = '../image_dataset/classification/animals/'
 
 
-class TestResNet50vdDish(unittest.TestCase):
+class TestMobileNetV2Animal(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.dish_classify = hub.Module(name="resnet50vd_dish")
+        self.animal_classify = hub.Module(name="mobilenet_v2_animals")
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests.\n"""
-        self.dish_classify = None
+        self.animal_classify = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -35,7 +35,7 @@ class TestResNet50vdDish(unittest.TestCase):
         self.test_prog = None
 
     def test_context(self):
-        self.dish_classify.context(pretrained=True)
+        self.animal_classify.context(pretrained=True)
 
     def test_single_pic(self):
         with fluid.program_guard(self.test_prog):
@@ -45,7 +45,7 @@ class TestResNet50vdDish(unittest.TestCase):
             print('\n')
             for pic_path in pics_path_list:
                 print(pic_path)
-                result = self.dish_classify.classification(
+                result = self.animal_classify.classification(
                     paths=[pic_path], use_gpu=False)
                 print(result)
 
@@ -55,7 +55,7 @@ class TestResNet50vdDish(unittest.TestCase):
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
             print('\n')
-            result = self.dish_classify.classification(
+            result = self.animal_classify.classification(
                 paths=pics_path_list, batch_size=3, use_gpu=False)
             print(result)
 
@@ -67,17 +67,17 @@ class TestResNet50vdDish(unittest.TestCase):
             pics_ndarray = list()
             print('\n')
             for pic_path in pics_path_list:
-                im = cv2.cvtColor(cv2.imread(pic_path), cv2.COLOR_BGR2RGB)
-                result = self.dish_classify.classification(
+                im = cv2.imread(pic_path)
+                result = self.animal_classify.classification(
                     images=np.expand_dims(im, axis=0), use_gpu=False)
                 print(result)
 
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestResNet50vdDish('test_context'))
-    suite.addTest(TestResNet50vdDish('test_single_pic'))
-    suite.addTest(TestResNet50vdDish('test_batch'))
-    suite.addTest(TestResNet50vdDish('test_ndarray'))
+    suite.addTest(TestMobileNetV2Animal('test_context'))
+    suite.addTest(TestMobileNetV2Animal('test_single_pic'))
+    suite.addTest(TestMobileNetV2Animal('test_batch'))
+    suite.addTest(TestMobileNetV2Animal('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
