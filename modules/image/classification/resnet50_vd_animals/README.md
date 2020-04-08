@@ -2,6 +2,12 @@
 $ hub install resnet50_vd_animals==1.0.0
 ```
 
+<p align="center">
+<img src="http://bj.bcebos.com/ibox-thumbnail98/77fa9b7003e4665867855b2b65216519?authorization=bce-auth-v1%2Ffbe74140929444858491fbf2b6bc0935%2F2020-04-08T11%3A05%3A10Z%2F1800%2F%2F1df0ecb4a52adefeae240c9e2189e8032560333e399b3187ef1a76e4ffa5f19f"  hspace='5' width=800/> <br /> ResNet 系列的网络结果
+</p>
+
+模型的详情可参考[论文](https://arxiv.org/pdf/1812.01187.pdf)
+
 ## 命令行预测
 
 ```
@@ -14,13 +20,13 @@ hub run resnet50_vd_animals --input_path "/PATH/TO/IMAGE"
 def get_expected_image_width(self)
 ```
 
-返回预期的图片宽度，也就是224。
+返回预处理的图片宽度，也就是224。
 
 ```python
 def get_expected_image_height(self)
 ```
 
-返回预期的图片高度，也就是224。
+返回预处理的图片高度，也就是224。
 
 ```python
 def get_pretrained_images_mean(self)
@@ -63,7 +69,7 @@ def classification(self,
 
 **参数**
 
-* images (list\[numpy.ndarray\]): 图片数据，每一个图片数据的shape 均为 [H, W, C]；
+* images (list\[numpy.ndarray\]): 图片数据，每一个图片数据的shape 均为 \[H, W, C\]，颜色空间为 BGR；
 * paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU 来预测；
@@ -81,7 +87,7 @@ import cv2
 
 classifier = hub.Module(name="resnet50_vd_animals")
 
-result = classifier.classificationimages=[cv2.imread('/PATH/TO/IMAGE')])
+result = classifier.classification(images=[cv2.imread('/PATH/TO/IMAGE')])
 # or
 # result = classifier.classification(paths=['/PATH/TO/IMAGE'])
 ```
