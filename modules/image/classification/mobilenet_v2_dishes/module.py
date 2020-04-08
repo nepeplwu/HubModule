@@ -146,7 +146,7 @@ class MobileNetV2Dishes(hub.Module):
         API for image classification.
 
         Args:
-            images (numpy.ndarray): data of images, shape of each is [H, W, C].
+            images (numpy.ndarray): data of images, shape of each is [H, W, C], color space must be BGR. .
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
