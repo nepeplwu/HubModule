@@ -17,32 +17,32 @@ hub run resnet50_vd_wildanimals --input_path "/PATH/TO/IMAGE"
 ## API
 
 ```python
-def get_expected_image_width(self)
+def get_expected_image_width()
 ```
 
 返回预处理的图片宽度，也就是224。
 
 ```python
-def get_expected_image_height(self)
+def get_expected_image_height()
 ```
 
 返回预处理的图片高度，也就是224。
 
 ```python
-def get_pretrained_images_mean(self)
+def get_pretrained_images_mean()
 ```
 
 返回预处理的图片均值，也就是 \[0.485, 0.456, 0.406\]。
 
 ```python
-def get_pretrained_images_std(self)
+def get_pretrained_images_std()
 ```
 
 返回预处理的图片标准差，也就是 \[0.229, 0.224, 0.225\]。
 
 
 ```python
-def context(self, trainable=True, pretrained=True)
+def context(trainable=True, pretrained=True)
 ```
 
 **参数**
@@ -59,8 +59,7 @@ def context(self, trainable=True, pretrained=True)
 * context\_prog(fluid.Program): 计算图，用于迁移学习。
 
 ```python
-def classification(self,
-                   images=None,
+def classification(images=None,
                    paths=None,
                    batch_size=1,
                    use_gpu=False,
@@ -116,11 +115,12 @@ import requests
 import json
 import cv2
 import base64
-import paddlehub as hub
+
 
 def cv2_to_base64(image):
     data = cv2.imencode('.jpg', image)[1]
     return base64.b64encode(data.tostring()).decode('utf8')
+
 
 # 发送HTTP请求
 data = {'images':[cv2_to_base64(cv2.imread("/PATH/TO/IMAGE"))]}
