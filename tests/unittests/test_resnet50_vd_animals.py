@@ -56,7 +56,7 @@ class TestResNet50vdAnimal(unittest.TestCase):
             ]
             print('\n')
             result = self.animal_classify.classification(
-                paths=pics_path_list, batch_size=3, use_gpu=False)
+                paths=pics_path_list, batch_size=3, use_gpu=False, top_k=2)
             print(result)
 
     def test_ndarray(self):
@@ -69,7 +69,7 @@ class TestResNet50vdAnimal(unittest.TestCase):
             for pic_path in pics_path_list:
                 im = cv2.cvtColor(cv2.imread(pic_path), cv2.COLOR_BGR2RGB)
                 result = self.animal_classify.classification(
-                    images=np.expand_dims(im, axis=0), use_gpu=False)
+                    images=np.expand_dims(im, axis=0), use_gpu=False, top_k=5)
                 print(result)
 
 
