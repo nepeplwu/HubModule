@@ -53,15 +53,18 @@ class TestPyramidBoxLiteMobile(unittest.TestCase):
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
             pics_ndarray = list()
+            im_list = list()
             for pic_path in pics_path_list:
                 im = cv2.imread(pic_path)
-                result = self.face_detector.face_detection(
-                    images=[im],
-                    output_dir='ndarray_output',
-                    shrink=1,
-                    confs_threshold=0.6,
-                    use_gpu=True,
-                    visualization=True)
+                im_list.append(im)
+            result = self.face_detector.face_detection(
+                images=im_list,
+                output_dir='ndarray_output',
+                shrink=1,
+                confs_threshold=0.6,
+                use_gpu=True,
+                visualization=True)
+            print(result)
 
 
 if __name__ == "__main__":
