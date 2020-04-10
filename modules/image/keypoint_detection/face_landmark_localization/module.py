@@ -26,7 +26,7 @@ from face_landmark_localization.data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Face_Landmark_Localization can be used to locate face landmark. This Module is trained through the MPII Human Pose dataset.",
-    version="1.0.0")
+    version="1.0.1")
 class FaceLandmarkLocalization(hub.Module):
     def _initialize(self, face_detector_module=None):
         """

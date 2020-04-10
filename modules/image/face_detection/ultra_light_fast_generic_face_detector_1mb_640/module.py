@@ -23,7 +23,7 @@ from ultra_light_fast_generic_face_detector_1mb_640.data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Ultra-Light-Fast-Generic-Face-Detector-1MB is a high-performance object detection model release on https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB.",
-    version="1.1.0")
+    version="1.1.1")
 class FaceDetector640(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(

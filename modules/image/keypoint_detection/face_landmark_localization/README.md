@@ -11,7 +11,7 @@ hub run face_landmark_localization --input_path "/PATH/TO/IMAGE"
 ## API
 
 ```python
-def __init__(self, face_detector_module=None)
+def __init__(face_detector_module=None)
 ```
 
 **参数**
@@ -20,8 +20,7 @@ def __init__(self, face_detector_module=None)
 
 
 ```python
-def keypoint_detection(self,
-                       images=None,
+def keypoint_detection(images=None,
                        paths=None,
                        batch_size=1,
                        use_gpu=False,
@@ -37,7 +36,7 @@ def keypoint_detection(self,
 
 **参数**
 
-* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
 * paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
@@ -52,7 +51,7 @@ def keypoint_detection(self,
 
 
 ```python
-def set_face_detector_module(self, face_detector_module)
+def set_face_detector_module(face_detector_module)
 ```
 
 设置为人脸关键点检测模型进行人脸检测的底座模型
@@ -63,7 +62,7 @@ def set_face_detector_module(self, face_detector_module)
 
 
 ```python
-def get_face_detector_module(self)
+def get_face_detector_module()
 ```
 
 获取为人脸关键点检测模型进行人脸检测的底座模型
@@ -71,6 +70,22 @@ def get_face_detector_module(self)
 **返回**
 
 * 当前模型使用的人脸检测模型。
+
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=False))
+```
+
+将模型保存到指定路径，由于人脸关键点检测模型由人脸检测+关键点检测两个模型组成，因此保存后会存在两个子目录，其中`face_landmark`为人脸关键点模型，`detector`为人脸检测模型。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model_filename: 模型文件名称，默认为__model__
+* params_filename: 参数文件名称，默认为__params__(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
 
 
 ## 代码示例
