@@ -14,11 +14,11 @@ import paddlehub as hub
 pic_dir = '../image_dataset/face_detection/'
 
 
-class TestPyramidBoxLiteMobile(unittest.TestCase):
+class TestPyramidBoxLiteServer(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.face_detector = hub.Module(name="pyramidbox_lite_mobile")
+        self.face_detector = hub.Module(name='pyramidbox_lite_server')
 
     @classmethod
     def tearDownClass(self):
@@ -66,7 +66,7 @@ class TestPyramidBoxLiteMobile(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestPyramidBoxLiteMobile('test_single_pic'))
-    suite.addTest(TestPyramidBoxLiteMobile('test_ndarray'))
+    suite.addTest(TestPyramidBoxLiteServer('test_single_pic'))
+    suite.addTest(TestPyramidBoxLiteServer('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
