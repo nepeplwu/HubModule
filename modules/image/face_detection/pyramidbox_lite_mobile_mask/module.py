@@ -117,8 +117,11 @@ class FaceDetector320(hub.Module):
 
         res = list()
         # process one by one
-        for element in reader(images, paths, self.face_detector, use_gpu,
-                              shrink, confs_threshold):
+        for element in reader(self.face_detector, shrink, confs_threshold,
+                              images, paths, use_gpu):
+            detect_faces_list = [
+                handled['face'] for handled in element['preprocessed']
+            ]
             image_list = [
                 handled['image'] for handled in element['preprocessed']
             ]
@@ -128,21 +131,15 @@ class FaceDetector320(hub.Module):
                 image_tensor
             ]) if use_gpu else self.cpu_predictor.run([image_tensor])
             # print(data_out[0].as_ndarray().shape)  # [-1, 144]
-            print(data_out[1].as_ndarray().shape)  # [-1, 2]
-            # print(data_out[1].as_ndarray())
-            """
+            # print(data_out[1].as_ndarray().shape)  # [-1, 2]
             out = postprocess(
-                data_out=data_out[0].as_ndarray(),
+                confidence_out=data_out[1].as_ndarray(),
                 org_im=element['org_im'],
                 org_im_path=element['org_im_path'],
-                image_width=element['image_width'],
-                image_height=element['image_height'],
+                detected_faces=detect_faces_list,
                 output_dir=output_dir,
-                visualization=visualization,
-                shrink=shrink,
-                confs_threshold=confs_threshold)
+                visualization=visualization)
             res.append(out)
-            """
         return res
 
     @serving

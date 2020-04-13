@@ -73,7 +73,7 @@ def process_image(org_im, face):
     return image_in
 
 
-def reader(images, paths, face_detector, use_gpu, shrink, confs_threshold):
+def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
     """
     Preprocess to yield image.
 
@@ -113,7 +113,6 @@ def reader(images, paths, face_detector, use_gpu, shrink, confs_threshold):
             confs_threshold=confs_threshold)
 
         element['preprocessed'] = list()
-        element['face_num'] = len(detect_faces[0]['data'])
         for face in detect_faces[0]['data']:
             handled = OrderedDict()
             handled['face'] = face

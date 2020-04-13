@@ -10,9 +10,11 @@ from collections import OrderedDict
 import base64
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 __all__ = ['base64_to_cv2', 'postprocess']
+
+label_list = ['NO MASK', 'MASK']
 
 
 def base64_to_cv2(b64str):
@@ -50,6 +52,8 @@ def get_save_image_name(org_im, org_im_path, output_dir):
         ext = '.png'
     elif img.mode == 'RGB':
         ext = '.jpg'
+    elif img.mode == 'L':  # black and white
+        ext = '.jpg'
     # save image path
     save_im_path = os.path.join(output_dir, im_prefix + ext)
     if os.path.exists(save_im_path):
@@ -59,41 +63,87 @@ def get_save_image_name(org_im, org_im_path, output_dir):
     return save_im_path
 
 
-def postprocess(label_score_list, org_im, org_im_path, output_dir,
-                visualization, confs_threshold):
+def draw_bounding_box_on_image(save_im_path, output_data):
+    image = Image.open(save_im_path)
+    draw = ImageDraw.Draw(image)
+    for bbox in output_data:
+        # draw bouding box
+        if bbox['label'] == "MASK":
+            draw.line([(bbox['left'], bbox['top']),
+                       (bbox['left'], bbox['bottom']),
+                       (bbox['right'], bbox['bottom']),
+                       (bbox['right'], bbox['top']),
+                       (bbox['left'], bbox['top'])],
+                      width=2,
+                      fill='green')
+        else:
+            draw.line([(bbox['left'], bbox['top']),
+                       (bbox['left'], bbox['bottom']),
+                       (bbox['right'], bbox['bottom']),
+                       (bbox['right'], bbox['top']),
+                       (bbox['left'], bbox['top'])],
+                      width=2,
+                      fill='red')
+        # draw label
+        text = bbox['label'] + ": %.2f%%" % (100 * bbox['confidence'])
+        textsize_width, textsize_height = draw.textsize(text=text)
+        if image.mode == 'RGB' or image.mode == 'RGBA':
+            box_fill = (255, 255, 255)
+            text_fill = (0, 0, 0)
+        else:
+            box_fill = (255)
+            text_fill = (0)
+
+            draw.rectangle(
+                xy=(bbox['left'], bbox['top'] - (textsize_height + 5),
+                    bbox['left'] + textsize_width + 10, bbox['top'] - 3),
+                fill=box_fill)
+            draw.text(
+                xy=(bbox['left'], bbox['top'] - 15), text=text, fill=text_fill)
+    image.save(save_im_path)
+
+
+def postprocess(confidence_out, org_im, org_im_path, detected_faces, output_dir,
+                visualization):
     """
-    Postprocess output of network. one image at a time.
+    Postprocess output of network. one element at a time.
 
     Args:
-        data_out (numpy.ndarray): output of network.
+        confidence_out (numpy.ndarray): confidences of each label.
         orig_im (numpy.ndarray): original image.
-        orig_im_path (list): path of riginal image.
+        orig_im_path (list): path of original image.
+        detected_faces (list): faces detected in a picture.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
-        shrink (float): parameter to control the resize scale in preprocess.
-        confs_threshold (float): confidence threshold.
 
     Returns:
         output (dict): keys are 'data' and 'path', the correspoding values are:
-            data (list[dict]): 5 keys, where
+            data (list[dict]): 6 keys, where
+                'label' is `MASK` or `NO MASK`,
                 'left', 'top', 'right', 'bottom' are the coordinate of detection bounding box,
-                'confidence' is the confidence this bbox.
+                'confidence' is the confidence of mask detection.
             path (str): The path of original image.
     """
     output = dict()
     output['data'] = list()
     output['path'] = org_im_path
 
-    label_idx = np.argsort(label_score_list)
+    for index, face in enumerate(detected_faces):
+        label_idx = np.argmax(confidence_out[index])
+        label_confidence = confidence_out[index][label_idx]
+        bbox = dict()
+        bbox['label'] = label_list[label_idx]
+        bbox['confidence'] = label_confidence
+        bbox['top'] = detected_faces[index]['top']
+        bbox['bottom'] = detected_faces[index]['bottom']
+        bbox['left'] = detected_faces[index]['left']
+        bbox['right'] = detected_faces[index]['right']
+        output['data'].append(bbox)
 
     if visualization:
         check_dir(output_dir)
         save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
-        im_out = org_im.copy()
-        if len(output['data']) > 0:
-            for bbox in output['data']:
-                cv2.rectangle(im_out, (bbox['left'], bbox['top']),
-                              (bbox['right'], bbox['bottom']), (255, 255, 0), 2)
-        cv2.imwrite(save_im_path, im_out)
+        cv2.imwrite(save_im_path, org_im)
+        draw_bounding_box_on_image(save_im_path, output['data'])
 
     return output
