@@ -32,10 +32,6 @@ def face_detection(images=None,
 
 识别输入图片中的所有的人脸，并判断有无戴口罩。
 
-<p align="center">
-<img src="https://paddlehub.bj.bcebos.com/resources/mask_detector.jpg"  hspace='5' width=500/> <br />
-</p>
-
 **参数**
 
 * images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
