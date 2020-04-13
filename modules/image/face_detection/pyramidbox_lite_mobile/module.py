@@ -12,22 +12,21 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from ultra_light_fast_generic_face_detector_1mb_640.processor import postprocess, base64_to_cv2
-from ultra_light_fast_generic_face_detector_1mb_640.data_feed import reader
+from pyramidbox_lite_mobile.data_feed import reader
+from pyramidbox_lite_mobile.processor import postprocess, base64_to_cv2
 
 
 @moduleinfo(
-    name="ultra_light_fast_generic_face_detector_1mb_640",
+    name="pyramidbox_lite_mobile",
     type="CV/face_detection",
-    author="paddlepaddle",
+    author="baidu-vis",
     author_email="paddle-dev@baidu.com",
-    summary=
-    "Ultra-Light-Fast-Generic-Face-Detector-1MB is a high-performance object detection model release on https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB.",
-    version="1.1.1")
-class FaceDetector640(hub.Module):
+    summary="PyramidBox-Lite-Mobile is a high-performance face detection model.",
+    version="1.2.0")
+class FaceDetector320(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "ultra_light_fast_generic_face_detector_1mb_640")
+            self.directory, "pyramidbox_lite_mobile_face_detection")
         self._set_config()
 
     def _set_config(self):
@@ -52,53 +51,29 @@ class FaceDetector640(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    def save_inference_model(self,
-                             dirname,
-                             model_filename=None,
-                             params_filename=None,
-                             combined=False):
-        if combined:
-            model_filename = "__model__" if not model_filename else model_filename
-            params_filename = "__params__" if not params_filename else params_filename
-        place = fluid.CPUPlace()
-        exe = fluid.Executor(place)
-
-        program, feeded_var_names, target_vars = fluid.io.load_inference_model(
-            dirname=self.default_pretrained_model_path, executor=exe)
-
-        fluid.io.save_inference_model(
-            dirname=dirname,
-            main_program=program,
-            executor=exe,
-            feeded_var_names=feeded_var_names,
-            target_vars=target_vars,
-            model_filename=model_filename,
-            params_filename=params_filename)
-
     def face_detection(self,
                        images=None,
                        paths=None,
                        data=None,
-                       batch_size=1,
                        use_gpu=False,
-                       output_dir='face_detector_640_predict_output',
+                       output_dir='pyramidbox_mobile_face_detect_output',
                        visualization=False,
-                       confs_threshold=0.5,
-                       iou_threshold=0.5):
+                       shrink=0.8,
+                       confs_threshold=0.6):
         """
         API for face detection.
 
         Args:
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
             paths (list[str]): The paths of images.
-            batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
-            confs_threshold (float): threshold for confidence coefficient.
-            iou_threshold (float): threshold for iou.
+            shrink (float): parameter to control the resize scale in preprocess.
+            confs_threshold (float): confidence threshold.
+
         Returns:
-            res (list[dict()]): The result of face detection and save path of images.
+            res (list[dict]): The result of face detection and save path of images.
         """
         if use_gpu:
             try:
@@ -110,50 +85,35 @@ class FaceDetector640(hub.Module):
                 )
 
         # compatibility with older versions
-        if data and 'image' in data:
-            if paths is None:
-                paths = []
-            paths += data['image']
+        if data:
+            if 'image' in data:
+                if paths is None:
+                    paths = list()
+                paths += data['image']
+            elif 'data' in data:
+                if images is None:
+                    images = list()
+                images += data['data']
 
-        # get all data
-        all_data = []
-        for yield_data in reader(images, paths):
-            all_data.append(yield_data)
-
-        total_num = len(all_data)
-        loop_num = int(np.ceil(total_num / batch_size))
-
-        res = []
-        for iter_id in range(loop_num):
-            batch_data = list()
-            handle_id = iter_id * batch_size
-            for image_id in range(batch_size):
-                try:
-                    batch_data.append(all_data[handle_id + image_id])
-                except:
-                    pass
-            # feed batch image
-            batch_image = np.array([data['image'] for data in batch_data])
-            batch_image = PaddleTensor(batch_image.astype('float32'))
+        res = list()
+        # process one by one
+        for element in reader(images, paths, shrink):
+            image = np.expand_dims(element['image'], axis=0).astype('float32')
+            image_tensor = PaddleTensor(image.copy())
             data_out = self.gpu_predictor.run([
-                batch_image
-            ]) if use_gpu else self.cpu_predictor.run([batch_image])
-            confidences = data_out[0].as_ndarray()
-            boxes = data_out[1].as_ndarray()
-
-            # postprocess one by one
-            for i in range(len(batch_data)):
-                out = postprocess(
-                    confidences=confidences[i],
-                    boxes=boxes[i],
-                    orig_im=batch_data[i]['orig_im'],
-                    orig_im_shape=batch_data[i]['orig_im_shape'],
-                    orig_im_path=batch_data[i]['orig_im_path'],
-                    output_dir=output_dir,
-                    visualization=visualization,
-                    confs_threshold=confs_threshold,
-                    iou_threshold=iou_threshold)
-                res.append(out)
+                image_tensor
+            ]) if use_gpu else self.cpu_predictor.run([image_tensor])
+            out = postprocess(
+                data_out=data_out[0].as_ndarray(),
+                org_im=element['org_im'],
+                org_im_path=element['org_im_path'],
+                image_width=element['image_width'],
+                image_height=element['image_height'],
+                output_dir=output_dir,
+                visualization=visualization,
+                shrink=shrink,
+                confs_threshold=confs_threshold)
+            res.append(out)
         return res
 
     @serving
@@ -186,10 +146,11 @@ class FaceDetector640(hub.Module):
         args = self.parser.parse_args(argvs)
         results = self.face_detection(
             paths=[args.input_path],
-            batch_size=args.batch_size,
             use_gpu=args.use_gpu,
             output_dir=args.output_dir,
-            visualization=args.visualization)
+            visualization=args.visualization,
+            shrink=args.shrink,
+            confs_threshold=args.confs_threshold)
         return results
 
     def add_module_config_arg(self):
@@ -204,18 +165,13 @@ class FaceDetector640(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='face_detector_640_predict_output',
+            default='pyramidbox_mobile_face_detect_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
             type=ast.literal_eval,
             default=False,
             help="whether to save output as images.")
-        self.arg_config_group.add_argument(
-            '--batch_size',
-            type=ast.literal_eval,
-            default=1,
-            help="batch size.")
 
     def add_module_input_arg(self):
         """
@@ -223,3 +179,15 @@ class FaceDetector640(hub.Module):
         """
         self.arg_input_group.add_argument(
             '--input_path', type=str, help="path to image.")
+        self.arg_input_group.add_argument(
+            '--shrink',
+            type=ast.literal_eval,
+            default=0.8,
+            help=
+            "resize the image to shrink * original_shape before feeding into network."
+        )
+        self.arg_input_group.add_argument(
+            '--confs_threshold',
+            type=ast.literal_eval,
+            default=0.6,
+            help="confidence threshold.")
