@@ -13,16 +13,16 @@ import paddlehub as hub
 pic_dir = '../image_dataset/face_detection/'
 
 
-class TestPyramidBoxLiteServer(unittest.TestCase):
+class TestPyramidBoxLiteServerMask(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.face_detector = hub.Module(name='pyramidbox_lite_server')
+        self.mask_detector = hub.Module(directory="pyramidbox_lite_server_mask")
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests.\n"""
-        self.face_detector = None
+        self.mask_detector = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -37,8 +37,10 @@ class TestPyramidBoxLiteServer(unittest.TestCase):
             pics_path_list = [
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
+            print('\n')
             for pic_path in pics_path_list:
-                result = self.face_detector.face_detection(
+                print(pic_path)
+                result = self.mask_detector.face_detection(
                     paths=[pic_path],
                     use_gpu=True,
                     visualization=True,
@@ -52,20 +54,23 @@ class TestPyramidBoxLiteServer(unittest.TestCase):
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
             pics_ndarray = list()
+            im_list = list()
             for pic_path in pics_path_list:
                 im = cv2.imread(pic_path)
-                result = self.face_detector.face_detection(
-                    images=[im],
-                    output_dir='ndarray_output',
-                    shrink=1,
-                    confs_threshold=0.6,
-                    use_gpu=True,
-                    visualization=True)
+                im_list.append(im)
+            result = self.mask_detector.face_detection(
+                images=im_list,
+                output_dir='ndarray_output',
+                shrink=1,
+                confs_threshold=0.6,
+                use_gpu=True,
+                visualization=True)
+            print(result)
 
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestPyramidBoxLiteServer('test_single_pic'))
-    suite.addTest(TestPyramidBoxLiteServer('test_ndarray'))
+    suite.addTest(TestPyramidBoxLiteServerMask('test_single_pic'))
+    suite.addTest(TestPyramidBoxLiteServerMask('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

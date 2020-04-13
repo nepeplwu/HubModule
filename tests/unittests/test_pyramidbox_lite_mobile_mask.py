@@ -7,23 +7,22 @@ import os
 import unittest
 
 import cv2
-import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 
-pic_dir = 'human_dataset'
+pic_dir = '../image_dataset/face_detection/'
 
 
-class TestPyramidBoxLiteMobile(unittest.TestCase):
+class TestPyramidBoxLiteMobileMask(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.face_detector = hub.Module(directory="pyramidbox_lite_mobile_mask")
+        self.mask_detector = hub.Module(name="pyramidbox_lite_mobile_mask")
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests.\n"""
-        self.face_detector = None
+        self.mask_detector = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -38,9 +37,11 @@ class TestPyramidBoxLiteMobile(unittest.TestCase):
             pics_path_list = [
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
+            print('\n')
             for pic_path in pics_path_list:
-                result = self.face_detector.face_detection(
-                    paths=[pic_path],
+                print(pic_path)
+                result = self.mask_detector.face_detection(
+                    paths=[pic_path, pic_path],
                     use_gpu=True,
                     visualization=True,
                     shrink=0.5,
@@ -57,7 +58,7 @@ class TestPyramidBoxLiteMobile(unittest.TestCase):
             for pic_path in pics_path_list:
                 im = cv2.imread(pic_path)
                 im_list.append(im)
-            result = self.face_detector.face_detection(
+            result = self.mask_detector.face_detection(
                 images=im_list,
                 output_dir='ndarray_output',
                 shrink=1,
@@ -69,7 +70,7 @@ class TestPyramidBoxLiteMobile(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestPyramidBoxLiteMobile('test_single_pic'))
-    # suite.addTest(TestPyramidBoxLiteMobile('test_ndarray'))
+    suite.addTest(TestPyramidBoxLiteMobileMask('test_single_pic'))
+    suite.addTest(TestPyramidBoxLiteMobileMask('test_ndarray'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

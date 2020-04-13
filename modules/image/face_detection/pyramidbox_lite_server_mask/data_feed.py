@@ -83,6 +83,7 @@ def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
         confs_threshold (float): confidence threshold of face_detector.
         images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space is BGR.
         paths (list[str]): paths to images.
+
     Yield:
         each (collections.OrderedDict): info of original image, preprocessed image, contains 3 keys:
             org_im (numpy.ndarray) : original image.
@@ -112,7 +113,7 @@ def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
             component.append(each)
 
     for element in component:
-        detect_faces = face_detector.face_detection(
+        detected_faces = face_detector.face_detection(
             images=[element['org_im']],
             use_gpu=use_gpu,
             visualization=False,
@@ -120,7 +121,7 @@ def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
             confs_threshold=confs_threshold)
 
         element['preprocessed'] = list()
-        for face in detect_faces[0]['data']:
+        for face in detected_faces[0]['data']:
             handled = OrderedDict()
             handled['face'] = face
             handled['image'] = process_image(element['org_im'], face)
