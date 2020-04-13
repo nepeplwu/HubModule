@@ -24,7 +24,7 @@ from pyramidbox_lite_mobile_mask.processor import postprocess, base64_to_cv2
     summary=
     "Pyramidbox-Lite-Mobile-Mask is a high-performance face detection model used to detect whether people wear masks.",
     version="1.3.0")
-class FaceDetector320(hub.Module):
+class PyramidBoxLiteMobileMask(hub.Module):
     def _initialize(self, face_detector_module=None):
         """
         Args:

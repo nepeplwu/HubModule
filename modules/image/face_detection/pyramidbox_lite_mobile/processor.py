@@ -95,7 +95,7 @@ def postprocess(data_out, org_im, org_im_path, image_height, image_width,
     output['path'] = org_im_path
 
     for each_data in data_out:
-        # each each_data is a list: [label, confidence, left, top, right, bottom]
+        # each_data is a list: [label, confidence, left, top, right, bottom]
         if each_data[1] > confs_threshold:
             dt_bbox = dict()
             dt_bbox['confidence'] = float(each_data[1])

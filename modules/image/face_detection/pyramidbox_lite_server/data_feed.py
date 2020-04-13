@@ -38,6 +38,7 @@ def reader(images, paths, shrink):
     Args:
         images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space is BGR.
         paths (list[str]): paths to images.
+        shrink (float): parameter to control the resize scale in preprocess.
 
     Yield:
         each (collections.OrderedDict): info of original image, preprocessed image.

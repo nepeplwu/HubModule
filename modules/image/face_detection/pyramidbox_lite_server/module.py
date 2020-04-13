@@ -23,7 +23,7 @@ from pyramidbox_lite_server.processor import postprocess, base64_to_cv2
     author_email="paddle-dev@baidu.com",
     summary="PyramidBox-Lite-Server is a high-performance face detection model.",
     version="1.2.0")
-class FaceDetector320(hub.Module):
+class PyramidBoxLiteServer(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "pyramidbox_lite_server_face_detection")
