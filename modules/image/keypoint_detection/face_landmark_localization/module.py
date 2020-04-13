@@ -100,7 +100,11 @@ class FaceLandmarkLocalization(hub.Module):
             target_vars=target_vars,
             model_filename=model_filename,
             params_filename=params_filename)
-        self.face_detector.save_inference_model(dirname=detector_dir)
+        self.face_detector.save_inference_model(
+            dirname=detector_dir,
+            model_filename=model_filename,
+            params_filename=params_filename,
+            combined=combined)
 
     def keypoint_detection(self,
                            images=None,

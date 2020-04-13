@@ -47,8 +47,8 @@ def save_inference_model(dirname,
 **参数**
 
 * dirname: 存在模型的目录名称
-* model_filename: 模型文件名称，默认为__model__
-* params_filename: 参数文件名称，默认为__params__(仅当`combined`为True时生效)
+* model_filename: 模型文件名称，默认为\_\_model\_\_
+* params_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
 * combined: 是否将参数保存到统一的一个文件中
 
 ## 代码示例
