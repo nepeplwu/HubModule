@@ -39,8 +39,9 @@ def face_detection(images=None,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果。  
 * output\_dir (str): 图片的保存路径，默认设为 pyramidbox\_server\_mask\_detect\_output。
+* shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果
+* confs\_threshold (float): 人脸检测的置信度的阈值。
 
 **返回**
 
