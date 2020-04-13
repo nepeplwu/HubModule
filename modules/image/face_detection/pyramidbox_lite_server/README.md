@@ -93,10 +93,6 @@ r = requests.post(url=url, headers=headers, data=json.dumps(data))
 print(r.json()["results"])
 ```
 
-### 查看代码
-
-[Paddle Models 人脸检测](https://github.com/PaddlePaddle/models/tree/develop/PaddleCV/face_detection)
-
 ### 依赖
 
 paddlepaddle >= 1.6.2
