@@ -41,7 +41,7 @@ class TestPyramidBoxLiteMobileMask(unittest.TestCase):
             for pic_path in pics_path_list:
                 print(pic_path)
                 result = self.mask_detector.face_detection(
-                    paths=[pic_path, pic_path],
+                    paths=[pic_path],
                     use_gpu=True,
                     visualization=True,
                     shrink=0.5,

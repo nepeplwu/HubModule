@@ -17,7 +17,7 @@ class TestPyramidBoxLiteServerMask(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.mask_detector = hub.Module(directory="pyramidbox_lite_server_mask")
+        self.mask_detector = hub.Module(name="pyramidbox_lite_server_mask")
 
     @classmethod
     def tearDownClass(self):
