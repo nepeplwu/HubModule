@@ -23,7 +23,7 @@ from deeplabv3p_xception65_humanseg.data_feed import reader
     author_email="paddle-dev@baidu.comi",
     summary="DeepLabv3+ is a semantic segmentation model.",
     version="1.1.0")
-class HumanSegmentation(hub.Module):
+class DeeplabV3pXception65HumanSeg(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "deeplabv3p_xception65_humanseg_model")
@@ -63,7 +63,7 @@ class HumanSegmentation(hub.Module):
         API for human segmentation.
 
         Args:
-            images (list(numpy.ndarray)): images data, shape of each is [H, W, C].
+            images (list(numpy.ndarray)): images data, shape of each is [H, W, C], the color space is BGR.
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
