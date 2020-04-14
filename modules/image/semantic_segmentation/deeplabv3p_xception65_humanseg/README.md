@@ -20,7 +20,7 @@ def segmentation(self,
 
 **参数**
 
-* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
 * paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
