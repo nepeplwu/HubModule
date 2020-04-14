@@ -75,10 +75,6 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                 save_path (str, optional): the path to save images. (Exists only if visualization is True)
                 data (numpy.ndarray): data of post processed image.
         """
-        # create output directory
-        output_dir = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'segmentation_result')
-
         all_data = list()
         for yield_data in reader(images, paths):
             all_data.append(yield_data)

@@ -25,11 +25,11 @@ def segmentation(self,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 human\_seg\_output；
+* output\_dir (str): 图片的保存路径。
 
 **返回**
 
-* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 save\_path, data，对应的取值为：
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 'save\_path', 'data'，对应的取值为：
   * save\_path (str, optional): 可视化图片的保存路径（仅当visualization=True时存在）；
   * data (numpy.ndarray): 人像分割处理后得到的图片数据。
 
@@ -47,7 +47,7 @@ result = human_seg.segmentation(images=[cv2.imread('/PATH/TO/IMAGE')])
 
 ## 服务部署
 
-PaddleHub Serving可以部署一个在线人脸检测服务。
+PaddleHub Serving可以部署一个人像分割的在线服务。
 
 ## 第一步：启动PaddleHub Serving
 
@@ -56,9 +56,9 @@ PaddleHub Serving可以部署一个在线人脸检测服务。
 $ hub serving start -m deeplabv3p_xception65_humanseg
 ```
 
-这样就完成了一个人脸检测服务化API的部署，默认端口号为8866。
+这样就完成了一个人像分割的服务化API的部署，默认端口号为8866。
 
-**NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA\_VISIBLE\_DEVICES环境变量，否则不用设置。
+**NOTE:** 如使用GPU预测，则需要在启动服务之前，设置CUDA\_VISIBLE\_DEVICES环境变量，否则不用设置。
 
 ## 第二步：发送预测请求
 
@@ -69,11 +69,12 @@ import requests
 import json
 import cv2
 import base64
-import paddlehub as hub
+
 
 def cv2_to_base64(image):
     data = cv2.imencode('.jpg', image)[1]
     return base64.b64encode(data.tostring()).decode('utf8')
+
 
 # 发送HTTP请求
 data = {'images':[cv2_to_base64(cv2.imread("/PATH/TO/IMAGE"))]}
