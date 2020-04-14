@@ -13,7 +13,7 @@ def segmentation(self,
                  batch_size=1,
                  use_gpu=False,
                  visualization=False,
-                 output_dir=None)
+                 output_dir='human_seg_output')
 ```
 
 预测API，用于人像分割。

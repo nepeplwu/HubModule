@@ -57,8 +57,8 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                      paths=None,
                      batch_size=1,
                      use_gpu=False,
-                     output_dir=None,
-                     visualization=False):
+                     visualization=False,
+                     output_dir='human_seg_output'):
         """
         API for human segmentation.
 
@@ -67,8 +67,8 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
-            output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
+            output_dir (str): The path to store output images.
 
         Returns:
             res (list[dict]): each element in the list is a dict, the keys and values are:
@@ -154,7 +154,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='human_seg_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
