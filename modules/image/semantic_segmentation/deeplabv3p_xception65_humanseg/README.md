@@ -25,7 +25,7 @@ def segmentation(self,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 segmentation\_result；
+* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 human\_seg\_output；
 
 **返回**
 
