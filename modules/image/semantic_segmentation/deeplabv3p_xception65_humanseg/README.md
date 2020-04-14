@@ -4,6 +4,11 @@
 hub run deeplabv3p_xception65_humanseg --input_path "/PATH/TO/IMAGE"
 ```
 
+<p align="center">
+<img src="https://paddlehub.bj.bcebos.com/paddlehub-img/deeplabv3plus.png" hspace='10'/> <br />
+</p>
+
+
 ## API
 
 ```python
