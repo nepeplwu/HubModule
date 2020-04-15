@@ -39,9 +39,9 @@ def segmentation(images=None,
 
 **返回**
 
-* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, data，其中：
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有'path', 'data'，相应的取值为：
   * path (str): 原输入图片的路径；
-  * data (numpy.ndarray): 图像分割得到的图片数据。 
+  * data (numpy.ndarray): 图像分割得到的图片数据。
 
 ## 代码示例
 
