@@ -24,6 +24,7 @@ def base64_to_cv2(b64str):
 def check_dir(dir_path):
     """
     Create directory to save processed image.
+
     Args:
         dir_path (str): directory path to save images.
     """
@@ -41,11 +42,6 @@ def get_save_image_name(org_im, org_im_path, output_dir):
     # name prefix of orginal image
     org_im_name = os.path.split(org_im_path)[-1]
     im_prefix = os.path.splitext(org_im_name)[0]
-    # extension
-    img = Image.fromarray(org_im[:, :, ::-1])
-    # if img.mode == 'RGBA':
-    #     ext = '.png'
-    # elif img.mode == 'RGB':
     ext = '.png'
     # save image path
     save_im_path = os.path.join(output_dir, im_prefix + ext)
@@ -110,8 +106,7 @@ def transform_logits(logits, center, scale, width, height, input_size):
     for i in range(channel):
         target_logit = cv2.warpAffine(
             logits[:, :, i],
-            trans,
-            (int(width), int(height)),  #(int(width), int(height)),
+            trans, (int(width), int(height)),
             flags=cv2.INTER_LINEAR,
             borderMode=cv2.BORDER_CONSTANT,
             borderValue=(0))
@@ -121,9 +116,12 @@ def transform_logits(logits, center, scale, width, height, input_size):
 
 
 def get_palette(num_cls):
-    """ Returns the color map for visualizing the segmentation mask.
+    """
+    Returns the color map for visualizing the segmentation mask.
+
     Args:
         num_cls: Number of classes
+
     Returns:
         The color map
     """
@@ -153,13 +151,12 @@ def postprocess(data_out, org_im, org_im_path, image_info, output_dir,
         data_out (numpy.ndarray): output of neural network.
         org_im (numpy.ndarray): orginal image.
         org_im_path (str): path of original image.
-        image_info ():
+        image_info (dict): info about the preprocessed image.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
     """
-    output = {}
-    output['path'] = org_im_path
-    output['data'] = []
+    result = dict()
+    result['path'] = org_im_path
 
     image_center = image_info['image_center']
     image_scale = image_info['image_scale']
@@ -167,20 +164,19 @@ def postprocess(data_out, org_im, org_im_path, image_info, output_dir,
     image_height = image_info['image_height']
     scale = image_info['scale']
 
-    output = np.squeeze(data_out)
-    output = np.transpose(output, [1, 2, 0])
-    logits_result = transform_logits(output, image_center, image_scale,
+    data_out = np.squeeze(data_out)
+    data_out = np.transpose(data_out, [1, 2, 0])
+    logits_result = transform_logits(data_out, image_center, image_scale,
                                      image_width, image_height, scale)
-    ms_fused_parsing_output = np.stack([logits_result])
-    ms_fused_parsing_output = np.mean(ms_fused_parsing_output, axis=0)
-    parsing = np.argmax(ms_fused_parsing_output, axis=2)
+    parsing = np.argmax(logits_result, axis=2)
+    rgba_im = np.asarray(parsing, dtype=np.uint8)
+    result['data'] = rgba_im
 
     if visualization:
         check_dir(output_dir)
         save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
+        rgba_im = Image.fromarray(rgba_im)
+        rgba_im.putpalette(palette)
+        rgba_im.save(save_im_path)
 
-        output_im = Image.fromarray(np.asarray(parsing, dtype=np.uint8))
-        output_im.putpalette(palette)
-        output_im.save(save_im_path)
-
-    return output
+    return result

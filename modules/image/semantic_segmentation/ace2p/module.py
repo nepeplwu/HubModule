@@ -78,7 +78,7 @@ class ACE2P(hub.Module):
             visualization (bool): Whether to save output images or not.
 
         Returns:
-            res (list[dict]): The result of face detection and save path of images.
+            res (list[dict]): The result of human parsing and original path of images.
         """
         if use_gpu:
             try:
@@ -118,8 +118,6 @@ class ACE2P(hub.Module):
             data_out = self.gpu_predictor.run([
                 batch_image
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
-
-            print(data_out[0].as_ndarray().shape)
             # postprocess one by one
             for i in range(len(batch_data)):
                 out = postprocess(
@@ -139,7 +137,7 @@ class ACE2P(hub.Module):
         Run as a service.
         """
         images_decode = [base64_to_cv2(image) for image in images]
-        results = self.face_detection(images_decode, **kwargs)
+        results = self.segmentation(images_decode, **kwargs)
         return results
 
     @runnable
@@ -161,7 +159,7 @@ class ACE2P(hub.Module):
         self.add_module_config_arg()
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        results = self.face_detection(
+        results = self.segmentation(
             paths=[args.input_path],
             batch_size=args.batch_size,
             use_gpu=args.use_gpu,
@@ -181,7 +179,7 @@ class ACE2P(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='ace2p_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
