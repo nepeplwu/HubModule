@@ -71,7 +71,7 @@ def get_face_detector_module()
 def save_inference_model(dirname,
                          model_filename=None,
                          params_filename=None,
-                         combined=False))
+                         combined=True)
 ```
 
 将模型保存到指定路径，由于人脸关键点检测模型由人脸检测+关键点检测两个模型组成，因此保存后会存在两个子目录，其中`face_landmark`为人脸关键点模型，`detector`为人脸检测模型。

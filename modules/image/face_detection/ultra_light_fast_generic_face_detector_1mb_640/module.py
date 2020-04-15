@@ -56,7 +56,7 @@ class FaceDetector640(hub.Module):
                              dirname,
                              model_filename=None,
                              params_filename=None,
-                             combined=False):
+                             combined=True):
         if combined:
             model_filename = "__model__" if not model_filename else model_filename
             params_filename = "__params__" if not params_filename else params_filename

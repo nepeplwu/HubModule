@@ -73,6 +73,22 @@ def classification(images=None,
 
 res (list\[dict\]): 分类结果，列表的每一个元素均为字典，其中 key 为识别动物的类别，value为置信度。
 
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=True)
+```
+
+将模型保存到指定路径。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model_filename: 模型文件名称，默认为\_\_model\_\_
+* params_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
+
 ## 代码示例
 
 ```python

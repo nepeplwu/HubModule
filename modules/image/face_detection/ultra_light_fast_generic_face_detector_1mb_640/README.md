@@ -39,7 +39,7 @@ def face_detection(images=None,
 def save_inference_model(dirname,
                          model_filename=None,
                          params_filename=None,
-                         combined=False))
+                         combined=True)
 ```
 
 将模型保存到指定路径。
