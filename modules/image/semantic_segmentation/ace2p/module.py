@@ -124,7 +124,6 @@ class ACE2P(hub.Module):
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
             # postprocess one by one
             for i in range(len(batch_data)):
-                print(data_out[0].as_ndarray()[i].shape)
                 out = postprocess(
                     data_out=data_out[0].as_ndarray()[i],
                     org_im=batch_data[i]['org_im'],
