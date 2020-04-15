@@ -40,9 +40,8 @@ def segmentation(images=None,
 **返回**
 
 * res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, data，其中：
-  * path 字段为原输入图片的路径（仅当使用paths输入时存在）；
-  * data 字段为检测结果，类型为list，list的每一个元素为dict，其中'left', 'right', 'top', 'bottom' 为人脸识别框，'confidence' 为此识别框置信度。
-
+  * path (str): 原输入图片的路径；
+  * data (numpy.ndarray): 图像分割得到的图片数据。 
 
 ## 代码示例
 
