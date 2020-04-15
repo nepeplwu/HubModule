@@ -130,7 +130,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         self.add_module_config_arg()
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        results = self.keypoint_detection(
+        results = self.segmentation(
             paths=[args.input_path],
             batch_size=args.batch_size,
             use_gpu=args.use_gpu,

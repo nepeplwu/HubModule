@@ -33,9 +33,9 @@ def postprocess(data_out,
         thresh (float): threshold.
 
     Returns:
-        result (list[dict]): The data of processed image.
+        result (dict): The data of processed image.
     """
-    result = list()
+    result = dict()
     for logit in data_out:
         logit = logit[1] * 255
         logit = cv2.resize(logit, (org_im_shape[1], org_im_shape[0]))
@@ -44,19 +44,17 @@ def postprocess(data_out,
         rgba = np.concatenate((org_im, np.expand_dims(logit, axis=2)), axis=2)
 
         if visualization:
-            _check_dir(output_dir)
-            save_name = os.path.splitext(
-                os.path.basename(org_im_path))[0] + '.png'
-            save_path = os.path.join(output_dir, save_name)
-            save_path = _check_duplicate_name(save_path)
-            cv2.imwrite(save_path, rgba)
-            result.append({'save_path': save_path, 'data': rgba})
+            check_dir(output_dir)
+            save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
+            cv2.imwrite(save_im_path, rgba)
+            result['save_path'] = save_im_path
+            result['data'] = rgba
         else:
-            result.append({'data': rgba})
+            result['data'] = rgba
     return result
 
 
-def _check_dir(dir_path):
+def check_dir(dir_path):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     elif os.path.isfile(dir_path):
@@ -64,8 +62,18 @@ def _check_dir(dir_path):
         os.makedirs(dir_path)
 
 
-def _check_duplicate_name(file_path):
-    if os.path.exists(file_path):
-        file_path = file_path + '_time={}.png'.format(
-            round(time.time(), 6) * 1e6)
-    return file_path
+def get_save_image_name(org_im, org_im_path, output_dir):
+    """
+    Get save image name from source image path.
+    """
+    # name prefix of orginal image
+    org_im_name = os.path.split(org_im_path)[-1]
+    im_prefix = os.path.splitext(org_im_name)[0]
+    ext = '.png'
+    # save image path
+    save_im_path = os.path.join(output_dir, im_prefix + ext)
+    if os.path.exists(save_im_path):
+        save_im_path = os.path.join(
+            output_dir, im_prefix + 'time={}'.format(int(time.time())) + ext)
+
+    return save_im_path
