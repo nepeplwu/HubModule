@@ -42,6 +42,7 @@ class TestHumanSeg(unittest.TestCase):
             for pic_path in pics_path_list:
                 result = self.human_seg.segmentation(
                     paths=[pic_path], use_gpu=True, visualization=True)
+                print(result)
 
     def test_batch(self):
         with fluid.program_guard(self.test_prog):
