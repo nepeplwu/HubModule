@@ -51,9 +51,9 @@ import paddlehub as hub
 import cv2
 
 human_parser = hub.Module(name="ace2p")
-result = human_parser.face_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
+result = human_parser.segmentation(images=[cv2.imread('/PATH/TO/IMAGE')])
 # or
-# result = human_parser.face_detection((paths=['/PATH/TO/IMAGE'])
+# result = human_parser.segmentation((paths=['/PATH/TO/IMAGE'])
 ```
 
 ## 服务部署
