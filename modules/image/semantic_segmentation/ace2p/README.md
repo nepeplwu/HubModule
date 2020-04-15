@@ -99,7 +99,7 @@ print(r.json()["results"])
 
 ## 调色板
 
-lign="left">
+<p align="left">
 <img src="https://bj.bcebos.com/paddlehub/paddlehub-img/ace2p_palette.jpg" hspace='10'/> <br />
 </p>
 
