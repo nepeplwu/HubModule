@@ -12,7 +12,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from deeplabv3p_xception65_humanseg.processor import postprocess
+from deeplabv3p_xception65_humanseg.processor import postprocess, base64_to_cv2
 from deeplabv3p_xception65_humanseg.data_feed import reader
 
 
