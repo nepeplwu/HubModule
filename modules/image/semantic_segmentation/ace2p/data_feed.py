@@ -63,16 +63,18 @@ def preprocess(org_im, scale, rotation):
     return image, image_info
 
 
-def reader(images=None, paths=None, scale=(473, 473), rotation=0):
+def reader(images, paths, scale, rotation):
     """
     Preprocess to yield image.
 
     Args:
         images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
         paths (list[str]): paths to images.
+        scale (tuple): size of preprocessed image.
+        rotation (int): rotation angle, used for obtaining affine matrix in preprocess.
 
     Yield:
-        each (collections.OrderedDict): info of original image, preprocessed image.
+        element (collections.OrderedDict): info of original image and preprocessed image.
     """
     component = list()
     if paths:

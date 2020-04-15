@@ -62,6 +62,8 @@ class ACE2P(hub.Module):
                      images=None,
                      paths=None,
                      data=None,
+                     scale=(473, 473),
+                     rotation=0,
                      batch_size=1,
                      use_gpu=False,
                      output_dir='ace2p_output',
@@ -72,6 +74,8 @@ class ACE2P(hub.Module):
         Args:
             images (list[numpy.ndarray]): images data, shape of each is [H, W, C], color space is BGR.
             paths (list[str]): The paths of images.
+            scale (tuple): size of preprocessed image.
+            rotation (int): rotation angle, used for obtaining affine matrix in preprocess.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
@@ -97,7 +101,7 @@ class ACE2P(hub.Module):
 
         # get all data
         all_data = []
-        for yield_data in reader(images, paths):
+        for yield_data in reader(images, paths, scale, rotation):
             all_data.append(yield_data)
 
         total_num = len(all_data)
@@ -120,6 +124,7 @@ class ACE2P(hub.Module):
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
             # postprocess one by one
             for i in range(len(batch_data)):
+                print(data_out[0].as_ndarray()[i].shape)
                 out = postprocess(
                     data_out=data_out[0].as_ndarray()[i],
                     org_im=batch_data[i]['org_im'],
