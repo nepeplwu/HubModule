@@ -33,7 +33,7 @@ class MobileNetV3Large(hub.Module):
         label_file = os.path.join(self.directory, "label_list.txt")
         with open(label_file, 'r', encoding='utf-8') as file:
             self.label_list = file.read().split("\n")[:-1]
-        #self._set_config()
+        self._set_config()
 
     def get_expected_image_width(self):
         return 224
