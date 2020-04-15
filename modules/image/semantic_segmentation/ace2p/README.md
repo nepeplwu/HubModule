@@ -15,8 +15,6 @@ hub run ace2p --input_path "/PATH/TO/IMAGE"
 ## API
 
 ```python
-
-```
 def segmentation(images=None,
                  paths=None,
                  scale=(473, 473),
