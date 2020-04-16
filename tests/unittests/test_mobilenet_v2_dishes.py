@@ -4,7 +4,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import time
 import unittest
 
 import cv2
@@ -72,6 +71,13 @@ class TestMobileNetV2Dish(unittest.TestCase):
                     images=np.expand_dims(im, axis=0), use_gpu=False)
                 print(result)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.dish_classify.save_inference_model(
+                dirname='mobilenet_v2_dishes',
+                model_filename='model',
+                combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
@@ -79,5 +85,6 @@ if __name__ == "__main__":
     suite.addTest(TestMobileNetV2Dish('test_single_pic'))
     suite.addTest(TestMobileNetV2Dish('test_batch'))
     suite.addTest(TestMobileNetV2Dish('test_ndarray'))
+    suite.addTest(TestMobileNetV2Dish('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
