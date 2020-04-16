@@ -24,7 +24,7 @@ from resnet50_vd_dishes.resnet_vd import ResNet50_vd
     author="baidu-vis",
     author_email="",
     summary=
-    "ResNet50vd is a image classfication model, this module is trained with Baidu self-built dishes dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with Baidu's self-built dishes dataset.",
     version="1.0.0")
 class ResNet50vdDishes(hub.Module):
     def _initialize(self):
