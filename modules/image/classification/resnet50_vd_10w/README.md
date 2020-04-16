@@ -44,9 +44,7 @@ def context(trainable=True, pretrained=True)
 **返回**
 
 * inputs (dict): 计算图的输入，key 为 'image', value 为图片的张量；
-* outputs (dict): 计算图的输出，key 为 'classification' 和 'feature_map'，其相应的值为：
-    * classification (paddle.fluid.framework.Variable): 分类结果，也就是全连接层的输出；
-    * feature\_map (paddle.fluid.framework.Variable): 特征匹配，全连接层前面的那个张量。
+* outputs (dict): 计算图的输出，key 为 'feature\_map', value为全连接层前面的那个张量。
 * context\_prog(fluid.Program): 计算图，用于迁移学习。
 
 

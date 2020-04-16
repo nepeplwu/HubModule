@@ -26,7 +26,7 @@ from resnet50_vd_10w.resnet_vd import ResNet50_vd
     summary=
     "ResNet50vd is a image classfication model, this module is trained with Baidu's self-built dataset with 100,000 categories.",
     version="1.0.0")
-class ResNet50vdDishes(hub.Module):
+class ResNet50vd(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "model")
