@@ -24,7 +24,7 @@ from resnet50_vd_wildanimals.resnet_vd import ResNet50_vd
     author="baidu-vis",
     author_email="",
     summary=
-    "ResNet50vd is a image classfication model, this module is trained with Baidu self-built wild animals dataset.",
+    "ResNet50vd is a image classfication model, this module is trained with IFAW's self-built wild animals dataset.",
     version="1.0.0")
 class ResNet50vdWildAnimals(hub.Module):
     def _initialize(self):

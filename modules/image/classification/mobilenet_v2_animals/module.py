@@ -24,7 +24,7 @@ from mobilenet_v2_animals.mobilenet_v2 import MobileNetV2
     author="baidu-vis",
     author_email="",
     summary=
-    "Mobilenet_V2 is a image classfication model, this module is trained with Baidu self-built animals dataset.",
+    "Mobilenet_V2 is a image classfication model, this module is trained with Baidu's self-built animals dataset.",
     version="1.0.0")
 class MobileNetV2Animals(hub.Module):
     def _initialize(self):
