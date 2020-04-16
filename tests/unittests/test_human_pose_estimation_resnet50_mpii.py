@@ -4,7 +4,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import time
 import unittest
 
 import cv2
@@ -39,27 +38,22 @@ class TestHumanPoseEstimation(unittest.TestCase):
             pics_path_list = [
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
-            t1 = time.time()
             for pic_path in pics_path_list:
                 result = self.pose.keypoint_detection(
                     paths=[pic_path], use_gpu=True, visualization=True)
-            t2 = time.time()
-            print('It cost {} seconds when batch_size=1.'.format(t2 - t1))
+                print(result)
 
     def test_batch(self):
         with fluid.program_guard(self.test_prog):
             pics_path_list = [
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
-            t1 = time.time()
             result = self.pose.keypoint_detection(
                 paths=pics_path_list,
                 batch_size=3,
                 output_dir='batch_output',
                 use_gpu=True,
                 visualization=True)
-            t2 = time.time()
-            print('It cost {} seconds when batch_size=3.'.format(t2 - t1))
             print(result)
 
     def test_ndarray(self):
@@ -67,14 +61,19 @@ class TestHumanPoseEstimation(unittest.TestCase):
             pics_path_list = [
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
-            pics_ndarray = list()
             for pic_path in pics_path_list:
-                im = cv2.imread(pic_path)
                 result = self.pose.keypoint_detection(
-                    images=np.expand_dims(im, axis=0),
+                    images=[cv2.imread(pic_path)],
                     output_dir='ndarray_output',
                     use_gpu=True,
                     visualization=True)
+
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.pose.save_inference_model(
+                dirname='human_pose_estimation_resnet50_mpii',
+                model_filename='model',
+                combined=True)
 
 
 if __name__ == "__main__":
@@ -82,5 +81,6 @@ if __name__ == "__main__":
     suite.addTest(TestHumanPoseEstimation('test_single_pic'))
     suite.addTest(TestHumanPoseEstimation('test_batch'))
     suite.addTest(TestHumanPoseEstimation('test_ndarray'))
+    suite.addTest(TestHumanPoseEstimation('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

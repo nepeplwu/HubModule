@@ -12,7 +12,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from human_pose_estimation_resnet50_mpii.processor import postprocess
+from human_pose_estimation_resnet50_mpii.processor import base64_to_cv2, postprocess
 from human_pose_estimation_resnet50_mpii.data_feed import reader
 from human_pose_estimation_resnet50_mpii.pose_resnet import ResNet
 
@@ -53,13 +53,12 @@ class HumanPoseEstimation(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    @serving
     def keypoint_detection(self,
                            images=None,
                            paths=None,
                            batch_size=1,
                            use_gpu=False,
-                           output_dir=None,
+                           output_dir='human_pose_estimation_result',
                            visualization=False):
         """
         API for human pose estimation and tracking.
@@ -73,12 +72,10 @@ class HumanPoseEstimation(hub.Module):
             visualization (bool): Whether to save image or not.
 
         Returns:
-            res (list[collections.OrderedDict]): The key points of human pose.
+            res (list[dict]): each element of res is a dict, keys contains 'path', 'data', the corresponding valus are:
+                path (str): the path of original image.
+                data (OrderedDict): The key points of human pose.
         """
-        # create output directory
-        output_dir = output_dir if output_dir else os.path.join(
-            os.getcwd(), 'keypoint_detection_result')
-
         all_data = list()
         for yield_data in reader(images, paths):
             all_data.append(yield_data)
@@ -113,6 +110,38 @@ class HumanPoseEstimation(hub.Module):
                     visualization=visualization)
                 res.append(out)
         return res
+
+    def save_inference_model(self,
+                             dirname,
+                             model_filename=None,
+                             params_filename=None,
+                             combined=True):
+        if combined:
+            model_filename = "__model__" if not model_filename else model_filename
+            params_filename = "__params__" if not params_filename else params_filename
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        program, feeded_var_names, target_vars = fluid.io.load_inference_model(
+            dirname=self.default_pretrained_model_path, executor=exe)
+
+        fluid.io.save_inference_model(
+            dirname=dirname,
+            main_program=program,
+            executor=exe,
+            feeded_var_names=feeded_var_names,
+            target_vars=target_vars,
+            model_filename=model_filename,
+            params_filename=params_filename)
+
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = [base64_to_cv2(image) for image in images]
+        results = self.keypoint_detection(images_decode, **kwargs)
+        return results
 
     @runnable
     def run_cmd(self, argvs):
@@ -154,7 +183,7 @@ class HumanPoseEstimation(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='human_pose_estimation_result',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
