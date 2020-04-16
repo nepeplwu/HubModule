@@ -23,8 +23,7 @@ hub run stylepro_artistic --选项 选项值
 ## API
 
 ```python
-def style_transfer(self,
-                   images=None,
+def style_transfer(images=None,
                    paths=None,
                    alpha=1,
                    use_gpu=False,
@@ -32,7 +31,7 @@ def style_transfer(self,
                    output_dir='transfer_result'):
 ```
 
-对图片进行风格转换
+对图片进行风格转换。
 
 **参数**
 
@@ -76,6 +75,22 @@ result = stylepro_artistic.style_transfer(
 #     }])
 ```
 
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=True)
+```
+
+将模型保存到指定路径。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model\_filename: 模型文件名称，默认为\_\_model\_\_
+* params\_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
+
 ## 服务部署
 
 PaddleHub Serving可以部署一个在线风格转换服务。
@@ -100,18 +115,20 @@ import requests
 import json
 import cv2
 import base64
-import paddlehub as hub
 import numpy as np
+
 
 def cv2_to_base64(image):
     data = cv2.imencode('.jpg', image)[1]
     return base64.b64encode(data.tostring()).decode('utf8')
+
 
 def base64_to_cv2(b64str):
     data = base64.b64decode(b64str.encode('utf8'))
     data = np.fromstring(data, np.uint8)
     data = cv2.imdecode(data, cv2.IMREAD_COLOR)
     return data
+
 
 data = {'images':[
     {
