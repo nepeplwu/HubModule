@@ -1,5 +1,5 @@
-name: modules/image/semantic_segmentation/ace2p
-dir: "modules/image/"
+name: ace2p
+dir: "modules/image/semantic_segmentation/ace2p"
 exclude:
     - README.md
 resources:

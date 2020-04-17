@@ -69,11 +69,17 @@ class TestAce2p(unittest.TestCase):
                     use_gpu=True,
                     visualization=True)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.human_parsing.save_inference_model(
+                dirname='ace2p', model_filename='model', combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestAce2p('test_single_pic'))
     suite.addTest(TestAce2p('test_batch'))
     suite.addTest(TestAce2p('test_ndarray'))
+    suite.addTest(TestAce2p('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
