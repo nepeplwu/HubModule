@@ -14,7 +14,7 @@ import paddlehub as hub
 pic_dir = '../image_dataset/classification/animals/'
 
 
-class TestResNet50vdAnimal(unittest.TestCase):
+class TestResNet50vdSSLD(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
@@ -81,10 +81,10 @@ class TestResNet50vdAnimal(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestResNet50vdAnimal('test_context'))
-    suite.addTest(TestResNet50vdAnimal('test_single_pic'))
-    suite.addTest(TestResNet50vdAnimal('test_batch'))
-    suite.addTest(TestResNet50vdAnimal('test_ndarray'))
-    suite.addTest(TestResNet50vdAnimal('test_save_inference_model'))
+    suite.addTest(TestResNet50vdSSLD('test_context'))
+    suite.addTest(TestResNet50vdSSLD('test_single_pic'))
+    suite.addTest(TestResNet50vdSSLD('test_batch'))
+    suite.addTest(TestResNet50vdSSLD('test_ndarray'))
+    suite.addTest(TestResNet50vdSSLD('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

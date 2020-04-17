@@ -14,7 +14,7 @@ import paddlehub as hub
 pic_dir = '../image_dataset/classification/animals/'
 
 
-class TestMobileNetV2Animal(unittest.TestCase):
+class TestMobileNetV3LargeSSLD(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
@@ -82,10 +82,10 @@ class TestMobileNetV2Animal(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestMobileNetV2Animal('test_context'))
-    suite.addTest(TestMobileNetV2Animal('test_single_pic'))
-    suite.addTest(TestMobileNetV2Animal('test_batch'))
-    suite.addTest(TestMobileNetV2Animal('test_ndarray'))
-    suite.addTest(TestMobileNetV2Animal('test_save_inference_model'))
+    suite.addTest(TestMobileNetV3LargeSSLD('test_context'))
+    suite.addTest(TestMobileNetV3LargeSSLD('test_single_pic'))
+    suite.addTest(TestMobileNetV3LargeSSLD('test_batch'))
+    suite.addTest(TestMobileNetV3LargeSSLD('test_ndarray'))
+    suite.addTest(TestMobileNetV3LargeSSLD('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
