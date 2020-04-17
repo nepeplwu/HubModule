@@ -39,7 +39,7 @@ def check_dir(dir_path):
 
 def get_save_image_name(img, org_im_path, output_dir):
     """
-    Get save image name from source image path.
+    Get save image name.
     """
     # name prefix of original image
     org_im_name = os.path.split(org_im_path)[-1]
@@ -77,17 +77,16 @@ def draw_bboxes(image, bboxes, org_im_path, output_dir):
 
 
 def postprocess(data_out, org_im, org_im_path, org_im_width, org_im_height,
-                shrink, output_dir, visualization, score_thresh):
+                output_dir, visualization, score_thresh):
     """
     Postprocess output of network. one image at a time.
 
     Args:
         data_out (numpy.ndarray): output of network.
-        org_im
-        org_im_path (str):
-        org_im_width (int):
-        org_im_height (int):
-        shrink (float):
+        org_im: (PIL.Image object): original image.
+        org_im_path (str): path of original image.
+        org_im_width (int): width of original image.
+        org_im_height (int): height of original image.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
 
@@ -106,10 +105,10 @@ def postprocess(data_out, org_im, org_im_path, org_im_width, org_im_height,
         print("No face detected in {}".format(org_im_path))
     else:
         det_conf = data_out[:, 1]
-        det_xmin = org_im_width * data_out[:, 2]  # / shrink
-        det_ymin = org_im_height * data_out[:, 3]  # / shrink
-        det_xmax = org_im_width * data_out[:, 4]  # / shrink
-        det_ymax = org_im_height * data_out[:, 5]  # / shrink
+        det_xmin = org_im_width * data_out[:, 2]
+        det_ymin = org_im_height * data_out[:, 3]
+        det_xmax = org_im_width * data_out[:, 4]
+        det_ymax = org_im_height * data_out[:, 5]
         dets = np.column_stack((det_xmin, det_ymin, det_xmax, det_ymax,
                                 det_conf))
         keep_index = np.where(dets[:, 4] >= score_thresh)[0]

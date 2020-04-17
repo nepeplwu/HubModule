@@ -28,7 +28,7 @@ def preprocess(image):
     img -= np.array(mean)[:, np.newaxis, np.newaxis].astype('float32')
     img = img * scale
     img = np.array(img)
-    return img, shrink
+    return img
 
 
 def to_chw_bgr(image):
@@ -49,6 +49,8 @@ def to_chw_bgr(image):
 
 def get_shrink(height, width):
     """
+    shrink the original image according to the org_im_height and org_im_width.
+    calculate the value of shrink.
 
     Args:
         height (int): image height.
@@ -119,5 +121,5 @@ def reader(images, paths):
             component.append(each)
 
     for element in component:
-        element['image'], element['shrink'] = preprocess(element['org_im'])
+        element['image'] = preprocess(element['org_im'])
         yield element

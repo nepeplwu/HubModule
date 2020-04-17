@@ -23,7 +23,7 @@ from pyramidbox_face_detection.processor import postprocess, base64_to_cv2
     author_email="paddle-dev@baidu.com",
     summary="Baidu's PyramidBox model for face detection.",
     version="1.1.0")
-class PyramidBoxLiteMobile(hub.Module):
+class PyramidBoxFaceDetection(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
             self.directory, "pyramidbox_face_detection_widerface")
@@ -68,9 +68,14 @@ class PyramidBoxLiteMobile(hub.Module):
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
+            score_thresh (float): score threshold to limit the detection result.
 
         Returns:
-            res (list[dict]): The result of face detection and save path of images.
+            res (list[dict]): The result of face detection, keys are 'data' and 'path', the correspoding values are:
+            data (list[dict]): 5 keys, where
+                'left', 'top', 'right', 'bottom' are the coordinate of detection bounding box,
+                'confidence' is the confidence this bbox.
+            path (str): The path of original image.
         """
         if use_gpu:
             try:
@@ -103,7 +108,6 @@ class PyramidBoxLiteMobile(hub.Module):
                 org_im_path=element['org_im_path'],
                 org_im_width=element['org_im_width'],
                 org_im_height=element['org_im_height'],
-                shrink=element['shrink'],
                 output_dir=output_dir,
                 visualization=visualization,
                 score_thresh=score_thresh)
