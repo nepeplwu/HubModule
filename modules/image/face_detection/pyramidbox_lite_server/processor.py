@@ -74,8 +74,8 @@ def postprocess(data_out, org_im, org_im_path, image_height, image_width,
 
     Args:
         data_out (numpy.ndarray): output of network.
-        orig_im (numpy.ndarray): original image.
-        orig_im_path (list): path of riginal image.
+        org_im (numpy.ndarray): original image.
+        org_im_path (list): path of riginal image.
         image_height (int): height of preprocessed image.
         image_width (int): width of preprocessed image.
         output_dir (str): output directory to store image.

@@ -110,8 +110,8 @@ def postprocess(confidence_out, org_im, org_im_path, detected_faces, output_dir,
 
     Args:
         confidence_out (numpy.ndarray): confidences of each label.
-        orig_im (numpy.ndarray): original image.
-        orig_im_path (list): path of original image.
+        org_im (numpy.ndarray): original image.
+        org_im_path (list): path of original image.
         detected_faces (list): faces detected in a picture.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
