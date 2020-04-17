@@ -38,6 +38,22 @@ def segmentation(self,
   * save\_path (str, optional): 可视化图片的保存路径（仅当visualization=True时存在）；
   * data (numpy.ndarray): 人像分割处理后得到的图片数据。
 
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=True)
+```
+
+将模型保存到指定路径。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model\_filename: 模型文件名称，默认为\_\_model\_\_
+* params\_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
+
 ## 代码示例
 
 ```python

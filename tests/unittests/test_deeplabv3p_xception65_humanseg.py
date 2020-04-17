@@ -70,11 +70,19 @@ class TestHumanSeg(unittest.TestCase):
                     use_gpu=True,
                     visualization=True)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.human_seg.save_inference_model(
+                dirname='deeplabv3p_xception65_humanseg',
+                model_filename='model',
+                combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestHumanSeg('test_single_pic'))
     suite.addTest(TestHumanSeg('test_batch'))
     suite.addTest(TestHumanSeg('test_ndarray'))
+    suite.addTest(TestHumanSeg('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

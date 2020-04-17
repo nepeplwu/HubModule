@@ -51,7 +51,6 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
-    @serving
     def segmentation(self,
                      images=None,
                      paths=None,
@@ -109,6 +108,38 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                     visualization=visualization)
                 res.append(out)
         return res
+
+    def save_inference_model(self,
+                             dirname,
+                             model_filename=None,
+                             params_filename=None,
+                             combined=True):
+        if combined:
+            model_filename = "__model__" if not model_filename else model_filename
+            params_filename = "__params__" if not params_filename else params_filename
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        program, feeded_var_names, target_vars = fluid.io.load_inference_model(
+            dirname=self.default_pretrained_model_path, executor=exe)
+
+        fluid.io.save_inference_model(
+            dirname=dirname,
+            main_program=program,
+            executor=exe,
+            feeded_var_names=feeded_var_names,
+            target_vars=target_vars,
+            model_filename=model_filename,
+            params_filename=params_filename)
+
+    @serving
+    def serving_method(self, images, **kwargs):
+        """
+        Run as a service.
+        """
+        images_decode = [base64_to_cv2(image) for image in images]
+        results = self.classification(images=images_decode, **kwargs)
+        return results
 
     @runnable
     def run_cmd(self, argvs):
