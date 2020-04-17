@@ -67,10 +67,18 @@ class TestPyramidBoxLiteServerMask(unittest.TestCase):
                 visualization=True)
             print(result)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.mask_detector.save_inference_model(
+                dirname='pyramidbox_lite_server_mask',
+                model_filename='model',
+                combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestPyramidBoxLiteServerMask('test_single_pic'))
     suite.addTest(TestPyramidBoxLiteServerMask('test_ndarray'))
+    suite.addTest(TestPyramidBoxLiteServerMask('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

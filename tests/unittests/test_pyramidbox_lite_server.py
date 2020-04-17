@@ -62,10 +62,18 @@ class TestPyramidBoxLiteServer(unittest.TestCase):
                     use_gpu=True,
                     visualization=True)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.face_detector.save_inference_model(
+                dirname='pyramidbox_lite_server',
+                model_filename='model',
+                combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestPyramidBoxLiteServer('test_single_pic'))
     suite.addTest(TestPyramidBoxLiteServer('test_ndarray'))
+    suite.addTest(TestPyramidBoxLiteServer('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

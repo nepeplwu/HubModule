@@ -52,6 +52,23 @@ result = face_detector.face_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
 # result = face_detector.face_detection((paths=['/PATH/TO/IMAGE'])
 ```
 
+
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=True)
+```
+
+将模型保存到指定路径。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model\_filename: 模型文件名称，默认为\_\_model\_\_
+* params\_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
+
 ## 服务部署
 
 PaddleHub Serving可以部署一个在线人脸检测服务。
