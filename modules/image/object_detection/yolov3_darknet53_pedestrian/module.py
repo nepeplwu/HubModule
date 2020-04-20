@@ -13,23 +13,23 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from yolov3_darknet53_vehicles.darknet import DarkNet
-from yolov3_darknet53_vehicles.serving import base64_to_cv2
+from yolov3_darknet53_pedestrian.darknet import DarkNet
+from yolov3_darknet53_pedestrian.serving import base64_to_cv2
 
 
 @moduleinfo(
-    name="yolov3_darknet53_vehicles",
+    name="yolov3_darknet53_pedestrian",
     version="1.0.0",
     type="CV/object_detection",
     summary=
-    "Baidu's YOLOv3 model for vehicles detection, with backbone DarkNet53.",
+    "Baidu's YOLOv3 model for pedestrian detection, with backbone DarkNet53.",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com")
-class YOLOv3DarkNet53Vehicles(hub.Module):
+class YOLOv3DarkNet53Pedestrian(hub.Module):
     def _initialize(self):
         self.yolov3 = hub.Module(name="yolov3")
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "yolov3_darknet53_vehicles_model")
+            self.directory, "yolov3_darknet53_pedestrian_model")
         self.label_names = self.yolov3.load_label_info(
             os.path.join(self.directory, "label_file.txt"))
         self._set_config()
@@ -85,19 +85,19 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
                 # yolo_head
                 yolo_head = self.yolov3.YOLOv3Head(
                     anchor_masks=[[6, 7, 8], [3, 4, 5], [0, 1, 2]],
-                    anchors=[[8, 9], [10, 23], [19, 15], [23, 33], [40, 25],
-                             [54, 50], [101, 80], [139, 145], [253, 224]],
+                    anchors=[[10, 13], [16, 30], [33, 23], [30, 61], [62, 45],
+                             [59, 119], [116, 90], [156, 198], [373, 326]],
                     norm_decay=0.,
-                    num_classes=6,
+                    num_classes=1,
                     ignore_thresh=0.7,
-                    label_smooth=False,
+                    label_smooth=True,
                     nms=self.yolov3.MultiClassNMS(
                         background_label=-1,
                         keep_top_k=100,
                         nms_threshold=0.45,
-                        nms_top_k=400,
+                        nms_top_k=1000,
                         normalized=False,
-                        score_threshold=0.005))
+                        score_threshold=0.01))
                 backbone = DarkNet(norm_type='sync_bn', norm_decay=0., depth=53)
                 body_feats = backbone(image)
                 var_prefix = var_prefix if var_prefix else '@HUB_{}@'.format(
@@ -125,6 +125,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
                         predicate=_if_exist)
                 else:
                     exe.run(startup_program)
+
                 return inputs, outputs, context_prog
 
     def object_detection(self,
@@ -133,7 +134,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
                          data=None,
                          batch_size=1,
                          use_gpu=False,
-                         output_dir='yolov3_vehicles_detect_output',
+                         output_dir='yolov3_pedestrian_detect_output',
                          score_thresh=0.2,
                          visualization=True):
         """API of Object Detection.
@@ -148,7 +149,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
             score_thresh (float): threshold for object detecion.
 
         Returns:
-            res (list[dict]): The result of vehicles detecion. keys include 'data', 'save_path', the corresponding value is:
+            res (list[dict]): The result of pedestrian detecion. keys include 'data', 'save_path', the corresponding value is:
                 data (dict): the result of object detection, keys include 'left', 'top', 'right', 'bottom', 'label', 'confidence', the corresponding value is:
                     left (float): The X coordinate of the upper left corner of the bounding box;
                     top (float): The Y coordinate of the upper left corner of the bounding box;
@@ -238,7 +239,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
         self.add_module_config_arg()
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        results = self.object_detection(
+        results = self.face_detection(
             paths=[args.input_path],
             batch_size=args.batch_size,
             use_gpu=args.use_gpu,
@@ -259,7 +260,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='yolov3_pedestrians_detect_output',
+            default='yolov3_pedestrian_detect_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
