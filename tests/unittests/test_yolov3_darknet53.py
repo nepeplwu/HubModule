@@ -7,6 +7,8 @@ import numpy as np
 import paddle.fluid as fluid
 import paddlehub as hub
 
+image_dir = '../image_dataset/object_detection/'
+
 
 class TestYoloV3DarkNet53(unittest.TestCase):
     @classmethod
@@ -41,17 +43,16 @@ class TestYoloV3DarkNet53(unittest.TestCase):
 
     def test_object_detection(self):
         with fluid.program_guard(self.test_prog):
-            image_dir = '../image_dataset/'
             zebra = cv2.imread(os.path.join(image_dir,
                                             'zebra.jpg')).astype('float32')
-            zebra = np.array([zebra, zebra])
+            zebras = [zebra, zebra]
             detection_results = self.yolov3.object_detection(
                 paths=[
                     os.path.join(image_dir, 'cat.jpg'),
                     os.path.join(image_dir, 'dog.jpg'),
                     os.path.join(image_dir, 'giraffe.jpg')
                 ],
-                images=zebra,
+                images=zebras,
                 batch_size=2)
             print(detection_results)
 
