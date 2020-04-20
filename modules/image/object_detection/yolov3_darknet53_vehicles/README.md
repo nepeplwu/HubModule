@@ -1,11 +1,11 @@
 ```shell
-$ hub install yolov3_darknet53_pedestrian==1.0.0
+$ hub install yolov3_darknet53_vehicles==1.0.0
 ```
 
 ## 命令行预测
 
 ```
-hub run yolov3_darknet53_pedestrian --input_path "/PATH/TO/IMAGE"
+hub run yolov3_darknet53_vehicles --input_path "/PATH/TO/IMAGE"
 ```
 
 ## API
@@ -42,10 +42,10 @@ def object_detection(paths=None,
                      use_gpu=False,
                      score_thresh=0.2,
                      visualization=True,
-                     output_dir='yolov3_pedestrian_detect_output')
+                     output_dir='yolov3_vehicles_detect_output')
 ```
 
-预测API，检测输入图片中的所有行人的位置。
+预测API，检测输入图片中的所有车辆的位置。
 
 **参数**
 
@@ -55,7 +55,7 @@ def object_detection(paths=None,
 * use\_gpu (bool): 是否使用 GPU；
 * score\_thresh (float): 识别置信度的阈值；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，默认设为 yolov3\_pedestrian\_detect\_output；
+* output\_dir (str): 图片的保存路径，默认设为 yolov3\_vehicles\_detect\_output；
 
 **返回**
 
@@ -91,24 +91,24 @@ def save_inference_model(dirname,
 import paddlehub as hub
 import cv2
 
-pedestrian_detector = hub.Module(name="yolov3_darknet53_pedestrian")
-result = pedestrian_detector.object_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
+vehicles_detector = hub.Module(name="yolov3_darknet53_vehicles")
+result = vehicles_detector.object_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
 # or
-# result = pedestrian_detector.object_detection((paths=['/PATH/TO/IMAGE'])
+# result = vehicles_detector.object_detection((paths=['/PATH/TO/IMAGE'])
 ```
 
 ## 服务部署
 
-PaddleHub Serving可以部署一个行人检测的在线服务。
+PaddleHub Serving可以部署一个车辆检测的在线服务。
 
 ## 第一步：启动PaddleHub Serving
 
 运行启动命令：
 ```shell
-$ hub serving start -m yolov3_darknet53_pedestrian
+$ hub serving start -m yolov3_darknet53_vehicles
 ```
 
-这样就完成了一个行人检测的服务化API的部署，默认端口号为8866。
+这样就完成了一个车辆检测的服务化API的部署，默认端口号为8866。
 
 **NOTE:** 如使用GPU预测，则需要在启动服务之前，请设置CUDA\_VISIBLE\_DEVICES环境变量，否则不用设置。
 
@@ -131,7 +131,7 @@ def cv2_to_base64(image):
 # 发送HTTP请求
 data = {'images':[cv2_to_base64(cv2.imread("/PATH/TO/IMAGE"))]}
 headers = {"Content-type": "application/json"}
-url = "http://127.0.0.1:8866/predict/yolov3_darknet53_pedestrian"
+url = "http://127.0.0.1:8866/predict/yolov3_darknet53_vehicles"
 r = requests.post(url=url, headers=headers, data=json.dumps(data))
 
 # 打印预测结果
