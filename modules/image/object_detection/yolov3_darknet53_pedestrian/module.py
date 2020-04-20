@@ -157,7 +157,7 @@ class YOLOv3DarkNet53Pedestrian(hub.Module):
                     bottom (float): The Y coordinate of the lower right corner of the bounding box;
                     label (str): The label of detection result;
                     confidence (float): The confidence of detection result.
-                save_path (str): The path to save output images.
+                save_path (str, optional): The path to save output images.
         """
         if data and 'image' in data:
             paths = data['image'] if not paths else paths + data['image']
