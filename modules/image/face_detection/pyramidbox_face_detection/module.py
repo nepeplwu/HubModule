@@ -56,7 +56,7 @@ class PyramidBoxFaceDetection(hub.Module):
                        paths=None,
                        data=None,
                        use_gpu=False,
-                       output_dir='output',
+                       output_dir='detection_result',
                        visualization=False,
                        score_thresh=0.15):
         """
@@ -185,7 +185,7 @@ class PyramidBoxFaceDetection(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='output',
+            default='detection_result',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
