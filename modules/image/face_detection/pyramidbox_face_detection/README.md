@@ -23,9 +23,9 @@ def face_detection(images=None,
                    paths=None,  
                    data=None,
                    use_gpu=False,  
-                   output_dir='output_pyramidbox_face_detection',  
+                   output_dir='output',  
                    visualization=False,  
-                   score_thresh=0.6):  
+                   score_thresh=0.15):
 ```
 
 预测API，检测输入图片中的所有人脸位置。

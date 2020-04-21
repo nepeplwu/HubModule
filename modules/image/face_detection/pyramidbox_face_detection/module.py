@@ -19,8 +19,8 @@ from pyramidbox_face_detection.processor import postprocess, base64_to_cv2
 @moduleinfo(
     name="pyramidbox_face_detection",
     type="CV/face_detection",
-    author="baidu-cv",
-    author_email="paddle-dev@baidu.com",
+    author="baidu-vis",
+    author_email="",
     summary="Baidu's PyramidBox model for face detection.",
     version="1.1.0")
 class PyramidBoxFaceDetection(hub.Module):
@@ -56,9 +56,9 @@ class PyramidBoxFaceDetection(hub.Module):
                        paths=None,
                        data=None,
                        use_gpu=False,
-                       output_dir='output_pyramidbox_face_detection',
+                       output_dir='output',
                        visualization=False,
-                       score_thresh=0.6):
+                       score_thresh=0.15):
         """
         API for face detection.
 
@@ -185,7 +185,7 @@ class PyramidBoxFaceDetection(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='output_pyramidbox_face_detection',
+            default='output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
