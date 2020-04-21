@@ -19,8 +19,8 @@ from deeplabv3p_xception65_humanseg.data_feed import reader
 @moduleinfo(
     name="deeplabv3p_xception65_humanseg",
     type="CV/semantic_segmentation",
-    author="paddlepaddle",
-    author_email="paddle-dev@baidu.comi",
+    author="baidu-vis",
+    author_email="paddle-dev@baidu.com",
     summary="DeepLabv3+ is a semantic segmentation model.",
     version="1.1.0")
 class DeeplabV3pXception65HumanSeg(hub.Module):
@@ -57,7 +57,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                      batch_size=1,
                      use_gpu=False,
                      visualization=False,
-                     output_dir='human_seg_output'):
+                     output_dir='humanseg_output'):
         """
         API for human segmentation.
 
@@ -138,7 +138,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         Run as a service.
         """
         images_decode = [base64_to_cv2(image) for image in images]
-        results = self.classification(images=images_decode, **kwargs)
+        results = self.segmentation(images=images_decode, **kwargs)
         return results
 
     @runnable
@@ -147,8 +147,8 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         Run as a command.
         """
         self.parser = argparse.ArgumentParser(
-            description="Run the deeplabv3p_xception65_humanseg module.",
-            prog='hub run deeplabv3p_xception65_humanseg',
+            description="Run the {} module.".format(self.name),
+            prog='hub run {}'.format(self.name),
             usage='%(prog)s',
             add_help=True)
 
@@ -181,7 +181,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='human_seg_output',
+            default='humanseg_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',

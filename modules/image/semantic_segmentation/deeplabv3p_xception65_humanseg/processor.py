@@ -56,9 +56,9 @@ def postprocess(data_out,
             save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
             cv2.imwrite(save_im_path, rgba)
             result['save_path'] = save_im_path
-            result['data'] = rgba
+            result['data'] = rgba[:, :, 3]
         else:
-            result['data'] = rgba
+            result['data'] = rgba[:, :, 3]
     return result
 
 
