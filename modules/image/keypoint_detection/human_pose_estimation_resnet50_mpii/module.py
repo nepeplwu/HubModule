@@ -58,7 +58,7 @@ class HumanPoseEstimation(hub.Module):
                            paths=None,
                            batch_size=1,
                            use_gpu=False,
-                           output_dir='human_pose_estimation_result',
+                           output_dir='output_pose',
                            visualization=False):
         """
         API for human pose estimation and tracking.
@@ -183,7 +183,7 @@ class HumanPoseEstimation(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='human_pose_estimation_result',
+            default='output_pose',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',

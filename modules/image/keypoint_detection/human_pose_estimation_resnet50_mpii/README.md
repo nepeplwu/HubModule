@@ -12,7 +12,7 @@ def keypoint_detection(self,
                        paths=None,
                        batch_size=1,
                        use_gpu=False,
-                       output_dir=None,
+                       output_dir='output_pose',
                        visualization=False)
 ```
 
@@ -25,7 +25,7 @@ def keypoint_detection(self,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为keypoint\_detection\_result。
+* output\_dir (str): 图片的保存路径，默认设为 output\_pose。
 
 **返回**
 
@@ -52,6 +52,7 @@ def save_inference_model(dirname,
 ## 预测代码示例
 
 ```python
+import cv2
 import paddlehub as hub
 
 pose_estimation = hub.Module(name="human_pose_estimation_resnet50_mpii")
