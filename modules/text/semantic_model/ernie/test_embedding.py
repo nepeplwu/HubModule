@@ -16,7 +16,12 @@
 import paddlehub as hub
 
 module = hub.Module(name="ernie")
+res = module.get_embedding(
+    texts=[['飞桨（PaddlePaddle）是国内开源产业级深度学习平台', 'PaddleHub是飞桨生态的预训练模型应用工具'],
+           ["飞浆PaddleHub"]],
+    batch_size=10)
+print(res[0][0].shape, res[0][1].shape)
 
-print(
-    module.get_embedding(
-        texts=[["hello world", "hello python"], ["I love PaddleHub"]]))
+print(len(res))
+
+print(list(set(module.get_params_layer().values())))

@@ -13,19 +13,11 @@ if __name__ == "__main__":
     senta.context()
     results = senta.sentiment_classify(
         data={'text': test_text}, use_gpu=True, batch_size=1)
+    print(results)
     # execute predict and print the result
-    for index, result in enumerate(results):
-        if six.PY2:
-            print(json.dumps(result, encoding="utf8", ensure_ascii=False))
-        else:
-            print(result)
     results = senta.sentiment_classify(
         texts=test_text, use_gpu=False, batch_size=2)
-    for index, result in enumerate(results):
-        if six.PY2:
-            print(json.dumps(result, encoding="utf8", ensure_ascii=False))
-        else:
-            print(result)
+    print(results)
 
     print(senta.get_vocab_path())
     print(senta.get_labels())
