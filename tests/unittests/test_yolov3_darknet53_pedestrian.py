@@ -14,7 +14,7 @@ class TestYOLOv3DarkNet53Pedestrian(unittest.TestCase):
     def setUpClass(self):
         """Prepare the environment once before execution of all tests."""
         self.yolov3_pedestrian_detect = hub.Module(
-            directory="yolov3_darknet53_pedestrian")
+            name="yolov3_darknet53_pedestrian")
 
     @classmethod
     def tearDownClass(self):
