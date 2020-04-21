@@ -11,7 +11,12 @@ import base64
 import cv2
 import numpy as np
 
-__all__ = ['base64_to_cv2', 'postprocess']
+__all__ = ['cv2_to_base64', 'base64_to_cv2', 'postprocess']
+
+
+def cv2_to_base64(image):
+    data = cv2.imencode('.jpg', image)[1]
+    return base64.b64encode(data.tostring()).decode('utf8')
 
 
 def base64_to_cv2(b64str):

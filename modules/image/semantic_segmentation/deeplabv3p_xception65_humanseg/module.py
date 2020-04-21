@@ -12,7 +12,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from deeplabv3p_xception65_humanseg.processor import postprocess, base64_to_cv2
+from deeplabv3p_xception65_humanseg.processor import postprocess, base64_to_cv2, cv2_to_base64
 from deeplabv3p_xception65_humanseg.data_feed import reader
 
 
@@ -139,6 +139,9 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         """
         images_decode = [base64_to_cv2(image) for image in images]
         results = self.segmentation(images=images_decode, **kwargs)
+        results = [{
+            'data': cv2_to_base64(result['data'])
+        } for result in results]
         return results
 
     @runnable
