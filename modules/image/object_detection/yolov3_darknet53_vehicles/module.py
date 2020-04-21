@@ -130,7 +130,6 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
     def object_detection(self,
                          paths=None,
                          images=None,
-                         data=None,
                          batch_size=1,
                          use_gpu=False,
                          output_dir='yolov3_vehicles_detect_output',
@@ -158,8 +157,6 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
                     confidence (float): The confidence of detection result.
                 save_path (str): The path to save output images.
         """
-        if data and 'image' in data:
-            paths = data['image'] if not paths else paths + data['image']
         paths = paths if paths else list()
         data_reader = partial(self.yolov3.reader, paths, images)
         batch_reader = fluid.io.batch(data_reader, batch_size=batch_size)
@@ -259,7 +256,7 @@ class YOLOv3DarkNet53Vehicles(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='yolov3_pedestrians_detect_output',
+            default='yolov3_vehicles_detect_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
