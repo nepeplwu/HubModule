@@ -17,8 +17,6 @@ hub run ace2p --input_path "/PATH/TO/IMAGE"
 ```python
 def segmentation(images=None,
                  paths=None,
-                 scale=(473, 473),
-                 rotation=0,
                  batch_size=1,
                  use_gpu=False,
                  output_dir='ace2p_output',
@@ -31,17 +29,16 @@ def segmentation(images=None,
 
 * images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
 * paths (list\[str\]): 图片的路径；
-* scale (tuple): 预处理得到的图片的shape 为 [20, sacle[0], scale[1]]；
-* rotation (int): 旋转角度，用于预处理中求解仿射矩阵；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
-* visualization (bool): 是否将识别结果保存为图片文件；
+* output\_dir (str): 保存处理结果的文件目录；
+* visualization (bool): 是否将识别结果保存为图片文件。
 
 **返回**
 
 * res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有'path', 'data'，相应的取值为：
   * path (str): 原输入图片的路径；
-  * data (numpy.ndarray): 图像分割得到的图片数据。
+  * data (numpy.ndarray): 图像分割得到的图片数据，仅返回 Alpha 通道。
 
 ```python
 def save_inference_model(dirname,
@@ -57,7 +54,7 @@ def save_inference_model(dirname,
 * dirname: 存在模型的目录名称
 * model\_filename: 模型文件名称，默认为\_\_model\_\_
 * params\_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
-* combined: 是否将参数保存到统一的一个文件中
+* combined: 是否将参数保存到统一的一个文件中。
 
 ## 代码示例
 
@@ -96,10 +93,19 @@ import json
 import cv2
 import base64
 
+import numpy as np
+
 
 def cv2_to_base64(image):
     data = cv2.imencode('.jpg', image)[1]
     return base64.b64encode(data.tostring()).decode('utf8')
+
+
+def base64_to_cv2(b64str):
+    data = base64.b64decode(b64str.encode('utf8'))
+    data = np.fromstring(data, np.uint8)
+    data = cv2.imdecode(data, cv2.IMREAD_COLOR)
+    return data
 
 
 # 发送HTTP请求
@@ -109,7 +115,7 @@ url = "http://127.0.0.1:8866/predict/ace2p"
 r = requests.post(url=url, headers=headers, data=json.dumps(data))
 
 # 打印预测结果
-print(r.json()["results"])
+print(base64_to_cv2(r.json()["results"][0]['data']))
 ```
 
 ## 调色板

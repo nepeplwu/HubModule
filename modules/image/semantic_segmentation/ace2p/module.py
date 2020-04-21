@@ -12,7 +12,7 @@ import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
 
-from ace2p.processor import get_palette, postprocess, base64_to_cv2
+from ace2p.processor import get_palette, postprocess, base64_to_cv2, cv2_to_base64
 from ace2p.data_feed import reader
 
 
@@ -62,8 +62,6 @@ class ACE2P(hub.Module):
                      images=None,
                      paths=None,
                      data=None,
-                     scale=(473, 473),
-                     rotation=0,
                      batch_size=1,
                      use_gpu=False,
                      output_dir='ace2p_output',
@@ -74,8 +72,6 @@ class ACE2P(hub.Module):
         Args:
             images (list[numpy.ndarray]): images data, shape of each is [H, W, C], color space is BGR.
             paths (list[str]): The paths of images.
-            scale (tuple): size of preprocessed image.
-            rotation (int): rotation angle, used for obtaining affine matrix in preprocess.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             output_dir (str): The path to store output images.
@@ -101,6 +97,8 @@ class ACE2P(hub.Module):
 
         # get all data
         all_data = []
+        scale = (473, 473)  # size of preprocessed image.
+        rotation = 0  # rotation angle, used for obtaining affine matrix in preprocess.
         for yield_data in reader(images, paths, scale, rotation):
             all_data.append(yield_data)
 
@@ -165,6 +163,9 @@ class ACE2P(hub.Module):
         """
         images_decode = [base64_to_cv2(image) for image in images]
         results = self.segmentation(images_decode, **kwargs)
+        results = [{
+            'data': cv2_to_base64(result['data'])
+        } for result in results]
         return results
 
     @runnable

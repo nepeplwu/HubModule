@@ -11,7 +11,12 @@ import cv2
 import numpy as np
 from PIL import Image
 
-__all__ = ['base64_to_cv2', 'get_palette', 'postprocess']
+__all__ = ['cv2_to_base64', 'base64_to_cv2', 'get_palette', 'postprocess']
+
+
+def cv2_to_base64(image):
+    data = cv2.imencode('.jpg', image)[1]
+    return base64.b64encode(data.tostring()).decode('utf8')
 
 
 def base64_to_cv2(b64str):
@@ -154,6 +159,12 @@ def postprocess(data_out, org_im, org_im_path, image_info, output_dir,
         image_info (dict): info about the preprocessed image.
         output_dir (str): output directory to store image.
         visualization (bool): whether to save image or not.
+        palette (list): The palette to draw.
+
+    Returns:
+        res (list[dict]): keys contain 'path', 'data', the corresponding value is:
+            path (str): The path of original image.
+            data (numpy.ndarray): The postprocessed image data, only the alpha channel.
     """
     result = dict()
     result['path'] = org_im_path
@@ -169,14 +180,14 @@ def postprocess(data_out, org_im, org_im_path, image_info, output_dir,
     logits_result = transform_logits(data_out, image_center, image_scale,
                                      image_width, image_height, scale)
     parsing = np.argmax(logits_result, axis=2)
-    rgba_im = np.asarray(parsing, dtype=np.uint8)
-    result['data'] = rgba_im
+    alpha_im = np.asarray(parsing, dtype=np.uint8)
+    result['data'] = alpha_im
 
     if visualization:
         check_dir(output_dir)
         save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
-        rgba_im = Image.fromarray(rgba_im)
-        rgba_im.putpalette(palette)
-        rgba_im.save(save_im_path)
+        alpha_im = Image.fromarray(alpha_im)
+        alpha_im.putpalette(palette)
+        alpha_im.save(save_im_path)
 
     return result
