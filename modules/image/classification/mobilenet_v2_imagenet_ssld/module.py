@@ -11,24 +11,43 @@ import paddle.fluid as fluid
 import paddlehub as hub
 from paddle.fluid.core import PaddleTensor, AnalysisConfig, create_paddle_predictor
 from paddlehub.module.module import moduleinfo, runnable, serving
+from paddlehub.common.paddle_helper import add_vars_prefix
 
-from ultra_light_fast_generic_face_detector_1mb_640.processor import postprocess, base64_to_cv2
-from ultra_light_fast_generic_face_detector_1mb_640.data_feed import reader
+from mobilenet_v2_imagenet_ssld.processor import postprocess, base64_to_cv2
+from mobilenet_v2_imagenet_ssld.data_feed import reader
+from mobilenet_v2_imagenet_ssld.mobilenet_v2 import MobileNetV2
 
 
 @moduleinfo(
-    name="ultra_light_fast_generic_face_detector_1mb_640",
-    type="CV/face_detection",
+    name="mobilenet_v2_imagenet_ssld",
+    type="CV/image_classification",
     author="paddlepaddle",
     author_email="paddle-dev@baidu.com",
     summary=
-    "Ultra-Light-Fast-Generic-Face-Detector-1MB is a high-performance object detection model release on https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB.",
-    version="1.1.2")
-class FaceDetector640(hub.Module):
+    "Mobilenet_V2 is a image classfication model, this module is trained with ImageNet-2012 dataset.",
+    version="1.0.0")
+class MobileNetV2ImageNetSSLD(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "ultra_light_fast_generic_face_detector_1mb_640")
+            self.directory, "model")
+        label_file = os.path.join(self.directory, "label_list.txt")
+        with open(label_file, 'r', encoding='utf-8') as file:
+            self.label_list = file.read().split("\n")[:-1]
         self._set_config()
+
+    def get_expected_image_width(self):
+        return 224
+
+    def get_expected_image_height(self):
+        return 224
+
+    def get_pretrained_images_mean(self):
+        im_mean = np.array([0.485, 0.456, 0.406]).reshape(1, 3)
+        return im_mean
+
+    def get_pretrained_images_std(self):
+        im_std = np.array([0.229, 0.224, 0.225]).reshape(1, 3)
+        return im_std
 
     def _set_config(self):
         """
@@ -51,6 +70,71 @@ class FaceDetector640(hub.Module):
             gpu_config.enable_use_gpu(
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
+
+    def context(self, trainable=True, pretrained=True):
+        """context for transfer learning.
+
+        Args:
+            trainable (bool): Set parameters in program to be trainable.
+            pretrained (bool) : Whether to load pretrained model.
+
+        Returns:
+            inputs (dict): key is 'image', corresponding vaule is image tensor.
+            outputs (dict): key is :
+                'classification', corresponding value is the result of classification.
+                'feature_map', corresponding value is the result of the layer before the fully connected layer.
+            context_prog (fluid.Program): program for transfer learning.
+        """
+        context_prog = fluid.Program()
+        startup_prog = fluid.Program()
+        with fluid.program_guard(context_prog, startup_prog):
+            with fluid.unique_name.guard():
+                image = fluid.layers.data(
+                    name="image", shape=[3, 224, 224], dtype="float32")
+                mobile_net = MobileNetV2()
+                output, feature_map = mobile_net.net(
+                    input=image, class_dim=len(self.label_list))
+
+                name_prefix = '@HUB_{}@'.format(self.name)
+                inputs = {'image': name_prefix + image.name}
+                outputs = {
+                    'classification': name_prefix + output.name,
+                    'feature_map': name_prefix + feature_map.name
+                }
+                add_vars_prefix(context_prog, name_prefix)
+                add_vars_prefix(startup_prog, name_prefix)
+                global_vars = context_prog.global_block().vars
+                inputs = {
+                    key: global_vars[value]
+                    for key, value in inputs.items()
+                }
+                outputs = {
+                    key: global_vars[value]
+                    for key, value in outputs.items()
+                }
+
+                place = fluid.CPUPlace()
+                exe = fluid.Executor(place)
+                # pretrained
+                if pretrained:
+
+                    def _if_exist(var):
+                        b = os.path.exists(
+                            os.path.join(self.default_pretrained_model_path,
+                                         var.name))
+                        return b
+
+                    fluid.io.load_vars(
+                        exe,
+                        self.default_pretrained_model_path,
+                        context_prog,
+                        predicate=_if_exist)
+                else:
+                    exe.run(startup_prog)
+                # trainable
+                for param in context_prog.global_block().iter_parameters():
+                    param.trainable = trainable
+        return inputs, outputs, context_prog
 
     def save_inference_model(self,
                              dirname,
@@ -75,55 +159,33 @@ class FaceDetector640(hub.Module):
             model_filename=model_filename,
             params_filename=params_filename)
 
-    def face_detection(self,
+    def classification(self,
                        images=None,
                        paths=None,
-                       data=None,
                        batch_size=1,
                        use_gpu=False,
-                       output_dir='face_detector_640_predict_output',
-                       visualization=False,
-                       confs_threshold=0.5,
-                       iou_threshold=0.5):
+                       top_k=1):
         """
-        API for face detection.
+        API for image classification.
 
         Args:
-            images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
+            images (numpy.ndarray): data of images, shape of each is [H, W, C], color space must be BGR.
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
-            output_dir (str): The path to store output images.
-            visualization (bool): Whether to save image or not.
-            confs_threshold (float): threshold for confidence coefficient.
-            iou_threshold (float): threshold for iou.
+            top_k (int): Return top k results.
+
         Returns:
-            res (list[dict()]): The result of face detection and save path of images.
+            res (list[dict]): The classfication results.
         """
-        if use_gpu:
-            try:
-                _places = os.environ["CUDA_VISIBLE_DEVICES"]
-                int(_places[0])
-            except:
-                raise RuntimeError(
-                    "Attempt to use GPU for prediction, but environment variable CUDA_VISIBLE_DEVICES was not set correctly."
-                )
-
-        # compatibility with older versions
-        if data and 'image' in data:
-            if paths is None:
-                paths = []
-            paths += data['image']
-
-        # get all data
-        all_data = []
+        all_data = list()
         for yield_data in reader(images, paths):
             all_data.append(yield_data)
 
         total_num = len(all_data)
         loop_num = int(np.ceil(total_num / batch_size))
 
-        res = []
+        res = list()
         for iter_id in range(loop_num):
             batch_data = list()
             handle_id = iter_id * batch_size
@@ -134,26 +196,15 @@ class FaceDetector640(hub.Module):
                     pass
             # feed batch image
             batch_image = np.array([data['image'] for data in batch_data])
-            batch_image = PaddleTensor(batch_image.astype('float32'))
-            data_out = self.gpu_predictor.run([
+            batch_image = PaddleTensor(batch_image.copy())
+            predictor_output = self.gpu_predictor.run([
                 batch_image
             ]) if use_gpu else self.cpu_predictor.run([batch_image])
-            confidences = data_out[0].as_ndarray()
-            boxes = data_out[1].as_ndarray()
-
-            # postprocess one by one
-            for i in range(len(batch_data)):
-                out = postprocess(
-                    confidences=confidences[i],
-                    boxes=boxes[i],
-                    orig_im=batch_data[i]['orig_im'],
-                    orig_im_shape=batch_data[i]['orig_im_shape'],
-                    orig_im_path=batch_data[i]['orig_im_path'],
-                    output_dir=output_dir,
-                    visualization=visualization,
-                    confs_threshold=confs_threshold,
-                    iou_threshold=iou_threshold)
-                res.append(out)
+            out = postprocess(
+                data_out=predictor_output[0].as_ndarray(),
+                label_list=self.label_list,
+                top_k=top_k)
+            res += out
         return res
 
     @serving
@@ -162,7 +213,7 @@ class FaceDetector640(hub.Module):
         Run as a service.
         """
         images_decode = [base64_to_cv2(image) for image in images]
-        results = self.face_detection(images_decode, **kwargs)
+        results = self.classification(images=images_decode, **kwargs)
         return results
 
     @runnable
@@ -184,12 +235,10 @@ class FaceDetector640(hub.Module):
         self.add_module_config_arg()
         self.add_module_input_arg()
         args = self.parser.parse_args(argvs)
-        results = self.face_detection(
+        results = self.classification(
             paths=[args.input_path],
             batch_size=args.batch_size,
-            use_gpu=args.use_gpu,
-            output_dir=args.output_dir,
-            visualization=args.visualization)
+            use_gpu=args.use_gpu)
         return results
 
     def add_module_config_arg(self):
@@ -200,22 +249,17 @@ class FaceDetector640(hub.Module):
             '--use_gpu',
             type=ast.literal_eval,
             default=False,
-            help="whether use GPU or not")
-        self.arg_config_group.add_argument(
-            '--output_dir',
-            type=str,
-            default=None,
-            help="The directory to save output images.")
-        self.arg_config_group.add_argument(
-            '--visualization',
-            type=ast.literal_eval,
-            default=False,
-            help="whether to save output as images.")
+            help="whether use GPU or not.")
         self.arg_config_group.add_argument(
             '--batch_size',
             type=ast.literal_eval,
             default=1,
             help="batch size.")
+        self.arg_config_group.add_argument(
+            '--top_k',
+            type=ast.literal_eval,
+            default=1,
+            help="Return top k results.")
 
     def add_module_input_arg(self):
         """

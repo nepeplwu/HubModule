@@ -23,7 +23,7 @@ from ultra_light_fast_generic_face_detector_1mb_320.data_feed import reader
     author_email="paddle-dev@baidu.com",
     summary=
     "Ultra-Light-Fast-Generic-Face-Detector-1MB is a high-performance object detection model release on https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB.",
-    version="1.1.0")
+    version="1.1.2")
 class FaceDetector320(hub.Module):
     def _initialize(self):
         self.default_pretrained_model_path = os.path.join(
@@ -51,6 +51,29 @@ class FaceDetector320(hub.Module):
             gpu_config.enable_use_gpu(
                 memory_pool_init_size_mb=1000, device_id=0)
             self.gpu_predictor = create_paddle_predictor(gpu_config)
+
+    def save_inference_model(self,
+                             dirname,
+                             model_filename=None,
+                             params_filename=None,
+                             combined=True):
+        if combined:
+            model_filename = "__model__" if not model_filename else model_filename
+            params_filename = "__params__" if not params_filename else params_filename
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        program, feeded_var_names, target_vars = fluid.io.load_inference_model(
+            dirname=self.default_pretrained_model_path, executor=exe)
+
+        fluid.io.save_inference_model(
+            dirname=dirname,
+            main_program=program,
+            executor=exe,
+            feeded_var_names=feeded_var_names,
+            target_vars=target_vars,
+            model_filename=model_filename,
+            params_filename=params_filename)
 
     def face_detection(self,
                        images=None,

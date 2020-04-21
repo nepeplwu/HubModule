@@ -65,32 +65,26 @@ class RetinaNetResNet50FPN(hub.Module):
             self.gpu_predictor = create_paddle_predictor(gpu_config)
 
     def context(self,
-                input_image=None,
+                num_classes=81,
                 trainable=True,
                 pretrained=True,
-                param_prefix='',
                 get_prediction=False):
         """Distill the Head Features, so as to perform transfer learning.
 
-        :param input_image: image tensor.
-        :type input_image: <class 'paddle.fluid.framework.Variable'>
         :param trainable: whether to set parameters trainable.
         :type trainable: bool
         :param pretrained: whether to load default pretrained model.
         :type pretrained: bool
-        :param param_prefix: the prefix of parameters in yolo_head and backbone
-        :type param_prefix: str
         :param get_prediction: whether to get prediction,
             if True, outputs is {'bbox_out': bbox_out},
             if False, outputs is {'head_features': head_features}.
         :type get_prediction: bool
         """
-        context_prog = input_image.block.program if input_image else fluid.Program(
-        )
+        context_prog = fluid.Program()
         startup_program = fluid.Program()
         with fluid.program_guard(context_prog, startup_program):
             # image
-            image = input_image if input_image else fluid.layers.data(
+            image = fluid.layers.data(
                 name='image',
                 shape=[3, 800, 1333],
                 dtype='float32',
@@ -155,11 +149,10 @@ class RetinaNetResNet50FPN(hub.Module):
                         os.path.join(self.default_pretrained_model_path,
                                      var.name))
 
-                if not param_prefix:
-                    fluid.io.load_vars(
-                        exe,
-                        self.default_pretrained_model_path,
-                        predicate=_if_exist)
+                fluid.io.load_vars(
+                    exe,
+                    self.default_pretrained_model_path,
+                    predicate=_if_exist)
             else:
                 exe.run(startup_program)
             return inputs, outputs, context_prog

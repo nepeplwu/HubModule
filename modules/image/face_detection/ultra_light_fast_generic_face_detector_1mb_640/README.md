@@ -20,7 +20,7 @@ def face_detection(images=None,
 
 **参数**
 
-* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，GBR格式；
+* images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
 * paths (list\[str\]): 图片的路径；
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
@@ -34,6 +34,22 @@ def face_detection(images=None,
   * path 字段为原输入图片的路径（仅当使用paths输入时存在）；
   * save\_path 字段为可视化图片的保存路径（仅当visualization=True时存在）；
   * data 字段为检测结果，类型为list，list的每一个元素为dict，其中'left', 'right', 'top', 'bottom' 为人脸识别框，'confidence' 为此识别框置信度。
+
+```python
+def save_inference_model(dirname,
+                         model_filename=None,
+                         params_filename=None,
+                         combined=True)
+```
+
+将模型保存到指定路径。
+
+**参数**
+
+* dirname: 存在模型的目录名称
+* model_filename: 模型文件名称，默认为\_\_model\_\_
+* params_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
+* combined: 是否将参数保存到统一的一个文件中
 
 ## 预测代码示例
 
