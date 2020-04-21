@@ -22,12 +22,12 @@ def __init__(face_detector_module=None)
 ```python
 def face_detection(images=None,
                    paths=None,
-                   data=None,
                    use_gpu=False,
                    visualization=False,
                    output_dir='detection_result',
+                   use_multi_scale=False,
                    shrink=0.5,
-                   confs_threshold=0.6)
+                   confs_threshold=0.6):
 ```
 
 识别输入图片中的所有的人脸，并判断有无戴口罩。
@@ -39,8 +39,9 @@ def face_detection(images=None,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，默认设为 pyramidbox\_mobile\_mask\_detect\_output。
-* shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果。
+* output\_dir (str): 图片的保存路径，默认设为 detection\_result。
+* use\_multi\_scale (bool) : 用于设置是否开启多尺度的人脸检测，开启多尺度人脸检测能够更好的检测到输入图像中不同尺寸的人脸，但是会增加模型计算量，降低预测速度；
+* shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果；
 * confs\_threshold (float): 人脸检测的置信度的阈值。
 
 **返回**

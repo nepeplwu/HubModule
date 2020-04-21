@@ -6,9 +6,52 @@ from collections import OrderedDict
 
 import cv2
 import numpy as np
-from PIL import Image
 
 __all__ = ['reader']
+
+multi_scales = [0.3, 0.6, 0.9]
+
+
+def bbox_vote(det):
+    order = det[:, 4].ravel().argsort()[::-1]
+    det = det[order, :]
+    if det.shape[0] == 0:
+        dets = np.array([[10, 10, 20, 20, 0.002]])
+        det = np.empty(shape=[0, 5])
+    while det.shape[0] > 0:
+        # IOU
+        area = (det[:, 2] - det[:, 0] + 1) * (det[:, 3] - det[:, 1] + 1)
+        xx1 = np.maximum(det[0, 0], det[:, 0])
+        yy1 = np.maximum(det[0, 1], det[:, 1])
+        xx2 = np.minimum(det[0, 2], det[:, 2])
+        yy2 = np.minimum(det[0, 3], det[:, 3])
+        w = np.maximum(0.0, xx2 - xx1 + 1)
+        h = np.maximum(0.0, yy2 - yy1 + 1)
+        inter = w * h
+        o = inter / (area[0] + area[:] - inter)
+        # nms
+        merge_index = np.where(o >= 0.3)[0]
+        det_accu = det[merge_index, :]
+        det = np.delete(det, merge_index, 0)
+        if merge_index.shape[0] <= 1:
+            if det.shape[0] == 0:
+                try:
+                    dets = np.row_stack((dets, det_accu))
+                except:
+                    dets = det_accu
+            continue
+        det_accu[:, 0:4] = det_accu[:, 0:4] * np.tile(det_accu[:, -1:], (1, 4))
+        max_score = np.max(det_accu[:, 4])
+        det_accu_sum = np.zeros((1, 5))
+        det_accu_sum[:, 0:4] = np.sum(
+            det_accu[:, 0:4], axis=0) / np.sum(det_accu[:, -1:])
+        det_accu_sum[:, 4] = max_score
+        try:
+            dets = np.row_stack((dets, det_accu_sum))
+        except:
+            dets = det_accu_sum
+    dets = dets[0:750, :]
+    return dets
 
 
 def crop(image,
@@ -73,7 +116,8 @@ def process_image(org_im, face):
     return image_in
 
 
-def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
+def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu,
+           use_multi_scale):
     """
     Preprocess to yield image.
 
@@ -83,13 +127,15 @@ def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
         confs_threshold (float): confidence threshold of face_detector.
         images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space is BGR.
         paths (list[str]): paths to images.
+        use_gpu (bool): whether to use gpu in face_detector.
+        use_multi_scale (bool): whether to enable multi-scale face detection.
     Yield:
-        each (collections.OrderedDict): info of original image, preprocessed image, contains 3 keys:
+        element (collections.OrderedDict): info of original image, preprocessed image, contains 3 keys:
             org_im (numpy.ndarray) : original image.
             org_im_path (str): path to original image.
             preprocessed (list[OrderedDict]):each element contains 2 keys:
-               face  : face detected in the original image.
-               image : data to be fed into neural network.
+               face  (dict): face detected in the original image.
+               image (numpy.ndarray): data to be fed into neural network.
     """
     component = list()
     if paths is not None:
@@ -112,15 +158,52 @@ def reader(face_detector, shrink, confs_threshold, images, paths, use_gpu):
             component.append(each)
 
     for element in component:
-        detect_faces = face_detector.face_detection(
-            images=[element['org_im']],
-            use_gpu=use_gpu,
-            visualization=False,
-            shrink=shrink,
-            confs_threshold=confs_threshold)
+        if use_multi_scale:
+            scale_res = list()
+            detect_faces = list()
+            for scale in multi_scales:
+                _detect_res = face_detector.face_detection(
+                    images=[element['org_im']],
+                    use_gpu=use_gpu,
+                    visualization=False,
+                    shrink=scale,
+                    confs_threshold=confs_threshold)
+
+                _s = list()
+                for _face in _detect_res[0]['data']:
+                    _face_list = [
+                        _face['left'], _face['top'], _face['right'],
+                        _face['bottom'], _face['confidence']
+                    ]
+                    _s.append(_face_list)
+
+                if _s:
+                    scale_res.append(np.array(_s))
+
+            scale_res = np.row_stack(scale_res)
+            scale_res = bbox_vote(scale_res)
+            keep_index = np.where(scale_res[:, 4] >= confs_threshold)[0]
+            scale_res = scale_res[keep_index, :]
+            for data in scale_res:
+                face = {
+                    'left': data[0],
+                    'top': data[1],
+                    'right': data[2],
+                    'bottom': data[3],
+                    'confidence': data[4]
+                }
+                detect_faces.append(face)
+        else:
+            _detect_res = face_detector.face_detection(
+                images=[element['org_im']],
+                use_gpu=use_gpu,
+                visualization=False,
+                shrink=shrink,
+                confs_threshold=confs_threshold)
+            detect_faces = _detect_res[0]['data']
 
         element['preprocessed'] = list()
-        for face in detect_faces[0]['data']:
+        for face in detect_faces:
             handled = OrderedDict()
             handled['face'] = face
             handled['image'] = process_image(element['org_im'], face)

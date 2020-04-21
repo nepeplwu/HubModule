@@ -31,7 +31,7 @@ class PyramidBoxLiteMobileMask(hub.Module):
             face_detector_module (class): module to detect face.
         """
         self.default_pretrained_model_path = os.path.join(
-            self.directory, "pyramidbox_lite_mobile_mask_detectoion")
+            self.directory, "pyramidbox_lite_mobile_mask_model")
         if face_detector_module is None:
             self.face_detector = hub.Module(name='pyramidbox_lite_mobile')
         else:
@@ -76,8 +76,9 @@ class PyramidBoxLiteMobileMask(hub.Module):
                        paths=None,
                        data=None,
                        use_gpu=False,
-                       output_dir='detection_result',
                        visualization=False,
+                       output_dir='detection_result',
+                       use_multi_scale=False,
                        shrink=0.5,
                        confs_threshold=0.6):
         """
@@ -87,8 +88,11 @@ class PyramidBoxLiteMobileMask(hub.Module):
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space must be BGR.
             paths (list[str]): The paths of images.
             use_gpu (bool): Whether to use gpu.
-            output_dir (str): The path to store output images.
             visualization (bool): Whether to save image or not.
+            output_dir (str): The path to store output images.
+            use_multi_scale (bool): whether to enable multi-scale face detection. Enabling multi-scale face detection
+                can increase the accuracy to detect faces, however,
+                it reduce the prediction speed for the increase model calculation.
             shrink (float): parameter to control the resize scale in preprocess.
             confs_threshold (float): confidence threshold.
 
@@ -118,7 +122,7 @@ class PyramidBoxLiteMobileMask(hub.Module):
         res = list()
         # process one by one
         for element in reader(self.face_detector, shrink, confs_threshold,
-                              images, paths, use_gpu):
+                              images, paths, use_gpu, use_multi_scale):
             detect_faces_list = [
                 handled['face'] for handled in element['preprocessed']
             ]
@@ -130,10 +134,10 @@ class PyramidBoxLiteMobileMask(hub.Module):
             data_out = self.gpu_predictor.run([
                 image_tensor
             ]) if use_gpu else self.cpu_predictor.run([image_tensor])
-            # print(data_out[0].as_ndarray().shape)  # [-1, 144]
-            # print(data_out[1].as_ndarray().shape)  # [-1, 2]
+            # len(data_out) == 1
+            # data_out[0].as_ndarray().shape == (-1, 2)
             out = postprocess(
-                confidence_out=data_out[1].as_ndarray(),
+                confidence_out=data_out[0].as_ndarray(),
                 org_im=element['org_im'],
                 org_im_path=element['org_im_path'],
                 detected_faces=detect_faces_list,

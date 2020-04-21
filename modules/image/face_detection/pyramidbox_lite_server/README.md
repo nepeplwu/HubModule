@@ -30,7 +30,7 @@ def face_detection(images=None,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为face\_detector\_320\_predict\_output；
+* output\_dir (str): 图片的保存路径，默认设为detection\_result；
 * shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果。
 * confs\_threshold (float): 置信度的阈值。
 
