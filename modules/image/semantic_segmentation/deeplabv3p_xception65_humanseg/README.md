@@ -35,7 +35,7 @@ def segmentation(self,
 
 * res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 'save\_path', 'data'，对应的取值为：
   * save\_path (str, optional): 可视化图片的保存路径（仅当visualization=True时存在）；
-  * data (numpy.ndarray): 人像分割处理后得到的图片数据。
+  * data (numpy.ndarray): 人像分割结果，仅包含Alpha通道，取值为0-255 (0为全透明，255为不透明)，也即取值越大的像素点越可能为人体，取值越小的像素点越可能为背景。
 
 ```python
 def save_inference_model(dirname,

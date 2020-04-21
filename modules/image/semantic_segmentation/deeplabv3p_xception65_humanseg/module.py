@@ -20,7 +20,7 @@ from deeplabv3p_xception65_humanseg.data_feed import reader
     name="deeplabv3p_xception65_humanseg",
     type="CV/semantic_segmentation",
     author="baidu-vis",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     summary="DeepLabv3+ is a semantic segmentation model.",
     version="1.1.0")
 class DeeplabV3pXception65HumanSeg(hub.Module):
