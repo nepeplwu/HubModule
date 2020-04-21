@@ -23,7 +23,7 @@ def face_detection(images=None,
                    paths=None,  
                    data=None,
                    use_gpu=False,  
-                   output_dir='output',  
+                   output_dir='detection_result',  
                    visualization=False,  
                    score_thresh=0.15):
 ```
@@ -35,7 +35,7 @@ def face_detection(images=None,
 * images (list\[numpy.ndarray\]): 图片数据，ndarray.shape 为 \[H, W, C\]，BGR格式；
 * paths (list\[str\]): 图片的路径；
 * use\_gpu (bool): 是否使用 GPU；
-* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 output\_pyramidbox\_face\_detection；
+* output\_dir (str): 图片的保存路径，当为 None 时，默认设为 detection\_result；
 * visualization (bool): 是否将识别结果保存为图片文件；
 * score\_thresh (float): 检测置信度的阈值。
 
