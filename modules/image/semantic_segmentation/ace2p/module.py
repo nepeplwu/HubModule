@@ -20,7 +20,7 @@ from ace2p.data_feed import reader
     name="ace2p",
     type="CV/semantic-segmentation",
     author="baidu-idl",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     summary="ACE2P is an image segmentation model for human parsing solution.",
     version="1.1.0")
 class ACE2P(hub.Module):
