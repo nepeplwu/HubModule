@@ -25,8 +25,8 @@ def face_detection(images=None,
                    data=None,
                    use_gpu=False,
                    visualization=False,
-                   output_dir='pyramidbox_mobile_mask_detect_output',
-                   shrink=0.8,
+                   output_dir='detection_result',
+                   shrink=0.5,
                    confs_threshold=0.6)
 ```
 

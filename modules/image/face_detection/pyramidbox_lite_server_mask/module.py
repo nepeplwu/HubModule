@@ -20,7 +20,7 @@ from pyramidbox_lite_server_mask.processor import postprocess, base64_to_cv2
     name="pyramidbox_lite_server_mask",
     type="CV/face_detection",
     author="baidu-vis",
-    author_email="paddle-dev@baidu.com",
+    author_email="",
     summary=
     "PyramidBox-Lite-Server-Mask is a high-performance face detection model used to detect whether people wear masks.",
     version="1.3.0")
@@ -76,7 +76,7 @@ class PyramidBoxLiteServerMask(hub.Module):
                        paths=None,
                        data=None,
                        use_gpu=False,
-                       output_dir='pyramidbox_server_mask_detect_output',
+                       output_dir='detection_result',
                        visualization=False,
                        shrink=0.5,
                        confs_threshold=0.6):
@@ -214,7 +214,7 @@ class PyramidBoxLiteServerMask(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default='pyramidbox_server_mask_detect_output',
+            default='detection_result',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
@@ -231,7 +231,7 @@ class PyramidBoxLiteServerMask(hub.Module):
         self.arg_input_group.add_argument(
             '--shrink',
             type=ast.literal_eval,
-            default=0.8,
+            default=0.5,
             help=
             "resize the image to `shrink * original_shape` before feeding into network."
         )
