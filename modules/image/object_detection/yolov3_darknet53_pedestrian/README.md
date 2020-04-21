@@ -37,7 +37,6 @@ def context(trainable=True,
 ```python
 def object_detection(paths=None,
                      images=None,
-                     data=None,
                      batch_size=1,
                      use_gpu=False,
                      score_thresh=0.2,
