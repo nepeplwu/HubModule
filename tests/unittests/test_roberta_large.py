@@ -15,6 +15,7 @@ import os
 from unittest import TestCase, main
 os.environ['CUDA_VISIBLE_DEVICES'] = '7'
 
+import numpy as np
 import paddlehub as hub
 
 
@@ -38,7 +39,6 @@ class RoBERTaChnLargeTestCase(TestCase):
         self.assertEqual(len(results[0]), 2)
         self.assertEqual(len(results_2[0]), 2)
         # sequence embedding shape
-        print(results[0][0].shape, results[0][1].shape)
         self.assertEqual(results[0][0].shape, (1024, ))
         self.assertEqual(results_2[0][0].shape, (1024, ))
         # token embedding shape, max_seq_len is 512
@@ -48,12 +48,14 @@ class RoBERTaChnLargeTestCase(TestCase):
         # test gpu
         results_3 = self.module.get_embedding(
             texts=self.test_text, use_gpu=True, batch_size=1)
-        for index, res in enumerate(results):
-            res_3 = results_3[index]
-            import numpy as np
-            print(np.sum(res[0]), np.sum(res_3[0]))
-            self.assertTrue((res[0] == res_3[0]).all())
-            self.assertTrue((res[1] == res_3[1]).all())
+        diff = np.abs(results[0][0] - results_3[0][0])
+        self.assertTrue((diff < 1e-6).all)
+        diff = np.abs(results[0][1] - results_3[0][1])
+        self.assertTrue((diff < 1e-6).all)
+        diff = np.abs(results[1][0] - results_3[1][0])
+        self.assertTrue((diff < 1e-6).all)
+        diff = np.abs(results[1][1] - results_3[1][1])
+        self.assertTrue((diff < 1e-6).all)
 
     def test_get_params_layer(self):
         self.module.context()
