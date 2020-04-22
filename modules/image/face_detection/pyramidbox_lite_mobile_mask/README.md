@@ -22,6 +22,7 @@ def __init__(face_detector_module=None)
 ```python
 def face_detection(images=None,
                    paths=None,
+                   batch_size=1,
                    use_gpu=False,
                    visualization=False,
                    output_dir='detection_result',

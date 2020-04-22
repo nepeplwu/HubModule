@@ -4,6 +4,6 @@ exclude:
   - README.md
 resources:
   -
-    url: https://bj.bcebos.com/paddlehub/hub_dev/pyramidbox_lite_server_mask_detectoion.tar.gz
+    url: https://bj.bcebos.com/paddlehub/hub_dev/pyramidbox_lite_server_mask_model.tar.gz
     dest: .
     uncompress: True

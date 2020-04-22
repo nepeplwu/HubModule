@@ -75,6 +75,7 @@ class PyramidBoxLiteMobileMask(hub.Module):
                        images=None,
                        paths=None,
                        data=None,
+                       batch_size=1,
                        use_gpu=False,
                        visualization=False,
                        output_dir='detection_result',
@@ -87,6 +88,7 @@ class PyramidBoxLiteMobileMask(hub.Module):
         Args:
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space must be BGR.
             paths (list[str]): The paths of images.
+            batch_size (int): batch size of image tensor to be fed into the later classification network.
             use_gpu (bool): Whether to use gpu.
             visualization (bool): Whether to save image or not.
             output_dir (str): The path to store output images.
@@ -119,27 +121,57 @@ class PyramidBoxLiteMobileMask(hub.Module):
                     images = list()
                 images += data['data']
 
-        res = list()
-        # process one by one
-        for element in reader(self.face_detector, shrink, confs_threshold,
-                              images, paths, use_gpu, use_multi_scale):
-            detect_faces_list = [
-                handled['face'] for handled in element['preprocessed']
+        # get all data
+        all_element = list()
+        for yield_data in reader(self.face_detector, shrink, confs_threshold,
+                                 images, paths, use_gpu, use_multi_scale):
+            all_element.append(yield_data)
+
+        image_list = list()
+        element_image_num = list()
+        for i in range(len(all_element)):
+            element_image = [
+                handled['image'] for handled in all_element[i]['preprocessed']
             ]
-            image_list = [
-                handled['image'] for handled in element['preprocessed']
-            ]
-            image_arr = np.squeeze(np.array(image_list), axis=1)
+            element_image_num.append(len(element_image))
+            image_list.extend(element_image)
+
+        total_num = len(image_list)
+        loop_num = int(np.ceil(total_num / batch_size))
+
+        predict_out = np.zeros((1, 2))
+        for iter_id in range(loop_num):
+            batch_data = list()
+            handle_id = iter_id * batch_size
+            for element_id in range(batch_size):
+                try:
+                    batch_data.append(image_list[handle_id + element_id])
+                except:
+                    pass
+
+            image_arr = np.squeeze(np.array(batch_data), axis=1)
             image_tensor = PaddleTensor(image_arr.copy())
             data_out = self.gpu_predictor.run([
                 image_tensor
             ]) if use_gpu else self.cpu_predictor.run([image_tensor])
             # len(data_out) == 1
             # data_out[0].as_ndarray().shape == (-1, 2)
+            data_out = data_out[0].as_ndarray()
+            predict_out = np.concatenate((predict_out, data_out))
+
+        predict_out = predict_out[1:]
+        # postprocess one by one
+        res = list()
+        for i in range(len(all_element)):
+            detect_faces_list = [
+                handled['face'] for handled in all_element[i]['preprocessed']
+            ]
+            interval_left = sum(element_image_num[0:i])
+            interval_right = interval_left + element_image_num[i]
             out = postprocess(
-                confidence_out=data_out[0].as_ndarray(),
-                org_im=element['org_im'],
-                org_im_path=element['org_im_path'],
+                confidence_out=predict_out[interval_left:interval_right],
+                org_im=all_element[i]['org_im'],
+                org_im_path=all_element[i]['org_im_path'],
                 detected_faces=detect_faces_list,
                 output_dir=output_dir,
                 visualization=visualization)
