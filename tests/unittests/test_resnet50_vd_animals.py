@@ -4,7 +4,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import time
 import unittest
 
 import cv2
@@ -72,6 +71,13 @@ class TestResNet50vdAnimal(unittest.TestCase):
                     images=np.expand_dims(im, axis=0), use_gpu=False, top_k=5)
                 print(result)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.animal_classify.save_inference_model(
+                dirname='resnet50_vd_animals',
+                model_filename='model',
+                combined=False)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
@@ -79,5 +85,6 @@ if __name__ == "__main__":
     suite.addTest(TestResNet50vdAnimal('test_single_pic'))
     suite.addTest(TestResNet50vdAnimal('test_batch'))
     suite.addTest(TestResNet50vdAnimal('test_ndarray'))
+    suite.addTest(TestResNet50vdAnimal('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

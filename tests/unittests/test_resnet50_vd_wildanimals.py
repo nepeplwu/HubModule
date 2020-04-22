@@ -4,7 +4,6 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-import time
 import unittest
 
 import cv2
@@ -15,16 +14,16 @@ import paddlehub as hub
 pic_dir = '../image_dataset/classification/animals/'
 
 
-class TestResNet50vdWildBeast(unittest.TestCase):
+class TestResNet50vdWildAnimals(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         """Prepare the environment once before execution of all tests.\n"""
-        self.wild_beast_classify = hub.Module(name="resnet50_vd_wildanimals")
+        self.wildanimals_classify = hub.Module(name="resnet50_vd_wildanimals")
 
     @classmethod
     def tearDownClass(self):
         """clean up the environment after the execution of all tests.\n"""
-        self.wild_beast_classify = None
+        self.wildanimals_classify = None
 
     def setUp(self):
         "Call setUp() to prepare environment\n"
@@ -35,7 +34,7 @@ class TestResNet50vdWildBeast(unittest.TestCase):
         self.test_prog = None
 
     def test_context(self):
-        self.wild_beast_classify.context(pretrained=True)
+        self.wildanimals_classify.context(pretrained=True)
 
     def test_single_pic(self):
         with fluid.program_guard(self.test_prog):
@@ -45,7 +44,7 @@ class TestResNet50vdWildBeast(unittest.TestCase):
             print('\n')
             for pic_path in pics_path_list:
                 print(pic_path)
-                result = self.wild_beast_classify.classification(
+                result = self.wildanimals_classify.classification(
                     paths=[pic_path], use_gpu=False)
                 print(result)
 
@@ -55,7 +54,7 @@ class TestResNet50vdWildBeast(unittest.TestCase):
                 os.path.join(pic_dir, f) for f in os.listdir(pic_dir)
             ]
             print('\n')
-            result = self.wild_beast_classify.classification(
+            result = self.wildanimals_classify.classification(
                 paths=pics_path_list, batch_size=3, use_gpu=False)
             print(result)
 
@@ -68,16 +67,24 @@ class TestResNet50vdWildBeast(unittest.TestCase):
             print('\n')
             for pic_path in pics_path_list:
                 im = cv2.cvtColor(cv2.imread(pic_path), cv2.COLOR_BGR2RGB)
-                result = self.wild_beast_classify.classification(
+                result = self.wildanimals_classify.classification(
                     images=[im], use_gpu=False)
                 print(result)
+
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.wildanimals_classify.save_inference_model(
+                dirname='resnet50_vd_wildanimals',
+                model_filename=None,
+                combined=True)
 
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(TestResNet50vdWildBeast('test_context'))
-    suite.addTest(TestResNet50vdWildBeast('test_single_pic'))
-    suite.addTest(TestResNet50vdWildBeast('test_batch'))
-    suite.addTest(TestResNet50vdWildBeast('test_ndarray'))
+    suite.addTest(TestResNet50vdWildAnimals('test_context'))
+    suite.addTest(TestResNet50vdWildAnimals('test_single_pic'))
+    suite.addTest(TestResNet50vdWildAnimals('test_batch'))
+    suite.addTest(TestResNet50vdWildAnimals('test_ndarray'))
+    suite.addTest(TestResNet50vdWildAnimals('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)

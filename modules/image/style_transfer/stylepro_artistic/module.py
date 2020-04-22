@@ -22,7 +22,7 @@ from stylepro_artistic.data_feed import reader
 
 @moduleinfo(
     name="stylepro_artistic",
-    version="1.0.0",
+    version="1.0.1",
     type="cv/style_transfer",
     summary=
     "StylePro Artistic is an algorithm for Arbitrary image style, which is parameter-free, fast yet effective.",
@@ -138,6 +138,64 @@ class StyleProjection(hub.Module):
                 size=(w, h))
             im_output.append(result)
         return im_output
+
+    def save_inference_model(self,
+                             dirname,
+                             model_filename=None,
+                             params_filename=None,
+                             combined=True):
+        encode_dirname = os.path.join(dirname, 'encoder')
+        decode_dirname = os.path.join(dirname, 'decoder')
+        self._save_encode_model(encode_dirname, model_filename, params_filename,
+                                combined)
+        self._save_decode_model(decode_dirname, model_filename, params_filename,
+                                combined)
+
+    def _save_encode_model(self,
+                           dirname,
+                           model_filename=None,
+                           params_filename=None,
+                           combined=True):
+        if combined:
+            model_filename = "__model__" if not model_filename else model_filename
+            params_filename = "__params__" if not params_filename else params_filename
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        encode_program, encode_feeded_var_names, encode_target_vars = fluid.io.load_inference_model(
+            dirname=self.pretrained_encoder_net, executor=exe)
+
+        fluid.io.save_inference_model(
+            dirname=dirname,
+            main_program=encode_program,
+            executor=exe,
+            feeded_var_names=encode_feeded_var_names,
+            target_vars=encode_target_vars,
+            model_filename=model_filename,
+            params_filename=params_filename)
+
+    def _save_decode_model(self,
+                           dirname,
+                           model_filename=None,
+                           params_filename=None,
+                           combined=True):
+        if combined:
+            model_filename = "__model__" if not model_filename else model_filename
+            params_filename = "__params__" if not params_filename else params_filename
+        place = fluid.CPUPlace()
+        exe = fluid.Executor(place)
+
+        decode_program, decode_feeded_var_names, decode_target_vars = fluid.io.load_inference_model(
+            dirname=self.pretrained_decoder_net, executor=exe)
+
+        fluid.io.save_inference_model(
+            dirname=dirname,
+            main_program=decode_program,
+            executor=exe,
+            feeded_var_names=decode_feeded_var_names,
+            target_vars=decode_target_vars,
+            model_filename=model_filename,
+            params_filename=params_filename)
 
     @serving
     def serving_method(self, images, **kwargs):

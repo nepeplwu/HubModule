@@ -98,11 +98,19 @@ class TestStyleProjection(unittest.TestCase):
                     output_dir='transfer_out',
                     visualization=True)
 
+    def test_save_inference_model(self):
+        with fluid.program_guard(self.test_prog):
+            self.style_projection.save_inference_model(
+                dirname='stylepro_artistic',
+                model_filename='model',
+                combined=True)
+
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(TestStyleProjection('test_single_style'))
     suite.addTest(TestStyleProjection('test_multiple_styles'))
     suite.addTest(TestStyleProjection('test_input_ndarray'))
+    suite.addTest(TestStyleProjection('test_save_inference_model'))
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
