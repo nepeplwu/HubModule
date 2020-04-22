@@ -11,13 +11,12 @@ hub run deeplabv3p_xception65_humanseg --input_path "/PATH/TO/IMAGE"
 ## API
 
 ```python
-def segmentation(self,
-                 images=None,
+def segmentation(images=None,
                  paths=None,
                  batch_size=1,
                  use_gpu=False,
                  visualization=False,
-                 output_dir='human_seg_output')
+                 output_dir='humanseg_output')
 ```
 
 预测API，用于人像分割。
