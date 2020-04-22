@@ -7,11 +7,17 @@ from PIL import Image, ImageDraw
 __all__ = ['load_label_info', 'postprocess']
 
 
+def check_dir(dir_path):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    elif os.path.isfile(dir_path):
+        os.remove(dir_path)
+        os.makedirs(dir_path)
+
+
 def get_save_image_name(img, output_dir, image_path):
     """Get save image name from source image path.
     """
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
     image_name = os.path.split(image_path)[-1]
     name, ext = os.path.splitext(image_name)
 
@@ -85,28 +91,37 @@ def postprocess(paths,
                 output_dir,
                 handle_id,
                 visualization=True):
-    """postprocess the lod_tensor produced by fluid.Executor.run
+    """
+    postprocess the lod_tensor produced by fluid.Executor.run
 
-    :param paths: the path of images.
-    :type paths: list, each element is a str
-    :param images: data of images, [N, H, W, C]
-    :type images: numpy.ndarray
-    :param data_out: data produced by executor.run
-    :type data_out: lod_tensor
-    :param score_thresh: the low limit of bounding box.
-    :type score_thresh: float
-    :param label_names: label names
-    :type label_names: list
-    :param output_dir: output directory.
-    :type output_dir: str
-    :param handle_id: The number of images that have been handled.
-    :type handle_id: int
-    :param visualization: whether to draw bbox and save images.
-    :param visualization: bool
+    Args:
+        paths (list[str]): The paths of images.
+        images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
+        data_out (lod_tensor): data output of predictor.
+        batch_size (int): batch size.
+        use_gpu (bool): Whether to use gpu.
+        output_dir (str): The path to store output images.
+        visualization (bool): Whether to save image or not.
+        score_thresh (float): the low limit of bounding box.
+        label_names (list[str]): label names.
+        handle_id (int): The number of images that have been handled.
+
+    Returns:
+        res (list[dict]): The result of vehicles detecion. keys include 'data', 'save_path', the corresponding value is:
+            data (dict): the result of object detection, keys include 'left', 'top', 'right', 'bottom', 'label', 'confidence', the corresponding value is:
+                left (float): The X coordinate of the upper left corner of the bounding box;
+                top (float): The Y coordinate of the upper left corner of the bounding box;
+                right (float): The X coordinate of the lower right corner of the bounding box;
+                bottom (float): The Y coordinate of the lower right corner of the bounding box;
+                label (str): The label of detection result;
+                confidence (float): The confidence of detection result.
+            save_path (str): The path to save output images.
     """
     lod_tensor = data_out[0]
     lod = lod_tensor.lod[0]
     results = lod_tensor.as_ndarray()
+
+    check_dir(output_dir)
 
     assert type(paths) is list, "type(paths) is not list."
     if handle_id < len(paths):
@@ -115,13 +130,12 @@ def postprocess(paths,
     else:
         unhandled_paths_num = 0
 
-    output = []
+    output = list()
     for index in range(len(lod) - 1):
         output_i = {'data': []}
         if index < unhandled_paths_num:
             org_img_path = unhandled_paths[index]
             org_img = Image.open(org_img_path)
-            output_i['path'] = org_img_path
         else:
             org_img = images[index - unhandled_paths_num]
             org_img = org_img.astype(np.uint8)

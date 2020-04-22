@@ -8,7 +8,7 @@ from paddle import fluid
 from paddle.fluid.param_attr import ParamAttr
 from paddle.fluid.regularizer import L2Decay
 
-__all__ = ['YOLOv3Head']
+__all__ = ['MultiClassNMS', 'YOLOv3Head']
 
 
 class MultiClassNMS(object):

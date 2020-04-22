@@ -12,7 +12,7 @@ from paddlehub.common.paddle_helper import add_vars_prefix
 
 from yolov3.data_feed import reader
 from yolov3.processor import load_label_info, postprocess
-from yolov3.yolo_head import YOLOv3Head
+from yolov3.yolo_head import MultiClassNMS, YOLOv3Head
 
 
 @moduleinfo(
@@ -27,6 +27,7 @@ class YOLOv3(hub.Module):
         self.reader = reader
         self.load_label_info = load_label_info
         self.postprocess = postprocess
+        self.MultiClassNMS = MultiClassNMS
         self.YOLOv3Head = YOLOv3Head
 
     def context(self,
@@ -34,19 +35,23 @@ class YOLOv3(hub.Module):
                 yolo_head,
                 image,
                 trainable=True,
-                var_prefix=''):
-        """Distill the Head Features, so as to perform transfer learning.
+                var_prefix='',
+                get_prediction=False):
+        """
+        Distill the Head Features, so as to perform transfer learning.
 
-        :param body_feats: feature maps of backbone
-        :type backbone: list
-        :param yolo_head: yolo_head of YOLOv3
-        :type yolo_head: <class 'YOLOv3Head' object>
-        :param image: image tensor.
-        :type image: <class 'paddle.fluid.framework.Variable'>
-        :param trainable: whether to set parameters trainable.
-        :type trainable: bool
-        :param var_prefix: the prefix of variables in yolo_head and backbone
-        :type var_prefix: str
+        Args:
+            body_feats (feature maps of backbone): feature maps of backbone.
+            yolo_head (<class 'YOLOv3Head' object>): yolo_head of YOLOv3
+            image (Variable): image tensor.
+            trainable (bool): whether to set parameters trainable.
+            var_prefix (str): the prefix of variables in yolo_head and backbone.
+            get_prediction (bool): whether to get prediction or not.
+
+        Returns:
+             inputs(dict): the input variables.
+             outputs(dict): the output variables.
+             context_prog (Program): the program to execute transfer learning.
         """
         context_prog = image.block.program
         with fluid.program_guard(context_prog):
@@ -58,11 +63,14 @@ class YOLOv3(hub.Module):
                 'image': var_prefix + image.name,
                 'im_size': var_prefix + im_size.name
             }
-            #             bbox_out = yolo_head.get_prediction(head_features, im_size)
-            outputs = {
-                'head_features':
-                [var_prefix + var.name for var in head_features]
-            }
+            if get_prediction:
+                bbox_out = yolo_head.get_prediction(head_features, im_size)
+                outputs = {'bbox_out': [var_prefix + bbox_out.name]}
+            else:
+                outputs = {
+                    'head_features':
+                    [var_prefix + var.name for var in head_features]
+                }
 
             place = fluid.CPUPlace()
             exe = fluid.Executor(place)
