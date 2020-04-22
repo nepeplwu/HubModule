@@ -89,7 +89,7 @@ class FaceDetector320(hub.Module):
         API for face detection.
 
         Args:
-            images (list(numpy.ndarray)): images data, shape of each is [H, W, C]
+            images (list(numpy.ndarray)): images data, shape of each is [H, W, C], color space is BGR.
             paths (list[str]): The paths of images.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
@@ -205,7 +205,7 @@ class FaceDetector320(hub.Module):
         self.arg_config_group.add_argument(
             '--output_dir',
             type=str,
-            default=None,
+            default='face_detector_320_predict_output',
             help="The directory to save output images.")
         self.arg_config_group.add_argument(
             '--visualization',
