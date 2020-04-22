@@ -30,28 +30,20 @@ def face_detection(images=None,
 * batch\_size (int): batch 的大小；
 * use\_gpu (bool): 是否使用 GPU；
 * visualization (bool): 是否将识别结果保存为图片文件；
-* output\_dir (str): 图片的保存路径，默认设为detection\_result；
+* output\_dir (str): 图片的保存路径，默认设为 detection\_result；
 * shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果。
 * confs\_threshold (float): 置信度的阈值。
 
 **返回**
 
-* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有 path, data，其中：
-  * path 字段为原输入图片的路径（仅当使用paths输入时存在）；
-  * data 字段为检测结果，类型为dict，list的每一个元素为dict，其中'left', 'top', 'right', 'bottom' 为边界框的坐标，'confidence' 为此边界框的置信度。
-
-## 代码示例
-
-```python
-import paddlehub as hub
-import cv2
-
-face_detector = hub.Module(name="pyramidbox_lite_server")
-result = face_detector.face_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
-# or
-# result = face_detector.face_detection((paths=['/PATH/TO/IMAGE'])
-```
-
+* res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，各字段为：
+  * path (str): 原输入图片的路径；
+  * data (list): 检测结果，list 的每一个元素为 dict，各字段为:
+      * confidence (float): 识别的置信度；
+      * left (int): 边界框的左上角x坐标；
+      * top (int): 边界框的左上角y坐标；
+      * right (int): 边界框的右下角x坐标；
+      * bottom (int): 边界框的右下角y坐标。
 
 ```python
 def save_inference_model(dirname,
@@ -68,6 +60,18 @@ def save_inference_model(dirname,
 * model\_filename: 模型文件名称，默认为\_\_model\_\_
 * params\_filename: 参数文件名称，默认为\_\_params\_\_(仅当`combined`为True时生效)
 * combined: 是否将参数保存到统一的一个文件中
+
+## 代码示例
+
+```python
+import paddlehub as hub
+import cv2
+
+face_detector = hub.Module(name="pyramidbox_lite_server")
+result = face_detector.face_detection(images=[cv2.imread('/PATH/TO/IMAGE')])
+# or
+# result = face_detector.face_detection((paths=['/PATH/TO/IMAGE'])
+```
 
 ## 服务部署
 

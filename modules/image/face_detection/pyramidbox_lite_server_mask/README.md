@@ -18,6 +18,7 @@ def __init__(face_detector_module=None)
 
 * face\_detector\_module (class): 人脸检测模型，默认为 pyramidbox\_lite\_server.
 
+
 ```python
 def face_detection(images=None,
                    paths=None,
@@ -43,6 +44,18 @@ def face_detection(images=None,
 * use\_multi\_scale (bool) : 用于设置是否开启多尺度的人脸检测，开启多尺度人脸检测能够更好的检测到输入图像中不同尺寸的人脸，但是会增加模型计算量，降低预测速度；
 * shrink (float): 用于设置图片的缩放比例，该值越大，则对于输入图片中的小尺寸人脸有更好的检测效果（模型计算成本越高），反之则对于大尺寸人脸有更好的检测效果；
 * confs\_threshold (float): 人脸检测的置信度的阈值。
+
+**返回**
+
+* res (list\[dict\]): 识别结果的列表，列表元素为 dict, 有以下两个字段：
+    * path (str): 原图的路径。
+    * data (list\[dict\]): 识别的边界框列表，有以下字段：
+        * label (str): 识别标签，为 'NO MASK' 或者 'MASK'；
+        * confidence (float): 识别的置信度；
+        * left (int): 边界框的左上角x坐标；
+        * top (int): 边界框的左上角y坐标；
+        * right (int): 边界框的右下角x坐标；
+        * bottom (int): 边界框的右下角y坐标；
 
 ```python
 def set_face_detector_module(face_detector_module)
@@ -83,8 +96,8 @@ def save_inference_model(dirname,
 ## 代码示例
 
 ```python
-import cv2
 import paddlehub as hub
+import cv2
 
 mask_detector = hub.Module(name="pyramidbox_lite_server_mask")
 
@@ -153,7 +166,6 @@ pyramidbox_lite_server_mask.save_inference_model(dirname="test_program")
 3. 模型通过Paddle Lite进行部署
 
 参考[Paddle-Lite口罩检测模型部署教程](https://github.com/PaddlePaddle/Paddle-Lite/tree/develop/lite/demo/cxx)
-
 
 ### 依赖
 
