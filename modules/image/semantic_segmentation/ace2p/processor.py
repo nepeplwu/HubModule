@@ -180,14 +180,14 @@ def postprocess(data_out, org_im, org_im_path, image_info, output_dir,
     logits_result = transform_logits(data_out, image_center, image_scale,
                                      image_width, image_height, scale)
     parsing = np.argmax(logits_result, axis=2)
-    alpha_im = np.asarray(parsing, dtype=np.uint8)
-    result['data'] = alpha_im
+    parsing_im = np.asarray(parsing, dtype=np.uint8)
+    result['data'] = parsing_im
 
     if visualization:
         check_dir(output_dir)
         save_im_path = get_save_image_name(org_im, org_im_path, output_dir)
-        alpha_im = Image.fromarray(alpha_im)
-        alpha_im.putpalette(palette)
-        alpha_im.save(save_im_path)
+        parsing_im = Image.fromarray(parsing_im)
+        parsing_im.putpalette(palette)
+        parsing_im.save(save_im_path)
 
     return result

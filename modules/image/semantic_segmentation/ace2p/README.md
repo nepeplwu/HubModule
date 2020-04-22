@@ -38,7 +38,7 @@ def segmentation(images=None,
 
 * res (list\[dict\]): 识别结果的列表，列表中每一个元素为 dict，关键字有'path', 'data'，相应的取值为：
   * path (str): 原输入图片的路径；
-  * data (numpy.ndarray): 图像分割得到的图片数据，仅返回 Alpha 通道。
+  * data (numpy.ndarray): 图像分割得到的结果，shape 为`H * W`，元素的取值为0-19，表示每个像素的分类结果，映射顺序与下面的调色板相同。
 
 ```python
 def save_inference_model(dirname,
