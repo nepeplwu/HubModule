@@ -83,8 +83,8 @@ def save_inference_model(dirname,
 ## 代码示例
 
 ```python
-import paddlehub as hub
 import cv2
+import paddlehub as hub
 
 mask_detector = hub.Module(name="pyramidbox_lite_server_mask")
 
@@ -131,6 +131,29 @@ r = requests.post(url=url, headers=headers, data=json.dumps(data))
 # 打印预测结果
 print(r.json()["results"])
 ```
+
+## Paddle Lite部署
+
+1.  通过python执行以下代码，保存模型
+
+```python
+import paddlehub as hub
+pyramidbox_lite_server_mask = hub.Module(name="pyramidbox_lite_server_mask")
+
+# 将模型保存在test_program文件夹之中
+pyramidbox_lite_server_mask.save_inference_model(dirname="test_program")
+```
+
+通过以上命令，可以获得人脸检测和口罩佩戴判断模型，分别存储在pyramidbox\_lite和mask\_detector之中。文件夹中的\_\_model\_\_是模型结构文件，\_\_params\_\_文件是权重文件。
+
+2.  进行模型转换
+
+从paddlehub下载的是预测模型，可以使用PaddleLite提供的模型优化工具OPT对预测模型进行转换，转换之后进而可以实现在手机等端侧硬件上的部署，具体请请参考[OPT工具](https://paddle-lite.readthedocs.io/zh/latest/user_guides/model_optimize_tool.html)
+
+3. 模型通过Paddle Lite进行部署
+
+参考[Paddle-Lite口罩检测模型部署教程](https://github.com/PaddlePaddle/Paddle-Lite/tree/develop/lite/demo/cxx)
+
 
 ### 依赖
 

@@ -183,6 +183,26 @@ class PyramidBoxLiteMobileMask(hub.Module):
                              model_filename=None,
                              params_filename=None,
                              combined=True):
+        classifier_dir = os.path.join(dirname, 'mask_detector')
+        detector_dir = os.path.join(dirname, 'pyramidbox_lite')
+        self._save_classifier_model(classifier_dir, model_filename,
+                                    params_filename, combined)
+        self._save_detector_model(detector_dir, model_filename, params_filename,
+                                  combined)
+
+    def _save_detector_model(self,
+                             dirname,
+                             model_filename=None,
+                             params_filename=None,
+                             combined=True):
+        self.face_detector.save_inference_model(dirname, model_filename,
+                                                params_filename, combined)
+
+    def _save_classifier_model(self,
+                               dirname,
+                               model_filename=None,
+                               params_filename=None,
+                               combined=True):
         if combined:
             model_filename = "__model__" if not model_filename else model_filename
             params_filename = "__params__" if not params_filename else params_filename
