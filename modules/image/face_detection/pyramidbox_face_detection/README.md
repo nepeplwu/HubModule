@@ -21,7 +21,6 @@ hub run pyramidbox_face_detection --input_path "/PATH/TO/IMAGE"
 ```python
 def face_detection(images=None,  
                    paths=None,  
-                   data=None,
                    use_gpu=False,  
                    output_dir='detection_result',  
                    visualization=False,  
