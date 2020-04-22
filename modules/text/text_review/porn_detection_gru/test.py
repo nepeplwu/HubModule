@@ -15,11 +15,21 @@ if __name__ == "__main__":
     input_dict = {"text": test_text}
     results = porn_detection_gru.detection(
         data=input_dict, use_gpu=True, batch_size=1)
+    for index, result in enumerate(results):
+        if six.PY2:
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+        else:
+            print(results[index])
 
-    print(results)
     results = porn_detection_gru.detection(
         texts=test_text, use_gpu=False, batch_size=2)
-    print(results)
+    for index, result in enumerate(results):
+        if six.PY2:
+            print(
+                json.dumps(results[index], encoding="utf8", ensure_ascii=False))
+        else:
+            print(results[index])
 
     print(porn_detection_gru.get_vocab_path())
     print(porn_detection_gru.get_labels())

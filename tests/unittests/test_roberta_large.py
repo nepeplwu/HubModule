@@ -13,7 +13,7 @@
 # limitations under the License.
 import os
 from unittest import TestCase, main
-os.environ['CUDA_VISIBLE_DEVICES'] = '7'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 import numpy as np
 import paddlehub as hub
