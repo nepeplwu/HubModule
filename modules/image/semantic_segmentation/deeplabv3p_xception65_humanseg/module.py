@@ -54,6 +54,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
     def segmentation(self,
                      images=None,
                      paths=None,
+                     data=None,
                      batch_size=1,
                      use_gpu=False,
                      visualization=False,
@@ -64,6 +65,7 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
         Args:
             images (list(numpy.ndarray)): images data, shape of each is [H, W, C], the color space is BGR.
             paths (list[str]): The paths of images.
+            data (dict): key is 'image', the corresponding value is the path to image.
             batch_size (int): batch size.
             use_gpu (bool): Whether to use gpu.
             visualization (bool): Whether to save image or not.
@@ -74,6 +76,21 @@ class DeeplabV3pXception65HumanSeg(hub.Module):
                 save_path (str, optional): the path to save images. (Exists only if visualization is True)
                 data (numpy.ndarray): data of post processed image.
         """
+        if use_gpu:
+            try:
+                _places = os.environ["CUDA_VISIBLE_DEVICES"]
+                int(_places[0])
+            except:
+                raise RuntimeError(
+                    "Attempt to use GPU for prediction, but environment variable CUDA_VISIBLE_DEVICES was not set correctly."
+                )
+
+        # compatibility with older versions
+        if data and 'image' in data:
+            if paths is None:
+                paths = list()
+            paths += data['image']
+
         all_data = list()
         for yield_data in reader(images, paths):
             all_data.append(yield_data)
