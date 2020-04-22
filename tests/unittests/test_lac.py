@@ -19,6 +19,7 @@ import paddlehub as hub
 
 
 class LacTestCase(TestCase):
+    # yapf: disable
     def setUp(self):
         self.module = hub.Module(name='lac')
         self.user_dict_path = '../lac_user_dict/user.dict'
@@ -29,29 +30,26 @@ class LacTestCase(TestCase):
                 'tag': ['TIME', 'v', 'q', 'n']
             },
             {
-                'word':
-                ['调料', '份量', '不能', '多', '，', '也', '不能少', '，', '味道', '才能', '正好'],
+                'word':['调料', '份量', '不能', '多', '，', '也', '不能少', '，', '味道', '才能', '正好'],
                 'tag': ['n', 'n', 'v', 'a', 'w', 'd', 'a', 'w', 'n', 'v', 'd']
             }
         ]
-        self.results_notag = [{
-            'word': ['今天', '是', '个', '好日子']
-        },
-                              {
-                                  'word': [
-                                      '调料', '份量', '不能', '多', '，', '也', '不能少',
-                                      '，', '味道', '才能', '正好'
-                                  ]
-                              }]
-        self.results_notag_userdict = [{
-            'word': ['今天', '是', '个', '好日子']
-        },
-                                       {
-                                           'word': [
-                                               '调料', '份量', '不能', '多', '，', '也',
-                                               '不能', '少', '，', '味道', '才能', '正好'
-                                           ]
-                                       }]
+        self.results_notag = [
+            {
+                'word': ['今天', '是', '个', '好日子']
+            },
+            {
+                'word': ['调料', '份量', '不能', '多', '，', '也', '不能少', '，', '味道', '才能', '正好']
+            }
+        ]
+        self.results_notag_userdict = [
+            {
+                'word': ['今天', '是', '个', '好日子']
+            },
+            {
+                'word': ['调料', '份量', '不能', '多', '，', '也', '不能', '少', '，', '味道', '才能', '正好']
+            }
+        ]
         self.tags = {
             'n': '普通名词',
             'f': '方位名词',
@@ -82,6 +80,7 @@ class LacTestCase(TestCase):
             'ORG': '机构名',
             'TIME': '时间'
         }
+    # yapf: enable.
 
     def test_set_user_dict(self):
         self.module.set_user_dict(self.user_dict_path)
